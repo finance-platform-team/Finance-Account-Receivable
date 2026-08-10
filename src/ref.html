@@ -1,0 +1,3095 @@
+<!--
+  ============================================================================
+  CFM · Collection Plan  —  Dataverse HTML Web Resource  (v2 · polished)
+  ----------------------------------------------------------------------------
+  Entity:  cfm_aragings
+  Editable inline:  Early Payment · Legal Issues · Bankruptcy · Claims Issue ·
+                    Stopped · Agreed Recon.  (PATCH on change → refresh row)
+  UX:
+    • FontAwesome icons across KPI cards, column groups, buttons, states
+    • Sticky Company Name column while scrolling horizontally
+    • Column-group visual separators + subtitle header row
+    • Editable cells have gold-tinted background + pencil hint on hover
+    • ACHV% rendered as coloured pill badge (over / mid / low)
+    • Zebra rows, hover left-accent bar
+    • Progress bar under Target KPI showing overall achievement
+    • Skeleton loading, richer empty & error states
+    • Keyboard: Enter commits, Escape reverts
+    • Toast auto-dismiss with typed icons
+  ============================================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Collection Plan · CFM</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <style>
+        /* ============================ TOKENS ============================ */
+        :root {
+            --brand-gold-600: #2b160a;
+            --gold-dark: #a5845b;
+            --gold-light: #f0c893;
+            --brand-gold: #a5845b;
+            --brand-gold-400: #f0c893;
+            --brand-gold-100: #f9f3ed;
+            --brand-gold-50: #fdfaf7;
+            --green-dark: #49604c;
+            --brand-green: #49604c;
+            --brand-green-200: #d1e0b1;
+            --brand-black: #211c1e;
+            --canvas: #f7f4ee;
+            --surface: #ffffff;
+            --surface-hover: #fbf8f2;
+            --surface-alt: #fbf6ec;
+            --border: #e8e0d3;
+            --border-hover: #d8cbb4;
+            --border-strong: #c9b892;
+            --text-primary: #211c1e;
+            --text-body: #514a44;
+            --muted: #8a8079;
+            --dim: #b3a99e;
+            --success: #49604c;
+            --warning: #c98a1e;
+            --danger: #b23a3a;
+            --info: #3b7ab8;
+            --amber: #c98a1e;
+            --amber-soft: rgba(201, 138, 30, .12);
+            --gold-soft: rgba(165, 132, 91, .12);
+            --gold-glow: rgba(165, 132, 91, .22);
+            --green-soft: rgba(73, 96, 76, .12);
+            --danger-soft: rgba(178, 58, 58, .10);
+            --info-soft: rgba(59, 122, 184, .10);
+            --grad-gold: linear-gradient(135deg, #a5845b 0%, #f0c893 100%);
+            --grad-gold-dk: linear-gradient(135deg, #2b160a 0%, #a5845b 100%);
+            --grad-card: linear-gradient(180deg, #fff 0%, #f9f3ed 100%);
+            --grad-green: linear-gradient(135deg, #49604c 0%, #a3b189 100%);
+            --sans: "Outfit", -apple-system, sans-serif;
+            --body: "Inter", -apple-system, sans-serif;
+            --mono: "JetBrains Mono", monospace;
+            --r-sm: 8px;
+            --r-md: 12px;
+            --r-lg: 16px;
+            --r-xl: 20px;
+            --r-pill: 999px;
+            --shadow-sm: 0 1px 3px rgba(33, 28, 30, .06);
+            --shadow-md: 0 4px 12px rgba(33, 28, 30, .07);
+            --shadow-lg: 0 12px 32px rgba(33, 28, 30, .12);
+            --shadow-gold: 0 6px 20px rgba(165, 132, 91, .22);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: var(--body);
+            background: var(--canvas);
+            color: var(--text-primary);
+            font-size: 13px;
+            line-height: 1.55;
+            padding: 20px 24px 60px
+        }
+
+        ::-webkit-scrollbar {
+            width: 7px;
+            height: 7px
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d9cdb8;
+            border-radius: 4px
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gold-dark)
+        }
+
+        /* ============================ PAGE HEADER ============================ */
+        .pg-hdr {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            gap: 12px;
+            flex-wrap: wrap
+        }
+
+        .pg-eyebrow {
+            font: 700 10px var(--sans);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .pg-eyebrow i {
+            color: var(--gold-dark);
+            font-size: 10px
+        }
+
+        .pg-title {
+            font: 800 24px var(--sans);
+            color: var(--brand-black);
+            letter-spacing: -.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .pg-title .status-chip {
+            font: 700 10px var(--sans);
+            text-transform: uppercase;
+            letter-spacing: .7px;
+            padding: 4px 10px;
+            border-radius: var(--r-pill);
+            background: var(--gold-soft);
+            color: var(--gold-dark);
+            border: 1px solid rgba(165, 132, 91, .22);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px
+        }
+
+        .pg-title .status-chip i {
+            font-size: 8px
+        }
+
+        .pg-sub {
+            font: 400 12px var(--body);
+            color: var(--muted);
+            margin-top: 3px
+        }
+
+        .hdr-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        /* ============================ BUTTONS ============================ */
+        .btn {
+            font: 600 12px var(--sans);
+            border-radius: var(--r-md);
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 9px 15px;
+            gap: 7px;
+            transition: all .22s cubic-bezier(.22, 1, .36, 1);
+            white-space: nowrap
+        }
+
+        .btn:active {
+            transform: scale(.97)
+        }
+
+        .btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+            filter: grayscale(.4);
+            transform: none
+        }
+
+        .btn:disabled:hover {
+            background: var(--grad-gold);
+            box-shadow: var(--shadow-sm)
+        }
+
+        .btn-locked {
+            opacity: .5;
+            cursor: not-allowed;
+            filter: grayscale(.4)
+        }
+
+        .btn-locked:hover {
+            background: var(--grad-gold);
+            box-shadow: var(--shadow-sm)
+        }
+
+        .btn-primary {
+            background: var(--grad-gold);
+            color: #fff;
+            box-shadow: var(--shadow-sm)
+        }
+
+        .btn-primary:hover {
+            background: var(--grad-gold-dk);
+            box-shadow: var(--shadow-gold)
+        }
+
+        .btn-outline {
+            background: #fff;
+            color: var(--text-body);
+            border: 1px solid var(--border)
+        }
+
+        .btn-outline:hover {
+            border-color: var(--gold-dark);
+            color: var(--gold-dark);
+            background: var(--brand-gold-100)
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--muted);
+            border: none;
+            padding: 8px 10px
+        }
+
+        .btn-ghost:hover {
+            color: var(--danger);
+            background: var(--danger-soft)
+        }
+
+        .btn-sm {
+            padding: 8px 14px;
+            font-size: 12px
+        }
+
+        .btn i {
+            font-size: 11px
+        }
+
+        /* ============================ PLAN META BAR ============================ */
+        .plan-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            padding: 12px 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: var(--shadow-sm)
+        }
+
+        .meta-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font: 500 12px var(--body);
+            color: var(--muted)
+        }
+
+        .meta-group i {
+            color: var(--gold-dark);
+            font-size: 12px
+        }
+
+        .meta-group strong {
+            color: var(--brand-black);
+            font-weight: 700
+        }
+
+        .meta-sep {
+            width: 1px;
+            height: 22px;
+            background: var(--border)
+        }
+
+        .pct-input {
+            width: 76px;
+            padding: 7px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #fff;
+            font: 700 13px var(--sans);
+            color: var(--brand-black);
+            text-align: center;
+            outline: none;
+            transition: all .18s
+        }
+
+        .pct-input:hover {
+            border-color: var(--border-hover)
+        }
+
+        .pct-input:focus {
+            border-color: var(--gold-dark);
+            box-shadow: 0 0 0 3px var(--gold-soft)
+        }
+
+        /* ============================ KPI SUMMARY BAR ============================ */
+        .kpi-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 18px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr)
+        }
+
+        .kpi-cell {
+            padding: 18px 22px;
+            border-right: 1px solid var(--border);
+            position: relative;
+            transition: background .2s;
+            cursor: default
+        }
+
+        .kpi-cell:last-child {
+            border-right: none;
+            background: var(--grad-card)
+        }
+
+        .kpi-cell:hover {
+            background: var(--brand-gold-50)
+        }
+
+        .kpi-cell:last-child:hover {
+            background: linear-gradient(180deg, #fff 0%, #f0e5d1 100%)
+        }
+
+        .kpi-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px
+        }
+
+        .kpi-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gold-soft);
+            color: var(--gold-dark);
+            font-size: 11px;
+            flex-shrink: 0
+        }
+
+        .kpi-icon.warn {
+            background: var(--amber-soft);
+            color: var(--amber)
+        }
+
+        .kpi-icon.info {
+            background: var(--info-soft);
+            color: var(--info)
+        }
+
+        .kpi-icon.green {
+            background: var(--green-soft);
+            color: var(--green-dark)
+        }
+
+        .kpi-icon.target {
+            background: var(--grad-gold);
+            color: #fff
+        }
+
+        .kpi-label {
+            font: 700 10px var(--sans);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted)
+        }
+
+        .kpi-value {
+            font: 800 20px var(--sans);
+            color: var(--brand-black);
+            letter-spacing: -.3px
+        }
+
+        .kpi-value.warn {
+            color: var(--amber)
+        }
+
+        .kpi-value.pos {
+            color: var(--green-dark)
+        }
+
+        .kpi-sub {
+            font: 500 10px var(--body);
+            color: var(--dim);
+            margin-top: 4px
+        }
+
+        .kpi-progress {
+            margin-top: 10px;
+            height: 4px;
+            background: var(--brand-gold-100);
+            border-radius: 2px;
+            overflow: hidden
+        }
+
+        .kpi-progress-bar {
+            height: 100%;
+            background: var(--grad-green);
+            border-radius: 2px;
+            transition: width .6s cubic-bezier(.22, 1, .36, 1);
+            width: 0%
+        }
+
+        /* ============================ TABLE SHELL ============================ */
+        .tbl-shell {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm)
+        }
+
+        .tbl-hdr-row {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(180deg, #fff, var(--canvas));
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: space-between
+        }
+
+        .tbl-count {
+            font: 600 11px var(--sans);
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap
+        }
+
+        .tbl-count strong {
+            color: var(--brand-black);
+            font-weight: 800
+        }
+
+        .tbl-count i {
+            color: var(--gold-dark);
+            font-size: 10px
+        }
+
+        /* ============================ FILTER BAR ============================ */
+        .filter-inline-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            flex: 1;
+            min-width: 0
+        }
+
+        .filter-inline-search {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 220px;
+            flex: 1 1 240px;
+            max-width: 320px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 9px 14px;
+            transition: all .18s
+        }
+
+        .filter-inline-search:focus-within {
+            border-color: var(--gold-dark);
+            box-shadow: 0 0 0 3px var(--gold-soft)
+        }
+
+        .filter-inline-search i {
+            color: var(--dim);
+            font-size: 12px;
+            transition: color .18s
+        }
+
+        .filter-inline-search:focus-within i {
+            color: var(--gold-dark)
+        }
+
+        .filter-inline-search input {
+            border: none;
+            outline: none;
+            background: transparent;
+            width: 100%;
+            font: 400 12px var(--body);
+            color: var(--text-body)
+        }
+
+        .filter-inline-search input::placeholder {
+            color: var(--dim)
+        }
+
+        .select-wrap {
+            position: relative;
+            display: inline-block
+        }
+
+        .field-input {
+            appearance: none;
+            -webkit-appearance: none;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 9px 32px 9px 34px;
+            font: 500 12px var(--sans);
+            color: var(--text-primary);
+            outline: none;
+            transition: all .18s;
+            cursor: pointer
+        }
+
+        .field-input:hover {
+            border-color: var(--border-hover)
+        }
+
+        .field-input:focus {
+            border-color: var(--gold-dark);
+            box-shadow: 0 0 0 3px var(--gold-soft)
+        }
+
+        .select-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--dim);
+            pointer-events: none;
+            font-size: 11px
+        }
+
+        .sel-arrow {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--dim);
+            pointer-events: none;
+            font-size: 9px
+        }
+
+        .filter-clear {
+            font: 600 11px var(--sans);
+            color: var(--muted);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all .15s
+        }
+
+        .filter-clear:hover {
+            color: var(--danger);
+            background: var(--danger-soft)
+        }
+
+        /* ============================ TABLE ============================ */
+        .tbl-scroll {
+            overflow: auto;
+            max-height: 70vh;
+            position: relative
+        }
+
+        .ar-tbl {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 2500px
+        }
+
+        .ar-tbl thead {
+            position: sticky;
+            top: 0;
+            z-index: 5
+        }
+
+        .ar-tbl thead tr.group-row {
+            background: linear-gradient(180deg, #2b160a, #3a1f10)
+        }
+
+        .ar-tbl thead tr.group-row th {
+            font: 700 9px var(--sans);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, .65);
+            padding: 8px 13px;
+            text-align: left;
+            white-space: nowrap;
+            border-right: 1px solid rgba(255, 255, 255, .06);
+            border-bottom: 1px solid rgba(255, 255, 255, .1)
+        }
+
+        .ar-tbl thead tr.group-row th i {
+            margin-right: 5px;
+            font-size: 9px;
+            color: var(--brand-gold-400)
+        }
+
+        .ar-tbl thead tr.head-row {
+            background: var(--gold-dark)
+        }
+
+        .ar-tbl thead tr.head-row th {
+            font: 700 9px var(--sans);
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: rgba(255, 255, 255, .9);
+            padding: 11px 13px;
+            text-align: left;
+            white-space: nowrap;
+            border-right: 1px solid rgba(255, 255, 255, .08)
+        }
+
+        .ar-tbl thead tr.head-row th.numeric {
+            text-align: right
+        }
+
+        .ar-tbl thead tr.head-row th i {
+            margin-right: 5px;
+            font-size: 9px;
+            opacity: .8
+        }
+
+        .ar-tbl thead tr.head-row th.col-group-end {
+            border-right: 2px solid var(--brand-gold-600)
+        }
+
+        .ar-tbl thead tr.group-row th.col-group-end {
+            border-right: 2px solid rgba(255, 255, 255, .15)
+        }
+
+        .ar-tbl tbody td {
+            padding: 10px 13px;
+            border-bottom: 1px solid var(--border);
+            border-right: 1px solid transparent;
+            font: 400 12px var(--body);
+            color: var(--text-body);
+            vertical-align: middle;
+            white-space: nowrap;
+            background: #fff;
+            transition: background .13s
+        }
+
+        .ar-tbl tbody tr:nth-child(even) td {
+            background: var(--brand-gold-50)
+        }
+
+        .ar-tbl tbody tr:hover td {
+            background: var(--surface-hover)
+        }
+
+        .ar-tbl tbody td.col-group-end {
+            border-right: 1px dashed var(--border)
+        }
+
+        .ar-tbl tbody td.numeric {
+            text-align: right
+        }
+
+        .col-id {
+            font: 700 11px var(--mono);
+            color: var(--gold-dark)
+        }
+
+        .col-bold {
+            font: 600 12px var(--sans);
+            color: var(--brand-black)
+        }
+
+        .col-amt {
+            font: 600 12px var(--mono);
+            color: var(--brand-black)
+        }
+
+        .col-rej {
+            font: 600 12px var(--mono);
+            color: var(--gold-dark)
+        }
+
+        .col-pos {
+            font: 700 12px var(--mono);
+            color: var(--green-dark)
+        }
+
+        /* Sticky Company Name column */
+        .stick-col {
+            position: sticky;
+            left: 0;
+            z-index: 2;
+            box-shadow: 2px 0 4px rgba(33, 28, 30, .04)
+        }
+
+        .ar-tbl thead tr.group-row th.stick-col {
+            z-index: 6;
+            background: linear-gradient(180deg, #2b160a, #3a1f10)
+        }
+
+        .ar-tbl thead tr.head-row th.stick-col {
+            z-index: 6;
+            background: var(--gold-dark)
+        }
+
+        .ar-tbl tbody tr:nth-child(even) td.stick-col {
+            background: var(--brand-gold-50)
+        }
+
+        .ar-tbl tbody tr:nth-child(odd) td.stick-col {
+            background: #fff
+        }
+
+        .ar-tbl tbody tr:hover td.stick-col {
+            background: var(--surface-hover)
+        }
+
+        /* Footer sticky bottom */
+        .ar-tbl tfoot {
+            position: sticky;
+            bottom: 0;
+            z-index: 4
+        }
+
+        .ar-tbl tfoot tr {
+            background: linear-gradient(180deg, #f6ede1, #efe1ce)
+        }
+
+        .ar-tbl tfoot td {
+            font-weight: 800;
+            color: var(--brand-black);
+            border-top: 2px solid var(--gold-dark);
+            padding: 13px 13px;
+            background: linear-gradient(180deg, #f6ede1, #efe1ce);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7)
+        }
+
+        .ar-tbl tfoot td.stick-col {
+            z-index: 5
+        }
+
+        /* ============================ EDITABLE CELL ============================ */
+        .cell-edit-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .cell-edit-wrap .edit-hint {
+            position: absolute;
+            left: -14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gold-dark);
+            opacity: 0;
+            font-size: 9px;
+            transition: opacity .15s;
+            pointer-events: none
+        }
+
+        .cell-edit-wrap:hover .edit-hint {
+            opacity: .6
+        }
+
+        .cell-input {
+            width: 110px;
+            padding: 7px 11px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--brand-gold-50);
+            font: 600 12px var(--mono);
+            color: var(--brand-black);
+            text-align: right;
+            outline: none;
+            transition: all .18s
+        }
+
+        .cell-input:hover {
+            border-color: var(--border-hover);
+            background: var(--brand-gold-100)
+        }
+
+        .cell-input:focus {
+            border-color: var(--gold-dark);
+            background: #fff;
+            box-shadow: 0 0 0 3px var(--gold-soft)
+        }
+
+        .cell-input.saving {
+            border-color: var(--gold-dark);
+            background: var(--brand-gold-100)
+        }
+
+        .cell-input.saved {
+            border-color: var(--green-dark);
+            background: var(--green-soft);
+            animation: savePulse .8s
+        }
+
+        .cell-input.error {
+            border-color: var(--danger);
+            background: var(--danger-soft)
+        }
+
+        .cell-input.dirty {
+            border-color: var(--amber);
+            background: var(--amber-soft)
+        }
+
+        .cell-locked {
+            display: inline-block;
+            width: 110px;
+            padding: 7px 11px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--canvas);
+            font: 600 12px var(--mono);
+            color: var(--muted);
+            text-align: right;
+            cursor: not-allowed
+        }
+
+        @keyframes savePulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(73, 96, 76, .4)
+            }
+
+            70% {
+                box-shadow: 0 0 0 8px rgba(73, 96, 76, 0)
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(73, 96, 76, 0)
+            }
+        }
+
+        /* ============================ ACHV BADGE ============================ */
+        .achv-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font: 800 11px var(--mono);
+            padding: 5px 12px;
+            border-radius: var(--r-pill);
+            min-width: 66px;
+            border: 1px solid transparent;
+            letter-spacing: -.2px
+        }
+
+        .achv-badge.over {
+            background: var(--green-soft);
+            color: var(--green-dark);
+            border-color: rgba(73, 96, 76, .2)
+        }
+
+        .achv-badge.mid {
+            background: var(--amber-soft);
+            color: #8B5A0B;
+            border-color: rgba(201, 138, 30, .24)
+        }
+
+        .achv-badge.low {
+            background: var(--danger-soft);
+            color: var(--danger);
+            border-color: rgba(178, 58, 58, .2)
+        }
+
+        .achv-badge i {
+            font-size: 8px
+        }
+
+        /* ============================ STATES ============================ */
+        .state-cell {
+            text-align: center;
+            padding: 56px 20px;
+            color: var(--muted);
+            font: 600 12px var(--sans)
+        }
+
+        .state-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 14px;
+            border-radius: 16px;
+            background: var(--gold-soft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold-dark);
+            font-size: 22px
+        }
+
+        .state-icon.error {
+            background: var(--danger-soft);
+            color: var(--danger)
+        }
+
+        .state-title {
+            font: 700 14px var(--sans);
+            color: var(--brand-black);
+            margin-bottom: 4px;
+            letter-spacing: -.2px
+        }
+
+        .state-msg {
+            font: 400 12px var(--body);
+            color: var(--muted);
+            max-width: 400px;
+            margin: 0 auto
+        }
+
+        /* Skeleton loading */
+        .skel-row td {
+            padding: 14px 13px
+        }
+
+        .skel {
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, var(--brand-gold-100) 0%, var(--brand-gold-50) 50%, var(--brand-gold-100) 100%);
+            background-size: 200% 100%;
+            animation: skelShift 1.4s ease-in-out infinite
+        }
+
+        @keyframes skelShift {
+            0% {
+                background-position: 200% 0
+            }
+
+            100% {
+                background-position: -200% 0
+            }
+        }
+
+        /* ============================ TOAST ============================ */
+        .toast-rack {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 9999;
+            pointer-events: none
+        }
+
+        .toast {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--gold-dark);
+            border-radius: var(--r-md);
+            padding: 12px 15px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+            min-width: 280px;
+            max-width: 380px;
+            animation: tin .3s cubic-bezier(.22, 1, .36, 1);
+            display: flex;
+            align-items: flex-start;
+            gap: 11px;
+            pointer-events: auto;
+            transition: opacity .3s, transform .3s
+        }
+
+        .toast.success {
+            border-left-color: var(--green-dark)
+        }
+
+        .toast.alert {
+            border-left-color: var(--danger)
+        }
+
+        .toast.info {
+            border-left-color: var(--info)
+        }
+
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            flex-shrink: 0;
+            margin-top: 1px;
+            background: var(--gold-soft);
+            color: var(--gold-dark)
+        }
+
+        .toast.success .toast-icon {
+            background: var(--green-soft);
+            color: var(--green-dark)
+        }
+
+        .toast.alert .toast-icon {
+            background: var(--danger-soft);
+            color: var(--danger)
+        }
+
+        .toast.info .toast-icon {
+            background: var(--info-soft);
+            color: var(--info)
+        }
+
+        .toast-body {
+            flex: 1;
+            min-width: 0
+        }
+
+        .toast-title {
+            font: 700 12px var(--sans);
+            color: var(--brand-black);
+            margin-bottom: 2px
+        }
+
+        .toast-msg {
+            font: 400 11px var(--body);
+            color: var(--text-body);
+            word-break: break-word
+        }
+
+        @keyframes tin {
+            from {
+                transform: translateX(110%);
+                opacity: 0
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1
+            }
+        }
+
+        /* ============================ PAGINATION ============================ */
+        .tbl-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+            background: var(--canvas);
+            gap: 16px;
+            flex-wrap: wrap
+        }
+
+        .page-size-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font: 500 11px var(--sans);
+            color: var(--muted);
+            white-space: nowrap
+        }
+
+        .page-size-wrap {
+            position: relative;
+            display: inline-block
+        }
+
+        .page-size-wrap::after {
+            content: "\f078";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            right: 9px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--dim);
+            pointer-events: none;
+            font-size: 8px
+        }
+
+        .page-size-select {
+            appearance: none;
+            -webkit-appearance: none;
+            padding: 6px 26px 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #fff;
+            font: 600 11px var(--sans);
+            color: var(--brand-black);
+            cursor: pointer;
+            outline: none;
+            transition: border-color .18s
+        }
+
+        .page-size-select:hover {
+            border-color: var(--border-hover)
+        }
+
+        .page-size-select:focus {
+            border-color: var(--gold-dark);
+            box-shadow: 0 0 0 3px var(--gold-soft)
+        }
+
+        .page-info {
+            font: 500 11px var(--sans);
+            color: var(--muted);
+            white-space: nowrap
+        }
+
+        .page-info strong {
+            color: var(--brand-black);
+            font-weight: 700
+        }
+
+        .page-nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap
+        }
+
+        .page-btn {
+            min-width: 32px;
+            height: 32px;
+            padding: 0 10px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font: 600 11px var(--sans);
+            color: var(--text-body);
+            cursor: pointer;
+            transition: all .15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .page-btn:hover:not(:disabled):not(.active) {
+            border-color: var(--gold-dark);
+            color: var(--gold-dark);
+            background: var(--brand-gold-100)
+        }
+
+        .page-btn:disabled {
+            opacity: .4;
+            cursor: not-allowed
+        }
+
+        .page-btn.active {
+            background: var(--grad-gold);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: var(--shadow-sm)
+        }
+
+        .page-btn.ellipsis {
+            border: none;
+            background: transparent;
+            cursor: default;
+            color: var(--dim)
+        }
+
+        .page-btn.ellipsis:hover {
+            background: transparent;
+            color: var(--dim)
+        }
+
+        /* ============================ RESPONSIVE ============================ */
+        @media (max-width:1100px) {
+            .kpi-wrap {
+                grid-template-columns: repeat(3, 1fr)
+            }
+
+            .kpi-cell {
+                border-right: none;
+                border-bottom: 1px solid var(--border)
+            }
+        }
+
+        @media (max-width:700px) {
+            .kpi-wrap {
+                grid-template-columns: repeat(2, 1fr)
+            }
+
+            .pg-title {
+                font-size: 20px
+            }
+        }
+
+        /* ============================ VIEW TABS ============================ */
+        .view-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px
+        }
+
+        .view-tab {
+            font: 700 12px var(--sans);
+            padding: 10px 18px;
+            border-radius: var(--r-md);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-body);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all .18s
+        }
+
+        .view-tab i {
+            font-size: 11px;
+            color: var(--dim)
+        }
+
+        .view-tab:hover {
+            border-color: var(--gold-dark);
+            color: var(--gold-dark)
+        }
+
+        .view-tab.active {
+            background: var(--grad-gold);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: var(--shadow-gold)
+        }
+
+        .view-tab.active i {
+            color: #fff
+        }
+
+        /* ============================ AUDIT TABLE ============================ */
+        .au-tbl {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 1100px
+        }
+
+        .au-tbl thead {
+            position: sticky;
+            top: 0;
+            z-index: 5
+        }
+
+        .au-tbl thead tr {
+            background: var(--gold-dark)
+        }
+
+        .au-tbl thead th {
+            font: 700 9px var(--sans);
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: rgba(255, 255, 255, .9);
+            padding: 11px 13px;
+            text-align: left;
+            white-space: nowrap;
+            border-right: 1px solid rgba(255, 255, 255, .08)
+        }
+
+        .au-tbl thead th i {
+            margin-right: 5px;
+            font-size: 9px;
+            opacity: .8
+        }
+
+        .au-tbl tbody td {
+            padding: 11px 13px;
+            border-bottom: 1px solid var(--border);
+            font: 400 12px var(--body);
+            color: var(--text-body);
+            vertical-align: middle;
+            white-space: nowrap;
+            background: #fff;
+            transition: background .13s
+        }
+
+        .au-tbl tbody tr:nth-child(even) td {
+            background: var(--brand-gold-50)
+        }
+
+        .au-tbl tbody tr:hover td {
+            background: var(--surface-hover)
+        }
+
+        .col-time {
+            font: 500 11px var(--mono);
+            color: var(--muted)
+        }
+
+        .col-company {
+            font: 700 12px var(--sans);
+            color: var(--brand-black)
+        }
+
+        .col-code {
+            font: 600 10px var(--mono);
+            color: var(--gold-dark)
+        }
+
+        .col-type {
+            display: inline-flex;
+            align-items: center;
+            font: 700 10px var(--sans);
+            padding: 3px 9px;
+            border-radius: var(--r-pill);
+            background: var(--info-soft);
+            color: var(--info)
+        }
+
+        .col-field {
+            display: inline-flex;
+            align-items: center;
+            font: 700 11px var(--sans);
+            padding: 4px 10px;
+            border-radius: var(--r-pill);
+            background: var(--gold-soft);
+            color: var(--gold-dark)
+        }
+
+        .col-user {
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .user-avatar {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--grad-gold);
+            color: #fff;
+            font: 700 9px var(--sans);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0
+        }
+
+        .delta-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font: 600 12px var(--mono)
+        }
+
+        .delta-old {
+            color: var(--dim);
+            text-decoration: line-through;
+            text-decoration-color: var(--danger);
+            text-decoration-thickness: 1.5px
+        }
+
+        .delta-arrow {
+            color: var(--dim);
+            font-size: 10px
+        }
+
+        .delta-new {
+            color: var(--brand-black);
+            font-weight: 800
+        }
+
+        .delta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font: 700 10px var(--mono);
+            padding: 2px 7px;
+            border-radius: var(--r-pill);
+            margin-left: 2px
+        }
+
+        .delta-badge.up {
+            background: var(--green-soft);
+            color: var(--green-dark)
+        }
+
+        .delta-badge.down {
+            background: var(--danger-soft);
+            color: var(--danger)
+        }
+
+        .date-input {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 9px 12px;
+            font: 500 12px var(--sans);
+            color: var(--text-primary);
+            outline: none;
+            transition: all .18s;
+            cursor: pointer
+        }
+
+        .date-input:hover {
+            border-color: var(--border-hover)
+        }
+
+        .date-input:focus {
+            border-color: var(--gold-dark);
+            box-shadow: 0 0 0 3px var(--gold-soft)
+        }
+
+        .group-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font: 600 12px var(--sans);
+            color: var(--text-body);
+            cursor: pointer;
+            padding: 9px 14px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+            transition: all .18s;
+            white-space: nowrap
+        }
+
+        .group-toggle:hover {
+            border-color: var(--gold-dark);
+            color: var(--gold-dark)
+        }
+
+        .group-toggle input {
+            accent-color: var(--gold-dark);
+            cursor: pointer
+        }
+
+        .group-header-row td {
+            background: var(--brand-gold-100) !important;
+            padding: 10px 13px;
+            border-bottom: 1px solid var(--border-hover);
+            border-top: 2px solid var(--gold-dark)
+        }
+
+        .group-header-row-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px
+        }
+
+        .group-header-company {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font: 800 12px var(--sans);
+            color: var(--brand-black);
+            white-space: nowrap
+        }
+
+        .group-header-company i {
+            color: var(--gold-dark);
+            font-size: 11px
+        }
+
+        .group-count {
+            font: 700 10px var(--sans);
+            color: var(--muted);
+            background: #fff;
+            padding: 3px 10px;
+            border-radius: var(--r-pill);
+            border: 1px solid var(--border);
+            white-space: nowrap
+        }
+
+        .group-child-row td:first-child {
+            padding-left: 30px
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ============ PAGE HEADER ============ -->
+    <div class="pg-hdr">
+        <div>
+            <div class="pg-eyebrow"><i class="fa-solid fa-chart-line"></i> AR Planning</div>
+            <div class="pg-title">
+                <span id="pg-title-text">Collection Plan</span>
+                <span class="status-chip" id="plan-status"><i class="fa-solid fa-circle"></i> Draft</span>
+            </div>
+            <div class="pg-sub" id="pg-sub-text">Auto-populated from DotCare and controlled by AR Supervisor before
+                routing to Collection.</div>
+        </div>
+        <div class="hdr-actions" id="hdr-actions-plan">
+            <button class="btn btn-outline btn-sm" onclick="exportCSV()">
+                <i class="fa-solid fa-file-arrow-down"></i> Export
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="openDecision()">
+                <i class="fa-solid fa-clipboard-check"></i> Decision
+            </button>
+            <button class="btn btn-outline btn-sm" id="btn-edit-unlock" onclick="unlockManualEntry()"
+                style="display:none">
+                <i class="fa-solid fa-lock-open"></i> Edit
+            </button>
+            <button class="btn btn-outline btn-sm" id="btn-cancel-edit" onclick="cancelEditChanges()"
+                style="display:none">
+                <i class="fa-solid fa-xmark"></i> Cancel
+            </button>
+            <button class="btn btn-primary btn-sm" id="btn-confirm-edit" onclick="confirmEditChanges()"
+                style="display:none">
+                <i class="fa-solid fa-check"></i> Confirm Edit
+            </button>
+            <button class="btn btn-primary btn-sm" id="btn-send" onclick="sendToCollection()">
+                <i class="fa-solid fa-paper-plane"></i> Send to Collection Team
+            </button>
+        </div>
+        <div class="hdr-actions" id="hdr-actions-audit" style="display:none">
+            <button class="btn btn-outline btn-sm" onclick="exportAuditCSV()">
+                <i class="fa-solid fa-file-arrow-down"></i> Export
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="reloadAudit()">
+                <i class="fa-solid fa-rotate"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- ============ VIEW TABS ============ -->
+    <div class="view-tabs">
+        <button class="view-tab active" id="tab-plan" onclick="switchView('plan')">
+            <i class="fa-solid fa-clipboard-list"></i> Collection Plan
+        </button>
+        <button class="view-tab" id="tab-audit" onclick="switchView('audit')">
+            <i class="fa-solid fa-clock-rotate-left"></i> Manual Entry Audit
+        </button>
+    </div>
+
+    <div id="view-plan">
+
+        <!-- ============ PLAN META BAR ============ -->
+        <div class="plan-meta">
+            <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+                <div class="meta-group">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span><strong>Plan Period:</strong> <span id="plan-period">—</span></span>
+                </div>
+                <div class="meta-sep"></div>
+                <div class="meta-group">
+                    <i class="fa-solid fa-bullseye"></i>
+                    <span><strong>Target Plan:</strong> Total Dues ×</span>
+                    <input id="target-pct" class="pct-input" type="number" value="100" min="0" step="1"
+                        oninput="onTargetPctChange()" />
+                    <span>%</span>
+                </div>
+                <div class="meta-sep"></div>
+                <div class="meta-group">
+                    <i class="fa-solid fa-clock"></i>
+                    <span>Last refresh: <strong id="last-refresh">—</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ KPI SUMMARY BAR ============ -->
+        <div class="kpi-wrap">
+            <div class="kpi-cell">
+                <div class="kpi-top">
+                    <div class="kpi-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+                    <div class="kpi-label">Total Outstanding</div>
+                </div>
+                <div id="kpi-out" class="kpi-value">0</div>
+                <div class="kpi-sub">All aging buckets + manual entries</div>
+            </div>
+            <div class="kpi-cell">
+                <div class="kpi-top">
+                    <div class="kpi-icon warn"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div class="kpi-label">Total Rejections</div>
+                </div>
+                <div id="kpi-rej" class="kpi-value warn">0</div>
+                <div class="kpi-sub">From Collection team feedback</div>
+            </div>
+            <div class="kpi-cell">
+                <div class="kpi-top">
+                    <div class="kpi-icon info"><i class="fa-solid fa-layer-group"></i></div>
+                    <div class="kpi-label">Outstanding + Rej</div>
+                </div>
+                <div id="kpi-outrej" class="kpi-value">0</div>
+                <div class="kpi-sub">Total exposure to customer</div>
+            </div>
+            <div class="kpi-cell">
+                <div class="kpi-top">
+                    <div class="kpi-icon green"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                    <div class="kpi-label">Total Dues</div>
+                </div>
+                <div id="kpi-dues" class="kpi-value">0</div>
+                <div class="kpi-sub">Collectible this period</div>
+            </div>
+            <div class="kpi-cell">
+                <div class="kpi-top">
+                    <div class="kpi-icon target"><i class="fa-solid fa-bullseye"></i></div>
+                    <div class="kpi-label">Target Plan</div>
+                </div>
+                <div id="kpi-target" class="kpi-value pos">0</div>
+                <div class="kpi-sub"><span id="kpi-achv-text">Achievement 0%</span></div>
+                <div class="kpi-progress">
+                    <div id="kpi-progress-bar" class="kpi-progress-bar"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ TABLE ============ -->
+        <div class="tbl-shell">
+            <div class="tbl-hdr-row">
+                <div class="filter-inline-bar">
+                    <div class="filter-inline-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input id="f-search" type="text" placeholder="Search company, code, owner…"
+                            oninput="onFilterChange()" />
+                    </div>
+                    <div class="select-wrap">
+                        <i class="fa-solid fa-building select-icon"></i>
+                        <select id="f-bu" class="field-input" onchange="onFilterChange()">
+                            <option value="">All BUs</option>
+                            <option value="ASH">ASH</option>
+                            <option value="AMH">AMH</option>
+                            <option value="SMH">SMH</option>
+                            <option value="AHJ">AHJ</option>
+                        </select>
+                        <span class="sel-arrow"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                    <div class="select-wrap">
+                        <i class="fa-solid fa-calendar-check select-icon"></i>
+                        <select id="f-payment" class="field-input" onchange="onFilterChange()">
+                            <option value="">All Payments</option>
+                            <option value="Net 30">Net 30</option>
+                            <option value="Net 45">Net 45</option>
+                            <option value="Net 60">Net 60</option>
+                            <option value="Net 90">Net 90</option>
+                            <option value="Net 120">Net 120</option>
+                        </select>
+                        <span class="sel-arrow"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                    <div class="select-wrap">
+                        <i class="fa-solid fa-tags select-icon"></i>
+                        <select id="f-class" class="field-input" onchange="onFilterChange()">
+                            <option value="">All Classes</option>
+                            <option value="A">A</option>
+                            <option value="A+">A+</option>
+                            <option value="B">B</option>
+                            <option value="B+">B+</option>
+                            <option value="C">C</option>
+                            <option value="C+">C+</option>
+                        </select>
+                        <span class="sel-arrow"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                    <div class="select-wrap">
+                        <i class="fa-solid fa-layer-group select-icon"></i>
+                        <select id="f-companytype" class="field-input" onchange="onFilterChange()">
+                            <option value="">All Company Types</option>
+                            <option value="Africa">Africa</option>
+                            <option value="Corporate">Corporate</option>
+                            <option value="Insurance">Insurance</option>
+                            <option value="Government">Government</option>
+                            <option value="Others">Others</option>
+                        </select>
+                        <span class="sel-arrow"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                    <button class="filter-clear" onclick="clearFilters()"><i class="fa-solid fa-xmark"></i>
+                        Clear</button>
+                </div>
+                <div class="tbl-count">
+                    <i class="fa-solid fa-table"></i>
+                    Showing <strong id="tbl-showing">0</strong> of <strong id="tbl-total">0</strong> companies
+                </div>
+            </div>
+
+            <div class="tbl-scroll">
+                <table class="ar-tbl" id="cp-table">
+                    <thead>
+                        <!-- Group headers row -->
+                        <tr class="group-row">
+                            <th colspan="6"><i class="fa-solid fa-address-book"></i>Company Metadata</th>
+                            <th colspan="1"></th>
+                            <th colspan="1" class="stick-col col-group-end"></th>
+                            <th colspan="6" class="col-group-end"><i class="fa-solid fa-pen-to-square"></i>Manual Entry
+                                — AR
+                                Team</th>
+                            <th colspan="5" class="col-group-end"><i class="fa-solid fa-calculator"></i>Calculated /
+                                DotCare
+                            </th>
+                            <th colspan="3"><i class="fa-solid fa-cash-register"></i>Collection Achievement</th>
+                        </tr>
+                        <!-- Column headers row -->
+                        <tr class="head-row">
+                            <th><i class="fa-solid fa-calendar-check"></i>Payment Term</th>
+                            <th><i class="fa-solid fa-tags"></i>Customer Class</th>
+                            <th><i class="fa-solid fa-layer-group"></i>Company Type</th>
+                            <th><i class="fa-solid fa-building"></i>Type</th>
+                            <th><i class="fa-solid fa-user"></i>Task Owner</th>
+                            <th><i class="fa-solid fa-user-shield"></i>Supervisor</th>
+                            <th><i class="fa-solid fa-hashtag"></i>Company Code</th>
+                            <th class="stick-col col-group-end"><i class="fa-solid fa-briefcase"></i>Company Name</th>
+                            <th class="numeric">Early Payment</th>
+                            <th class="numeric">Legal Issues</th>
+                            <th class="numeric">Bankruptcy</th>
+                            <th class="numeric">Claims Issue</th>
+                            <th class="numeric">Stopped</th>
+                            <th class="numeric col-group-end">Agreed Recon.</th>
+                            <th class="numeric">Total Outstanding</th>
+                            <th class="numeric">Rejections</th>
+                            <th class="numeric">Outstanding + Rej</th>
+                            <th class="numeric">Total Dues</th>
+                            <th class="numeric col-group-end">Target Plan</th>
+                            <th class="numeric">Collected</th>
+                            <th class="numeric">Collected + Tax + Rej</th>
+                            <th class="numeric">ACHV %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cp-body">
+                        <!-- Skeleton loading rows -->
+                        <tr class="skel-row">
+                            <td colspan="22">
+                                <div class="skel" style="width:60%"></div>
+                            </td>
+                        </tr>
+                        <tr class="skel-row">
+                            <td colspan="22">
+                                <div class="skel" style="width:80%"></div>
+                            </td>
+                        </tr>
+                        <tr class="skel-row">
+                            <td colspan="22">
+                                <div class="skel" style="width:70%"></div>
+                            </td>
+                        </tr>
+                        <tr class="skel-row">
+                            <td colspan="22">
+                                <div class="skel" style="width:65%"></div>
+                            </td>
+                        </tr>
+                        <tr class="skel-row">
+                            <td colspan="22">
+                                <div class="skel" style="width:75%"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot id="cp-foot" style="display:none">
+                        <tr>
+                            <td colspan="7" class="col-bold"><i class="fa-solid fa-square-poll-vertical"
+                                    style="color:var(--gold-dark);margin-right:6px"></i>Total (<span
+                                    id="foot-count">0</span> companies)</td>
+                            <td class="stick-col col-group-end"></td>
+                            <td colspan="5"></td>
+                            <td id="foot-agreed" class="col-amt col-group-end" style="text-align:right"></td>
+                            <td id="foot-out" class="col-amt" style="text-align:right"></td>
+                            <td id="foot-rej" class="col-rej" style="text-align:right"></td>
+                            <td id="foot-outrej" class="col-amt" style="text-align:right"></td>
+                            <td id="foot-dues" class="col-amt" style="text-align:right"></td>
+                            <td id="foot-target" class="col-pos col-group-end" style="text-align:right"></td>
+                            <td id="foot-collected" class="col-amt" style="text-align:right"></td>
+                            <td id="foot-collectedplus" class="col-amt" style="text-align:right"></td>
+                            <td id="foot-achv" style="text-align:right"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <!-- ============ PAGINATION ============ -->
+            <div class="tbl-pagination" id="tbl-pagination" style="display:none">
+                <div class="page-size-group">
+                    <span>Rows per page:</span>
+                    <span class="page-size-wrap">
+                        <select id="page-size" class="page-size-select" onchange="changePageSize()">
+                            <option value="15" selected>15</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="all">All</option>
+                        </select>
+                    </span>
+                </div>
+                <div class="page-info" id="page-info"></div>
+                <div class="page-nav" id="page-nav"></div>
+            </div>
+        </div>
+    </div><!-- /view-plan -->
+
+    <!-- ============ AUDIT VIEW ============ -->
+    <div id="view-audit" style="display:none">
+        <div class="kpi-wrap" style="grid-template-columns:repeat(4,1fr)">
+            <div class="kpi-cell">
+                <div class="kpi-top">
+                    <div class="kpi-icon"><i class="fa-solid fa-pen-to-square"></i></div>
+                    <div class="kpi-label">Total Changes</div>
+                </div>
+                <div id="au-kpi-total" class="kpi-value">0</div>
+                <div class="kpi-sub">Logged field-level edits</div>
+            </div>
+            <div class="kpi-cell">
+                <div class="kpi-top">
+                    <div class="kpi-icon info"><i class="fa-solid fa-building"></i></div>
+                    <div class="kpi-label">Companies Affected</div>
+                </div>
+                <div id="au-kpi-companies" class="kpi-value">0</div>
+                <div class="kpi-sub">Distinct companies touched</div>
+            </div>
+            <div class="kpi-cell">
+                <div class="kpi-top">
+                    <div class="kpi-icon green"><i class="fa-solid fa-user-group"></i></div>
+                    <div class="kpi-label">Team Members</div>
+                </div>
+                <div id="au-kpi-users" class="kpi-value">0</div>
+                <div class="kpi-sub">Distinct people who edited</div>
+            </div>
+            <div class="kpi-cell">
+                <div class="kpi-top">
+                    <div class="kpi-icon warn"><i class="fa-solid fa-tags"></i></div>
+                    <div class="kpi-label">Most Edited Field</div>
+                </div>
+                <div id="au-kpi-topfield" class="kpi-value" style="font-size:15px">—</div>
+                <div class="kpi-sub" id="au-kpi-topfield-sub">No data yet</div>
+            </div>
+        </div>
+
+        <div class="tbl-shell">
+            <div class="tbl-hdr-row">
+                <div class="filter-inline-bar">
+                    <div class="filter-inline-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input id="au-search" type="text" placeholder="Search company, code, or user…"
+                            oninput="onAuditFilterChange()" />
+                    </div>
+                    <div class="select-wrap">
+                        <i class="fa-solid fa-tags select-icon"></i>
+                        <select id="au-field" class="field-input" onchange="onAuditFilterChange()">
+                            <option value="">All Fields</option>
+                            <option value="Early Payment">Early Payment</option>
+                            <option value="Legal Issues">Legal Issues</option>
+                            <option value="Bankruptcy">Bankruptcy</option>
+                            <option value="Claims Issue">Claims Issue</option>
+                            <option value="Stopped">Stopped</option>
+                            <option value="Agreed Recon.">Agreed Recon.</option>
+                        </select>
+                        <span class="sel-arrow"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                    <div class="select-wrap">
+                        <i class="fa-solid fa-user select-icon"></i>
+                        <select id="au-user" class="field-input" onchange="onAuditFilterChange()">
+                            <option value="">All Users</option>
+                        </select>
+                        <span class="sel-arrow"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                    <input id="au-from" type="date" class="date-input" onchange="onAuditFilterChange()"
+                        title="From date" />
+                    <input id="au-to" type="date" class="date-input" onchange="onAuditFilterChange()" title="To date" />
+                    <label class="group-toggle">
+                        <input type="checkbox" id="au-group" onchange="onAuditFilterChange()" />
+                        <span>Group by Company</span>
+                    </label>
+                    <button class="filter-clear" onclick="clearAuditFilters()"><i class="fa-solid fa-xmark"></i>
+                        Clear</button>
+                </div>
+                <div class="tbl-count">
+                    <i class="fa-solid fa-table"></i>
+                    Showing <strong id="au-tbl-showing">0</strong> of <strong id="au-tbl-total">0</strong> changes
+                </div>
+            </div>
+
+            <div class="tbl-scroll">
+                <table class="au-tbl" id="au-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fa-solid fa-clock"></i>Date &amp; Time</th>
+                            <th><i class="fa-solid fa-briefcase"></i>Company</th>
+                            <th><i class="fa-solid fa-hashtag"></i>Code</th>
+                            <th><i class="fa-solid fa-building"></i>Type</th>
+                            <th><i class="fa-solid fa-tags"></i>Field</th>
+                            <th><i class="fa-solid fa-right-left"></i>Old → New</th>
+                            <th><i class="fa-solid fa-user"></i>Changed By</th>
+                        </tr>
+                    </thead>
+                    <tbody id="au-body">
+                        <tr class="skel-row">
+                            <td colspan="7">
+                                <div class="skel" style="width:60%"></div>
+                            </td>
+                        </tr>
+                        <tr class="skel-row">
+                            <td colspan="7">
+                                <div class="skel" style="width:80%"></div>
+                            </td>
+                        </tr>
+                        <tr class="skel-row">
+                            <td colspan="7">
+                                <div class="skel" style="width:70%"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="tbl-pagination" id="au-pagination" style="display:none">
+                <div class="page-info" id="au-page-info"></div>
+                <div class="page-nav" id="au-page-nav"></div>
+            </div>
+        </div>
+    </div><!-- /view-audit -->
+
+    <div class="toast-rack" id="toast-rack"></div>
+
+    <script>
+        /* ==========================================================================
+           CONFIG
+           ========================================================================== */
+
+        // ADJUST — these are the integer → label maps for the two Choice columns.
+        // Customer Class = customer tier (A/B/C). Company Type = customer segment.
+        // Replace the integer values below with the actual option-set integers you
+        // configure in Dataverse. Labels are the fallback if OData FormattedValue is
+        // missing (formatted values from Dataverse always take priority).
+        const CHOICE_MAPS = {
+            cfm_customerclass: {
+                766340000: 'A',
+                766340001: 'A+',
+                766340002: 'B',
+                766340003: 'B+',
+                766340004: 'C',
+                766340005: 'C+'
+            },
+            cfm_companytype: {
+                766340000: 'Africa',
+                766340001: 'Corporate',
+                766340002: 'Insurance',
+                766340003: 'Government',
+                766340004: 'Others'
+            }
+        };
+
+        const SELECT_COLS = [
+            'cfm_aragingid',
+            'cfm_companycode', 'cfm_companyname',
+            'cfm_customerclass', 'cfm_companytype',
+            'cfm_earlypayment', 'cfm_legalissues', 'cfm_bankruptcy', 'cfm_claimsissue', 'cfm_stopped', 'cfm_agreedrecon',
+            'cfm_notdue', 'cfm_greaterthan30', 'cfm_31to60', 'cfm_61to90', 'cfm_91to120', 'cfm_121to150', 'cfm_150days',
+            'cfm_totaloutstanding', 'cfm_rejections', 'cfm_outstandingrej', 'cfm_totaldues', 'cfm_targetplan', 'cfm_targetpercentage',
+            'cfm_collectedamount', 'cfm_tax', 'cfm_achievement',
+            '_cfm_paymentterm_value', '_cfm_taskowner_value', '_cfm_supervisor_value', '_cfm_type_value'
+        ].join(',');
+
+        const EDITABLE_FIELDS = {
+            earlypayment: 'cfm_earlypayment',
+            legalissues: 'cfm_legalissues',
+            bankruptcy: 'cfm_bankruptcy',
+            claimsissue: 'cfm_claimsissue',
+            stopped: 'cfm_stopped',
+            agreedrecon: 'cfm_agreedrecon'
+        };
+
+        let ALL_ROWS = [];
+        let TARGET_PCT = 100;
+        let CURRENT_PAGE = 1;
+        let PAGE_SIZE = 15;
+        let PLAN_LOCKED = false; // true once a submission exists for the current month
+        let COLUMNS_LOCKED = false; // true while Manual Entry columns are read-only (defaults to PLAN_LOCKED, can be reopened via Edit)
+        let DIRTY_CHANGES = {}; // pending unsaved edits, keyed by "rowId|field", flushed by Confirm Edit
+
+        /* ==========================================================================
+           DATAVERSE
+           ========================================================================== */
+        function getClientUrl() {
+            try { if (window.parent && window.parent.Xrm) return window.parent.Xrm.Utility.getGlobalContext().getClientUrl(); }
+            catch (e) { }
+            return window.location.origin;
+        }
+        const headers = () => ({
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'OData-MaxVersion': '4.0',
+            'OData-Version': '4.0',
+            'Prefer': 'odata.include-annotations="OData.Community.Display.V1.FormattedValue"'
+        });
+
+        async function loadRows() {
+            const url = getClientUrl() + '/api/data/v9.2/cfm_aragings?$select=' + SELECT_COLS + '&$filter=statecode eq 0';
+            const res = await fetch(url, { method: 'GET', headers: headers(), credentials: 'include' });
+            if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+            return (await res.json()).value || [];
+        }
+        async function fetchRow(id) {
+            const url = getClientUrl() + '/api/data/v9.2/cfm_aragings(' + id + ')?$select=' + SELECT_COLS;
+            const res = await fetch(url, { method: 'GET', headers: headers(), credentials: 'include' });
+            if (!res.ok) throw new Error('Refresh failed: ' + res.status);
+            return await res.json();
+        }
+        async function patchField(id, field, value) {
+            const url = getClientUrl() + '/api/data/v9.2/cfm_aragings(' + id + ')';
+            const body = {}; body[field] = value;
+            const res = await fetch(url, { method: 'PATCH', headers: headers(), credentials: 'include', body: JSON.stringify(body) });
+            if (!res.ok) { const t = await res.text().catch(() => ''); throw new Error('Save failed (' + res.status + ') ' + t.slice(0, 200)); }
+        }
+        async function patchFields(id, patch) {
+            const url = getClientUrl() + '/api/data/v9.2/cfm_aragings(' + id + ')';
+            const res = await fetch(url, { method: 'PATCH', headers: headers(), credentials: 'include', body: JSON.stringify(patch) });
+            if (!res.ok) { const t = await res.text().catch(() => ''); throw new Error('Save failed (' + res.status + ') ' + t.slice(0, 200)); }
+        }
+        async function createAuditRecord(araGingId, fieldName, oldValue, newValue, planPeriodISO) {
+            const url = getClientUrl() + '/api/data/v9.2/cfm_manualentryaudits';
+            const body = {
+                'cfm_ARAging@odata.bind': '/cfm_aragings(' + araGingId + ')',
+                cfm_fieldname: fieldName,
+                cfm_oldvalue: oldValue,
+                cfm_newvalue: newValue,
+                cfm_planperiod: planPeriodISO
+            };
+            const res = await fetch(url, { method: 'POST', headers: headers(), credentials: 'include', body: JSON.stringify(body) });
+            if (!res.ok) { const t = await res.text().catch(() => ''); throw new Error('Audit log failed (' + res.status + ') ' + t.slice(0, 200)); }
+        }
+
+        /* ==========================================================================
+           NORMALISE
+           ========================================================================== */
+        const N = v => Number(v || 0);
+
+        function labelChoice(field, val, formatted) {
+            if (formatted) return formatted;
+            if (val == null) return '—';
+            return (CHOICE_MAPS[field] && CHOICE_MAPS[field][val]) || String(val);
+        }
+        function lookupName(row, base) {
+            return row[base + '@OData.Community.Display.V1.FormattedValue'] || '—';
+        }
+        function normalise(row) {
+            const collected = N(row.cfm_collectedamount);
+            const tax = N(row.cfm_tax);
+            const rejections = N(row.cfm_rejections);
+            const collectedPlus = collected + tax + rejections;
+            return {
+                id: row.cfm_aragingid,
+                code: row.cfm_companycode || '—',
+                name: row.cfm_companyname || '—',
+                customerClass: labelChoice('cfm_customerclass', row.cfm_customerclass, row['cfm_customerclass@OData.Community.Display.V1.FormattedValue']),
+                companyType: labelChoice('cfm_companytype', row.cfm_companytype, row['cfm_companytype@OData.Community.Display.V1.FormattedValue']),
+                type: lookupName(row, '_cfm_type_value'),
+                paymentTerm: lookupName(row, '_cfm_paymentterm_value'),
+                taskOwner: lookupName(row, '_cfm_taskowner_value'),
+                supervisor: lookupName(row, '_cfm_supervisor_value'),
+                earlypayment: N(row.cfm_earlypayment),
+                legalissues: N(row.cfm_legalissues),
+                bankruptcy: N(row.cfm_bankruptcy),
+                claimsissue: N(row.cfm_claimsissue),
+                stopped: N(row.cfm_stopped),
+                agreedrecon: N(row.cfm_agreedrecon),
+                totalOutstanding: N(row.cfm_totaloutstanding),
+                rejections: rejections,
+                outstandingRej: N(row.cfm_outstandingrej),
+                totalDues: N(row.cfm_totaldues),
+                targetPlanDB: N(row.cfm_targetplan),
+                targetPct: row.cfm_targetpercentage == null ? 100 : N(row.cfm_targetpercentage),
+                achievement: row.cfm_achievement == null ? null : N(row.cfm_achievement),
+                collected: collected,
+                tax: tax,
+                collectedPlus: collectedPlus
+            };
+        }
+
+        /* ==========================================================================
+           FORMAT
+           ========================================================================== */
+        const fmt = n => (n == null || n === 0) ? '—' : Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
+        const fmtB = n => Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+        const achvClass = pct => pct >= 100 ? 'over' : (pct >= 60 ? 'mid' : 'low');
+        const achvIcon = pct => pct >= 100 ? 'fa-check' : (pct >= 60 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down');
+
+        /* ==========================================================================
+           RENDER
+           ========================================================================== */
+        function filterRows() {
+            const q = (document.getElementById('f-search').value || '').toLowerCase().trim();
+            const bu = document.getElementById('f-bu').value;
+            const pt = document.getElementById('f-payment').value;
+            const cl = document.getElementById('f-class').value;
+            const ct = document.getElementById('f-companytype').value;
+            return ALL_ROWS.filter(r => {
+                if (bu && r.type !== bu) return false;
+                if (cl && r.customerClass !== cl) return false;
+                if (ct && r.companyType !== ct) return false;
+                if (pt && r.paymentTerm !== pt) return false;
+                if (q) {
+                    const hay = (r.code + ' ' + r.name + ' ' + r.taskOwner + ' ' + r.supervisor).toLowerCase();
+                    if (!hay.includes(q)) return false;
+                }
+                return true;
+            });
+        }
+
+        function editCell(row, key, isGroupEnd) {
+            const cls = isGroupEnd ? 'numeric col-group-end' : 'numeric';
+
+            // Before the plan is sent this month: cells are always freely editable, saved instantly.
+            if (!PLAN_LOCKED) {
+                return `<td class="${cls}">
+    <span class="cell-edit-wrap">
+      <i class="fa-solid fa-pen edit-hint"></i>
+      <input class="cell-input" type="number" step="any"
+        value="${row[key]}" data-id="${row.id}" data-field="${key}" data-orig="${row[key]}"
+        onchange="instantPatchCell(this)"
+        onkeydown="onInstantCellKey(event, this)" />
+    </span>
+  </td>`;
+            }
+
+            // After the plan is sent: columns are locked by default; Edit + Confirm Edit apply.
+            if (COLUMNS_LOCKED) {
+                return `<td class="${cls}">
+    <span class="cell-locked" title="Locked — plan already sent for this month">${fmt(row[key])}</span>
+  </td>`;
+            }
+            return `<td class="${cls}">
+    <span class="cell-edit-wrap">
+      <i class="fa-solid fa-pen edit-hint"></i>
+      <input class="cell-input" type="number" step="any"
+        value="${row[key]}" data-id="${row.id}" data-field="${key}" data-orig="${row[key]}"
+        onchange="markDirty(this)"
+        onkeydown="onCellKey(event, this)" />
+    </span>
+  </td>`;
+        }
+
+        function renderTable() {
+            const filtered = filterRows();
+            const tbody = document.getElementById('cp-body');
+            const tfoot = document.getElementById('cp-foot');
+            document.getElementById('tbl-showing').textContent = filtered.length;
+            document.getElementById('tbl-total').textContent = ALL_ROWS.length;
+
+            if (!filtered.length) {
+                tbody.innerHTML = `<tr><td colspan="22" class="state-cell">
+        <div class="state-icon"><i class="fa-solid fa-filter-circle-xmark"></i></div>
+        <div class="state-title">No matches</div>
+        <div class="state-msg">No records match the current filters. Try adjusting the search or clearing filters.</div>
+      </td></tr>`;
+                tfoot.style.display = 'none';
+                document.getElementById('tbl-pagination').style.display = 'none';
+                updateKPIs({ out: 0, rej: 0, outrej: 0, dues: 0, target: 0, collectedPlus: 0 });
+                return;
+            }
+
+            // Totals over ALL filtered rows (not just the visible page)
+            const tot = { agreed: 0, out: 0, rej: 0, outrej: 0, dues: 0, target: 0, collected: 0, collectedPlus: 0 };
+            filtered.forEach(r => {
+                const tp = r.totalDues * (TARGET_PCT / 100);
+                tot.agreed += r.agreedrecon;
+                tot.out += r.totalOutstanding;
+                tot.rej += r.rejections;
+                tot.outrej += r.outstandingRej;
+                tot.dues += r.totalDues;
+                tot.target += tp;
+                tot.collected += r.collected;
+                tot.collectedPlus += r.collectedPlus;
+            });
+
+            // Slice to current page for display
+            const paged = paginate(filtered);
+            const html = paged.map(r => {
+                const targetPlan = r.totalDues * (TARGET_PCT / 100);
+                const denom = r.targetPlanDB > 0 ? r.targetPlanDB : targetPlan;
+                const achv = r.achievement != null ? r.achievement : (denom > 0 ? (r.collected / denom) * 100 : 0);
+                return `<tr>
+      <td>${r.paymentTerm}</td>
+      <td>${r.customerClass}</td>
+      <td>${r.companyType}</td>
+      <td>${r.type}</td>
+      <td>${r.taskOwner}</td>
+      <td>${r.supervisor}</td>
+      <td class="col-id">${r.code}</td>
+      <td class="col-bold stick-col col-group-end">${r.name}</td>
+      ${editCell(r, 'earlypayment')}
+      ${editCell(r, 'legalissues')}
+      ${editCell(r, 'bankruptcy')}
+      ${editCell(r, 'claimsissue')}
+      ${editCell(r, 'stopped')}
+      ${editCell(r, 'agreedrecon', true)}
+      <td class="col-amt numeric">${fmt(r.totalOutstanding)}</td>
+      <td class="col-rej numeric">${fmt(r.rejections)}</td>
+      <td class="col-amt numeric">${fmt(r.outstandingRej)}</td>
+      <td class="col-amt numeric">${fmt(r.totalDues)}</td>
+      <td class="col-pos numeric col-group-end">${fmt(targetPlan)}</td>
+      <td class="col-amt numeric">${fmt(r.collected)}</td>
+      <td class="col-amt numeric">${fmt(r.collectedPlus)}</td>
+      <td class="numeric"><span class="achv-badge ${achvClass(achv)}"><i class="fa-solid ${achvIcon(achv)}"></i>${Math.round(achv)}%</span></td>
+    </tr>`;
+            }).join('');
+            tbody.innerHTML = html;
+
+            const overallAchv = tot.target > 0 ? (tot.collectedPlus / tot.target) * 100 : 0;
+            document.getElementById('foot-count').textContent = filtered.length;
+            document.getElementById('foot-agreed').textContent = fmtB(tot.agreed);
+            document.getElementById('foot-out').textContent = fmtB(tot.out);
+            document.getElementById('foot-rej').textContent = fmtB(tot.rej);
+            document.getElementById('foot-outrej').textContent = fmtB(tot.outrej);
+            document.getElementById('foot-dues').textContent = fmtB(tot.dues);
+            document.getElementById('foot-target').textContent = fmtB(tot.target);
+            document.getElementById('foot-collected').textContent = fmtB(tot.collected);
+            document.getElementById('foot-collectedplus').textContent = fmtB(tot.collectedPlus);
+            document.getElementById('foot-achv').innerHTML = `<span class="achv-badge ${achvClass(overallAchv)}"><i class="fa-solid ${achvIcon(overallAchv)}"></i>${Math.round(overallAchv)}%</span>`;
+            tfoot.style.display = '';
+
+            updateKPIs(tot);
+            renderPagination(filtered.length);
+        }
+
+        function updateKPIs(t) {
+            document.getElementById('kpi-out').textContent = fmtB(t.out);
+            document.getElementById('kpi-rej').textContent = fmtB(t.rej);
+            document.getElementById('kpi-outrej').textContent = fmtB(t.outrej);
+            document.getElementById('kpi-dues').textContent = fmtB(t.dues);
+            document.getElementById('kpi-target').textContent = fmtB(t.target);
+
+            const achv = t.target > 0 ? (t.collected / t.target) * 100 : 0;
+            document.getElementById('kpi-achv-text').textContent = 'Achievement ' + Math.round(achv) + '%';
+            document.getElementById('kpi-progress-bar').style.width = Math.min(100, achv) + '%';
+        }
+
+        /* ==========================================================================
+           PAGINATION
+           ========================================================================== */
+        function paginate(rows) {
+            if (PAGE_SIZE === 'all') return rows;
+            const start = (CURRENT_PAGE - 1) * PAGE_SIZE;
+            return rows.slice(start, start + PAGE_SIZE);
+        }
+
+        function renderPagination(totalRows) {
+            const container = document.getElementById('tbl-pagination');
+            if (!totalRows) { container.style.display = 'none'; return; }
+            container.style.display = '';
+
+            const size = PAGE_SIZE === 'all' ? totalRows : PAGE_SIZE;
+            const totalPages = Math.max(1, Math.ceil(totalRows / size));
+
+            if (CURRENT_PAGE > totalPages) CURRENT_PAGE = totalPages;
+            if (CURRENT_PAGE < 1) CURRENT_PAGE = 1;
+
+            const startIdx = (CURRENT_PAGE - 1) * size + 1;
+            const endIdx = Math.min(CURRENT_PAGE * size, totalRows);
+
+            document.getElementById('page-info').innerHTML =
+                `Showing <strong>${startIdx}</strong>–<strong>${endIdx}</strong> of <strong>${totalRows}</strong>`;
+
+            // Compact page list with ellipsis when many pages
+            const pages = [];
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+                pages.push(1);
+                if (CURRENT_PAGE > 4) pages.push('...');
+                const from = Math.max(2, CURRENT_PAGE - 1);
+                const to = Math.min(totalPages - 1, CURRENT_PAGE + 1);
+                for (let i = from; i <= to; i++) pages.push(i);
+                if (CURRENT_PAGE < totalPages - 3) pages.push('...');
+                pages.push(totalPages);
+            }
+
+            const atFirst = CURRENT_PAGE === 1;
+            const atLast = CURRENT_PAGE === totalPages;
+            const btns = [];
+            btns.push(`<button class="page-btn" onclick="goToPage(1)" ${atFirst ? 'disabled' : ''} title="First page"><i class="fa-solid fa-angles-left"></i></button>`);
+            btns.push(`<button class="page-btn" onclick="goToPage(${CURRENT_PAGE - 1})" ${atFirst ? 'disabled' : ''} title="Previous"><i class="fa-solid fa-angle-left"></i></button>`);
+            pages.forEach(p => {
+                if (p === '...') {
+                    btns.push('<span class="page-btn ellipsis">…</span>');
+                } else {
+                    btns.push(`<button class="page-btn ${p === CURRENT_PAGE ? 'active' : ''}" onclick="goToPage(${p})">${p}</button>`);
+                }
+            });
+            btns.push(`<button class="page-btn" onclick="goToPage(${CURRENT_PAGE + 1})" ${atLast ? 'disabled' : ''} title="Next"><i class="fa-solid fa-angle-right"></i></button>`);
+            btns.push(`<button class="page-btn" onclick="goToPage(${totalPages})" ${atLast ? 'disabled' : ''} title="Last page"><i class="fa-solid fa-angles-right"></i></button>`);
+            document.getElementById('page-nav').innerHTML = btns.join('');
+        }
+
+        function goToPage(n) {
+            CURRENT_PAGE = n;
+            renderTable();
+            const sc = document.querySelector('.tbl-scroll');
+            if (sc) sc.scrollTop = 0;
+        }
+
+        function changePageSize() {
+            const val = document.getElementById('page-size').value;
+            PAGE_SIZE = val === 'all' ? 'all' : parseInt(val, 10);
+            CURRENT_PAGE = 1;
+            renderTable();
+        }
+
+        // Called by all filter inputs — resets page to 1 before re-rendering
+        function onFilterChange() {
+            CURRENT_PAGE = 1;
+            renderTable();
+        }
+
+        /* ==========================================================================
+           INLINE EDIT — instant mode: before Send, cells save immediately on change
+           ========================================================================== */
+        async function instantPatchCell(input) {
+            const id = input.dataset.id;
+            const uiField = input.dataset.field;
+            const dvField = EDITABLE_FIELDS[uiField];
+            if (!dvField) return;
+
+            const newValue = input.value === '' ? null : Number(input.value);
+            const rowIdx = ALL_ROWS.findIndex(r => r.id === id);
+            if (rowIdx < 0) return;
+            const prev = ALL_ROWS[rowIdx][uiField];
+            if (prev === newValue) return;
+
+            input.classList.remove('saved', 'error');
+            input.classList.add('saving');
+            try {
+                await patchField(id, dvField, newValue);
+                const fresh = await fetchRow(id);
+                ALL_ROWS[rowIdx] = normalise(fresh);
+                renderTable();
+                const still = document.querySelector(`input.cell-input[data-id="${id}"][data-field="${uiField}"]`);
+                if (still) {
+                    still.classList.remove('saving');
+                    still.classList.add('saved');
+                    setTimeout(() => still.classList.remove('saved'), 1600);
+                }
+                toast('Saved', prettyFieldName(uiField) + ' updated for ' + ALL_ROWS[rowIdx].name, 'success');
+            } catch (err) {
+                console.error(err);
+                input.classList.remove('saving'); input.classList.add('error');
+                toast('Save failed', err.message, 'alert');
+            }
+        }
+
+        function onInstantCellKey(ev, input) {
+            if (ev.key === 'Escape') {
+                input.value = input.dataset.orig;
+                input.classList.remove('saving', 'saved', 'error');
+                input.blur();
+            } else if (ev.key === 'Enter') {
+                input.blur(); // triggers onchange -> instantPatchCell
+            }
+        }
+
+        /* ==========================================================================
+           INLINE EDIT — batch mode: user edits freely, one Confirm Edit saves all
+           ========================================================================== */
+        function markDirty(input) {
+            const id = input.dataset.id;
+            const uiField = input.dataset.field;
+            const rowIdx = ALL_ROWS.findIndex(r => r.id === id);
+            if (rowIdx < 0) return;
+
+            const orig = input.dataset.orig === '' ? null : Number(input.dataset.orig);
+            const newValue = input.value === '' ? null : Number(input.value);
+            const key = id + '|' + uiField;
+
+            if (newValue === orig) {
+                delete DIRTY_CHANGES[key];
+                input.classList.remove('dirty');
+            } else {
+                DIRTY_CHANGES[key] = {
+                    id, uiField, dvField: EDITABLE_FIELDS[uiField], newValue, oldValue: orig, rowIdx,
+                    name: ALL_ROWS[rowIdx].name
+                };
+                input.classList.add('dirty');
+            }
+            updateConfirmEditButton();
+        }
+
+        function onCellKey(ev, input) {
+            if (ev.key === 'Escape') {
+                input.value = input.dataset.orig;
+                input.classList.remove('dirty', 'error');
+                delete DIRTY_CHANGES[input.dataset.id + '|' + input.dataset.field];
+                updateConfirmEditButton();
+                input.blur();
+            } else if (ev.key === 'Enter') {
+                input.blur(); // triggers onchange -> markDirty
+            }
+        }
+
+        function prettyFieldName(k) {
+            return ({ earlypayment: 'Early Payment', legalissues: 'Legal Issues', bankruptcy: 'Bankruptcy', claimsissue: 'Claims Issue', stopped: 'Stopped', agreedrecon: 'Agreed Recon.' })[k] || k;
+        }
+
+        function updateConfirmEditButton() {
+            const btn = document.getElementById('btn-confirm-edit');
+            if (!btn) return;
+            const count = Object.keys(DIRTY_CHANGES).length;
+            btn.innerHTML = `<i class="fa-solid fa-check"></i> Confirm Edit${count ? ' (' + count + ')' : ''}`;
+        }
+
+        async function confirmEditChanges() {
+            const keys = Object.keys(DIRTY_CHANGES);
+            if (!keys.length) {
+                toast('Nothing to save', 'No changes were made.', 'info');
+                return;
+            }
+            const affectedIds = [...new Set(keys.map(k => DIRTY_CHANGES[k].id))];
+            const ok = confirm('Save ' + keys.length + ' change(s) across ' + affectedIds.length
+                + ' compan' + (affectedIds.length === 1 ? 'y' : 'ies') + '?');
+            if (!ok) return;
+
+            const btn = document.getElementById('btn-confirm-edit');
+            btn.classList.add('btn-locked');
+
+            const nowISO = new Date().toISOString();
+            let okCount = 0, failCount = 0, firstErr = '';
+            let auditFailCount = 0;
+            for (const key of keys) {
+                const ch = DIRTY_CHANGES[key];
+                try {
+                    await patchField(ch.id, ch.dvField, ch.newValue);
+                    okCount++;
+                    try {
+                        await createAuditRecord(ch.id, prettyFieldName(ch.uiField), ch.oldValue, ch.newValue, nowISO);
+                    } catch (auditErr) {
+                        auditFailCount++;
+                        console.error('Audit log failed for', ch, auditErr);
+                    }
+                } catch (err) {
+                    failCount++;
+                    if (!firstErr) firstErr = err.message;
+                }
+            }
+
+            for (const id of affectedIds) {
+                try {
+                    const fresh = await fetchRow(id);
+                    const idx = ALL_ROWS.findIndex(r => r.id === id);
+                    if (idx >= 0) ALL_ROWS[idx] = normalise(fresh);
+                } catch (e) { console.error('Row refresh failed:', e); }
+            }
+
+            DIRTY_CHANGES = {};
+            btn.classList.remove('btn-locked');
+            COLUMNS_LOCKED = true;
+            toggleEditButtons();
+            renderTable();
+
+            if (failCount === 0) {
+                toast('Changes saved', okCount + ' field(s) updated successfully.'
+                    + (auditFailCount ? ' (' + auditFailCount + ' audit log entr' + (auditFailCount === 1 ? 'y' : 'ies') + ' failed to record.)' : ''),
+                    auditFailCount ? 'alert' : 'success');
+            } else {
+                toast('Saved with errors', 'Saved ' + okCount + ', failed ' + failCount + '. ' + firstErr, 'alert');
+            }
+        }
+
+        function cancelEditChanges() {
+            const count = Object.keys(DIRTY_CHANGES).length;
+            if (count > 0) {
+                const ok = confirm('Discard ' + count + ' unsaved change(s)?');
+                if (!ok) return;
+            }
+            DIRTY_CHANGES = {};
+            COLUMNS_LOCKED = true;
+            toggleEditButtons();
+            renderTable();
+        }
+
+        function toggleEditButtons() {
+            const editBtn = document.getElementById('btn-edit-unlock');
+            const confirmBtn = document.getElementById('btn-confirm-edit');
+            const cancelBtn = document.getElementById('btn-cancel-edit');
+
+            if (!PLAN_LOCKED) {
+                // Send button isn't grey yet — this whole lock/edit/confirm UI stays hidden.
+                editBtn.style.display = 'none';
+                confirmBtn.style.display = 'none';
+                cancelBtn.style.display = 'none';
+                return;
+            }
+            editBtn.style.display = COLUMNS_LOCKED ? '' : 'none';
+            confirmBtn.style.display = COLUMNS_LOCKED ? 'none' : '';
+            cancelBtn.style.display = COLUMNS_LOCKED ? 'none' : '';
+            updateConfirmEditButton();
+        }
+
+        /* ==========================================================================
+           TARGET %
+           ========================================================================== */
+        async function onTargetPctChange() {
+            const v = parseFloat(document.getElementById('target-pct').value);
+            TARGET_PCT = isNaN(v) ? 100 : v;
+            renderTable();
+            // Recalculate Achievement for every visible row and save to Dataverse.
+            const btn = document.getElementById('target-pct');
+            btn.classList.remove('saved', 'error'); btn.classList.add('saving');
+            let ok = 0, fail = 0, firstErr = '';
+            const pctFactor = TARGET_PCT / 100;
+            for (const r of ALL_ROWS) {
+                const target = r.targetPlanDB > 0 ? r.targetPlanDB : (r.totalDues * pctFactor);
+                const achv = target > 0 ? (r.collected / target) * 100 : 0;
+                // Only patch if the value actually differs (avoid useless writes)
+                if (r.achievement != null && Math.abs(r.achievement - achv) < 0.005) continue;
+                try {
+                    await patchFields(r.id, { cfm_achievement: achv });
+                    r.achievement = achv;
+                    ok++;
+                } catch (err) {
+                    fail++;
+                    if (!firstErr) firstErr = err.message;
+                }
+            }
+            btn.classList.remove('saving');
+            if (fail === 0) {
+                btn.classList.add('saved');
+                setTimeout(() => btn.classList.remove('saved'), 1600);
+                if (ok > 0) toast('Achievement updated', ok + ' row(s) recalculated & saved.', 'success');
+            } else {
+                btn.classList.add('error');
+                toast('Recalc: saved ' + ok + ', failed ' + fail, firstErr, 'alert');
+            }
+            renderTable();
+        }
+
+        /* ==========================================================================
+           FILTERS / ACTIONS
+           ========================================================================== */
+        function clearFilters() {
+            document.getElementById('f-search').value = '';
+            document.getElementById('f-bu').value = '';
+            document.getElementById('f-payment').value = '';
+            document.getElementById('f-class').value = '';
+            document.getElementById('f-companytype').value = '';
+            CURRENT_PAGE = 1;
+            renderTable();
+        }
+
+        async function reload() {
+            const tbody = document.getElementById('cp-body');
+            tbody.innerHTML = Array.from({ length: 5 }, () => `<tr class="skel-row"><td colspan="22"><div class="skel" style="width:${60 + Math.random() * 30}%"></div></td></tr>`).join('');
+            document.getElementById('cp-foot').style.display = 'none';
+            try {
+                const raw = await loadRows();
+                ALL_ROWS = raw.map(normalise);
+                renderTable();
+                setLastRefresh();
+                toast('Loaded', ALL_ROWS.length + ' plan records loaded from Dataverse.', 'success');
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="22" class="state-cell">
+      <div class="state-icon error"><i class="fa-solid fa-circle-exclamation"></i></div>
+      <div class="state-title">Couldn't load Collection Plan</div>
+      <div class="state-msg">${err.message}</div>
+    </td></tr>`;
+                toast('Error', 'Could not load Collection Plan.', 'alert');
+            }
+        }
+
+        /* ==========================================================================
+           SEND TO COLLECTION TEAM — Submission Log
+           ========================================================================== */
+        function firstOfMonthISO(d) {
+            const y = d.getFullYear(), m = d.getMonth();
+            // Midday-safe UTC first-of-month timestamp for a Date Only field
+            return new Date(Date.UTC(y, m, 1)).toISOString();
+        }
+
+        async function findSubmissionThisMonth(planPeriodISO) {
+            const url = getClientUrl() + '/api/data/v9.2/cfm_collectionplansubmissions'
+                + '?$select=cfm_collectionplansubmissionid,createdon,cfm_islate'
+                + '&$filter=cfm_planperiod eq ' + planPeriodISO
+                + '&$orderby=createdon desc';
+            const res = await fetch(url, { method: 'GET', headers: headers(), credentials: 'include' });
+            if (!res.ok) throw new Error('Check failed: ' + res.status);
+            return (await res.json()).value || [];
+        }
+
+        async function createSubmissionRecord(planPeriodISO, isLate) {
+            const url = getClientUrl() + '/api/data/v9.2/cfm_collectionplansubmissions';
+            const now = new Date();
+            const label = 'CollectionPlan-' + now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0')
+                + '-' + now.toISOString().slice(11, 16).replace(':', '');
+            const body = {
+                cfm_name: label,
+                cfm_planperiod: planPeriodISO,
+                cfm_islate: isLate
+            };
+            const res = await fetch(url, {
+                method: 'POST', headers: headers(), credentials: 'include', body: JSON.stringify(body)
+            });
+            if (!res.ok) { const t = await res.text().catch(() => ''); throw new Error('Create failed (' + res.status + ') ' + t.slice(0, 200)); }
+        }
+
+        function lockPlanUI(submittedOn) {
+            PLAN_LOCKED = true;
+            COLUMNS_LOCKED = true;
+            const btn = document.getElementById('btn-send');
+            btn.classList.add('btn-locked');
+            if (submittedOn) {
+                btn.title = 'Already sent this month on ' + new Date(submittedOn).toLocaleString('en-US');
+            }
+            toggleEditButtons();
+            document.getElementById('plan-status').innerHTML =
+                '<i class="fa-solid fa-circle"></i> Sent';
+            renderTable(); // re-render so Manual Entry columns switch to read-only
+        }
+
+        async function checkPlanLock() {
+            const planPeriodISO = firstOfMonthISO(new Date());
+            try {
+                const existing = await findSubmissionThisMonth(planPeriodISO);
+                if (existing.length > 0) {
+                    lockPlanUI(existing[0].createdon);
+                } else {
+                    PLAN_LOCKED = false;
+                    COLUMNS_LOCKED = false;
+                    const btn = document.getElementById('btn-send');
+                    btn.classList.remove('btn-locked');
+                    btn.removeAttribute('title');
+                    toggleEditButtons();
+                    document.getElementById('plan-status').innerHTML =
+                        '<i class="fa-solid fa-circle"></i> Draft';
+                }
+            } catch (err) {
+                console.error('Plan lock check failed:', err);
+            }
+        }
+
+        function unlockManualEntry() {
+            COLUMNS_LOCKED = false;
+            toggleEditButtons();
+            renderTable();
+            toast('Editing enabled', 'Manual Entry columns are open. Make your changes, then use Confirm Edit to save them all at once.', 'info');
+        }
+
+        async function sendToCollection() {
+            if (PLAN_LOCKED) {
+                const btn = document.getElementById('btn-send');
+                const when = btn.title.replace('Already sent this month on ', '');
+                toast('Already sent', 'The Collection Plan was already sent this month on ' + when + '.', 'info');
+                return;
+            }
+
+            const now = new Date();
+            const planPeriodISO = firstOfMonthISO(now);
+            const dayOfMonth = now.getDate();
+            const isLate = dayOfMonth > 7;
+
+            try {
+                await createSubmissionRecord(planPeriodISO, isLate);
+                lockPlanUI(now.toISOString());
+
+                if (isLate) {
+                    toast('Sent (Late)', 'Submission logged on day ' + dayOfMonth + ' of the month. The responsible manager will be notified automatically.', 'alert');
+                } else {
+                    toast('Sent', 'Collection Plan submission logged successfully for the Collection Team.', 'success');
+                }
+            } catch (err) {
+                console.error(err);
+                toast('Send failed', err.message, 'alert');
+            }
+        }
+
+        function openDecision() {
+            // TODO: Wire up to the CFM Task Decision modal / Power Automate flow that
+            // creates a decision record on the Decision Layer and dispatches via TMS.
+            toast('Create Task Decision', 'Decision modal not yet wired. Will open the Task Decision form and route via TMS.', 'info');
+        }
+
+        function exportCSV() {
+            const rows = filterRows();
+            if (!rows.length) { toast('Export', 'Nothing to export with current filters.', 'alert'); return; }
+            const cols = ['Payment Term', 'Customer Class', 'Company Type', 'Type', 'Task Owner', 'Supervisor', 'Company Code', 'Company Name',
+                'Early Payment', 'Legal Issues', 'Bankruptcy', 'Claims Issue', 'Stopped', 'Agreed Recon',
+                'Total Outstanding', 'Rejections', 'Outstanding + Rej', 'Total Dues', 'Target Plan',
+                'Collected', 'Collected + Tax + Rej', 'ACHV %'];
+            const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+            const lines = [cols.join(',')].concat(rows.map(r => {
+                const targetPlan = r.totalDues * (TARGET_PCT / 100);
+                const denom = r.targetPlanDB > 0 ? r.targetPlanDB : targetPlan;
+                const achv = r.achievement != null ? r.achievement : (denom > 0 ? (r.collected / denom) * 100 : 0);
+                return [r.paymentTerm, r.customerClass, r.companyType, r.type, r.taskOwner, r.supervisor, r.code, r.name,
+                r.earlypayment, r.legalissues, r.bankruptcy, r.claimsissue, r.stopped, r.agreedrecon,
+                r.totalOutstanding, r.rejections, r.outstandingRej, r.totalDues, targetPlan,
+                r.collected, r.collectedPlus, Math.round(achv) + '%'
+                ].map(esc).join(',');
+            }));
+            const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'collection_plan_' + new Date().toISOString().slice(0, 10) + '.csv';
+            a.click();
+            URL.revokeObjectURL(a.href);
+            toast('Exported', rows.length + ' rows saved to CSV.', 'success');
+        }
+
+        /* ==========================================================================
+           TOAST
+           ========================================================================== */
+        const TOAST_ICONS = { success: 'fa-circle-check', alert: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+        function toast(title, msg, kind) {
+            const el = document.createElement('div');
+            el.className = 'toast ' + (kind || 'info');
+            const icon = TOAST_ICONS[kind || 'info'] || 'fa-circle-info';
+            el.innerHTML = `
+    <div class="toast-icon"><i class="fa-solid ${icon}"></i></div>
+    <div class="toast-body">
+      <div class="toast-title">${title}</div>
+      <div class="toast-msg">${msg}</div>
+    </div>`;
+            document.getElementById('toast-rack').appendChild(el);
+            setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(50px)'; }, 3200);
+            setTimeout(() => el.remove(), 3600);
+        }
+
+        /* ==========================================================================
+           AUDIT TRAIL — namespaced separately from the Collection Plan code above
+           ========================================================================== */
+        const AUDIT_SELECT_COLS = [
+            'cfm_manualentryauditid', 'createdon', 'cfm_fieldname', 'cfm_oldvalue', 'cfm_newvalue', 'cfm_planperiod',
+            '_cfm_araging_value', '_createdby_value'
+        ].join(',');
+
+        let AUDIT_ROWS = [];
+        let AUDIT_PAGE = 1;
+        const AUDIT_PAGE_SIZE = 25;
+        let AUDIT_LOADED = false;
+
+        async function loadAuditRows() {
+            const url = getClientUrl() + '/api/data/v9.2/cfm_manualentryaudits'
+                + '?$select=' + AUDIT_SELECT_COLS
+                + '&$expand=cfm_ARAging($select=cfm_companyname,cfm_companycode,_cfm_type_value)'
+                + '&$orderby=createdon desc';
+            const res = await fetch(url, { method: 'GET', headers: headers(), credentials: 'include' });
+            if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+            return (await res.json()).value || [];
+        }
+
+        function normaliseAudit(row) {
+            const company = row.cfm_ARAging || null;
+            return {
+                id: row.cfm_manualentryauditid,
+                when: row.createdon,
+                field: row.cfm_fieldname || '—',
+                oldValue: row.cfm_oldvalue,
+                newValue: row.cfm_newvalue,
+                companyName: company ? (company.cfm_companyname || '—') : (row['_cfm_araging_value@OData.Community.Display.V1.FormattedValue'] || '—'),
+                companyCode: company ? (company.cfm_companycode || '—') : '—',
+                type: company ? (company['_cfm_type_value@OData.Community.Display.V1.FormattedValue'] || '—') : '—',
+                changedBy: row['_createdby_value@OData.Community.Display.V1.FormattedValue'] || '—'
+            };
+        }
+
+        const fmtAuditDateTime = iso => new Date(iso).toLocaleString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+        // Unlike the Collection Plan's fmt(), this shows 0 explicitly — in an audit
+        // trail "changed from 0" is meaningful and shouldn't look the same as "no value".
+        const fmtAuditNum = n => (n == null) ? '—' : Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
+        function auditInitials(name) {
+            if (!name || name === '—') return '?';
+            return name.trim().split(/\s+/).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+        }
+
+        function filterAuditRows() {
+            const q = (document.getElementById('au-search').value || '').toLowerCase().trim();
+            const field = document.getElementById('au-field').value;
+            const user = document.getElementById('au-user').value;
+            const from = document.getElementById('au-from').value;
+            const to = document.getElementById('au-to').value;
+
+            return AUDIT_ROWS.filter(r => {
+                if (field && r.field !== field) return false;
+                if (user && r.changedBy !== user) return false;
+                if (from && new Date(r.when) < new Date(from + 'T00:00:00')) return false;
+                if (to && new Date(r.when) > new Date(to + 'T23:59:59')) return false;
+                if (q) {
+                    const hay = (r.companyName + ' ' + r.companyCode + ' ' + r.type + ' ' + r.changedBy).toLowerCase();
+                    if (!hay.includes(q)) return false;
+                }
+                return true;
+            });
+        }
+
+        function auditDeltaCell(r) {
+            const oldN = N(r.oldValue), newN = N(r.newValue);
+            const diff = newN - oldN;
+            const badge = diff === 0 ? '' :
+                (diff > 0
+                    ? `<span class="delta-badge up"><i class="fa-solid fa-arrow-up"></i>${fmtAuditNum(Math.abs(diff))}</span>`
+                    : `<span class="delta-badge down"><i class="fa-solid fa-arrow-down"></i>${fmtAuditNum(Math.abs(diff))}</span>`);
+            return `<span class="delta-wrap">
+        <span class="delta-old">${fmtAuditNum(r.oldValue)}</span>
+        <i class="fa-solid fa-arrow-right delta-arrow"></i>
+        <span class="delta-new">${fmtAuditNum(r.newValue)}</span>
+        ${badge}
+      </span>`;
+        }
+
+        function populateAuditUserFilter() {
+            const sel = document.getElementById('au-user');
+            const current = sel.value;
+            const users = [...new Set(AUDIT_ROWS.map(r => r.changedBy))].filter(u => u && u !== '—').sort();
+            sel.innerHTML = '<option value="">All Users</option>' + users.map(u => `<option value="${u}">${u}</option>`).join('');
+            if (users.includes(current)) sel.value = current;
+        }
+
+        function renderGroupedAuditRows(filtered) {
+            const groups = {};
+            filtered.forEach(r => {
+                const key = r.companyName + '|' + r.companyCode;
+                if (!groups[key]) groups[key] = { name: r.companyName, code: r.companyCode, type: r.type, rows: [] };
+                groups[key].rows.push(r);
+            });
+            // Most recently-changed company first; each group's rows are already
+            // newest-first since AUDIT_ROWS is loaded with $orderby=createdon desc.
+            const groupList = Object.values(groups).sort((a, b) => new Date(b.rows[0].when) - new Date(a.rows[0].when));
+
+            return groupList.map(g => {
+                const headerRow = `<tr class="group-header-row">
+      <td colspan="7">
+        <div class="group-header-row-inner">
+          <span class="group-header-company">
+            <i class="fa-solid fa-building"></i> ${g.name}
+            <span class="col-code">${g.code}</span>
+            ${g.type && g.type !== '—' ? `<span class="col-type">${g.type}</span>` : ''}
+          </span>
+          <span class="group-count">${g.rows.length} change${g.rows.length === 1 ? '' : 's'}</span>
+        </div>
+      </td>
+    </tr>`;
+                const childRows = g.rows.map(r => `<tr class="group-child-row">
+      <td class="col-time">${fmtAuditDateTime(r.when)}</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td><span class="col-field">${r.field}</span></td>
+      <td>${auditDeltaCell(r)}</td>
+      <td>
+        <span class="col-user">
+          <span class="user-avatar">${auditInitials(r.changedBy)}</span>
+          ${r.changedBy}
+        </span>
+      </td>
+    </tr>`).join('');
+                return headerRow + childRows;
+            }).join('');
+        }
+
+        function renderAuditTable() {
+            const filtered = filterAuditRows();
+            const tbody = document.getElementById('au-body');
+            document.getElementById('au-tbl-showing').textContent = filtered.length;
+            document.getElementById('au-tbl-total').textContent = AUDIT_ROWS.length;
+
+            if (!filtered.length) {
+                tbody.innerHTML = `<tr><td colspan="7" class="state-cell">
+        <div class="state-icon"><i class="fa-solid fa-filter-circle-xmark"></i></div>
+        <div class="state-title">No changes found</div>
+        <div class="state-msg">No audit entries match the current filters. Try adjusting the search or clearing filters.</div>
+      </td></tr>`;
+                document.getElementById('au-pagination').style.display = 'none';
+                updateAuditKPIs(filtered);
+                return;
+            }
+
+            const grouped = document.getElementById('au-group').checked;
+            if (grouped) {
+                tbody.innerHTML = renderGroupedAuditRows(filtered);
+                document.getElementById('au-pagination').style.display = 'none';
+                updateAuditKPIs(filtered);
+                return;
+            }
+
+            const totalPages = Math.max(1, Math.ceil(filtered.length / AUDIT_PAGE_SIZE));
+            if (AUDIT_PAGE > totalPages) AUDIT_PAGE = totalPages;
+            if (AUDIT_PAGE < 1) AUDIT_PAGE = 1;
+            const start = (AUDIT_PAGE - 1) * AUDIT_PAGE_SIZE;
+            const paged = filtered.slice(start, start + AUDIT_PAGE_SIZE);
+
+            tbody.innerHTML = paged.map(r => `<tr>
+      <td class="col-time">${fmtAuditDateTime(r.when)}</td>
+      <td class="col-company">${r.companyName}</td>
+      <td class="col-code">${r.companyCode}</td>
+      <td><span class="col-type">${r.type}</span></td>
+      <td><span class="col-field">${r.field}</span></td>
+      <td>${auditDeltaCell(r)}</td>
+      <td>
+        <span class="col-user">
+          <span class="user-avatar">${auditInitials(r.changedBy)}</span>
+          ${r.changedBy}
+        </span>
+      </td>
+    </tr>`).join('');
+
+            updateAuditKPIs(filtered);
+            renderAuditPagination(filtered.length, totalPages);
+        }
+
+        function updateAuditKPIs(filtered) {
+            document.getElementById('au-kpi-total').textContent = filtered.length;
+            document.getElementById('au-kpi-companies').textContent = new Set(filtered.map(r => r.companyName)).size;
+            document.getElementById('au-kpi-users').textContent = new Set(filtered.map(r => r.changedBy)).size;
+
+            if (!filtered.length) {
+                document.getElementById('au-kpi-topfield').textContent = '—';
+                document.getElementById('au-kpi-topfield-sub').textContent = 'No data yet';
+                return;
+            }
+            const counts = {};
+            filtered.forEach(r => { counts[r.field] = (counts[r.field] || 0) + 1; });
+            const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+            document.getElementById('au-kpi-topfield').textContent = top[0];
+            document.getElementById('au-kpi-topfield-sub').textContent = top[1] + ' change' + (top[1] === 1 ? '' : 's');
+        }
+
+        function renderAuditPagination(totalRows, totalPages) {
+            const container = document.getElementById('au-pagination');
+            if (!totalRows) { container.style.display = 'none'; return; }
+            container.style.display = '';
+
+            const startIdx = (AUDIT_PAGE - 1) * AUDIT_PAGE_SIZE + 1;
+            const endIdx = Math.min(AUDIT_PAGE * AUDIT_PAGE_SIZE, totalRows);
+            document.getElementById('au-page-info').innerHTML =
+                `Showing <strong>${startIdx}</strong>–<strong>${endIdx}</strong> of <strong>${totalRows}</strong>`;
+
+            const pages = [];
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+                pages.push(1);
+                if (AUDIT_PAGE > 4) pages.push('...');
+                const from = Math.max(2, AUDIT_PAGE - 1);
+                const to = Math.min(totalPages - 1, AUDIT_PAGE + 1);
+                for (let i = from; i <= to; i++) pages.push(i);
+                if (AUDIT_PAGE < totalPages - 3) pages.push('...');
+                pages.push(totalPages);
+            }
+
+            const atFirst = AUDIT_PAGE === 1, atLast = AUDIT_PAGE === totalPages;
+            const btns = [];
+            btns.push(`<button class="page-btn" onclick="goToAuditPage(1)" ${atFirst ? 'disabled' : ''}><i class="fa-solid fa-angles-left"></i></button>`);
+            btns.push(`<button class="page-btn" onclick="goToAuditPage(${AUDIT_PAGE - 1})" ${atFirst ? 'disabled' : ''}><i class="fa-solid fa-angle-left"></i></button>`);
+            pages.forEach(p => {
+                btns.push(p === '...' ? '<span class="page-btn ellipsis">…</span>'
+                    : `<button class="page-btn ${p === AUDIT_PAGE ? 'active' : ''}" onclick="goToAuditPage(${p})">${p}</button>`);
+            });
+            btns.push(`<button class="page-btn" onclick="goToAuditPage(${AUDIT_PAGE + 1})" ${atLast ? 'disabled' : ''}><i class="fa-solid fa-angle-right"></i></button>`);
+            btns.push(`<button class="page-btn" onclick="goToAuditPage(${totalPages})" ${atLast ? 'disabled' : ''}><i class="fa-solid fa-angles-right"></i></button>`);
+            document.getElementById('au-page-nav').innerHTML = btns.join('');
+        }
+
+        function goToAuditPage(n) {
+            AUDIT_PAGE = n;
+            renderAuditTable();
+            const sc = document.querySelector('#view-audit .tbl-scroll');
+            if (sc) sc.scrollTop = 0;
+        }
+
+        function onAuditFilterChange() {
+            AUDIT_PAGE = 1;
+            renderAuditTable();
+        }
+
+        function clearAuditFilters() {
+            document.getElementById('au-search').value = '';
+            document.getElementById('au-field').value = '';
+            document.getElementById('au-user').value = '';
+            document.getElementById('au-group').checked = false;
+            setDefaultAuditDateRange(); // back to the current month, not blank
+            AUDIT_PAGE = 1;
+            renderAuditTable();
+        }
+
+        function exportAuditCSV() {
+            const rows = filterAuditRows();
+            if (!rows.length) { toast('Export', 'Nothing to export with current filters.', 'alert'); return; }
+            const cols = ['Date & Time', 'Company', 'Company Code', 'Type', 'Field', 'Old Value', 'New Value', 'Changed By'];
+            const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+            const lines = [cols.join(',')].concat(rows.map(r => [
+                fmtAuditDateTime(r.when), r.companyName, r.companyCode, r.type, r.field, r.oldValue, r.newValue, r.changedBy
+            ].map(esc).join(',')));
+            const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'manual_entry_audit_' + new Date().toISOString().slice(0, 10) + '.csv';
+            a.click();
+            URL.revokeObjectURL(a.href);
+            toast('Exported', rows.length + ' rows saved to CSV.', 'success');
+        }
+
+        async function reloadAudit() {
+            const tbody = document.getElementById('au-body');
+            tbody.innerHTML = Array.from({ length: 5 }, () =>
+                `<tr class="skel-row"><td colspan="7"><div class="skel" style="width:${60 + Math.random() * 30}%"></div></td></tr>`
+            ).join('');
+            try {
+                const raw = await loadAuditRows();
+                AUDIT_ROWS = raw.map(normaliseAudit);
+                populateAuditUserFilter();
+                renderAuditTable();
+                toast('Loaded', AUDIT_ROWS.length + ' audit entries loaded from Dataverse.', 'success');
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="7" class="state-cell">
+      <div class="state-icon error"><i class="fa-solid fa-circle-exclamation"></i></div>
+      <div class="state-title">Couldn't load audit trail</div>
+      <div class="state-msg">${err.message}</div>
+    </td></tr>`;
+                toast('Error', 'Could not load Manual Entry Audit.', 'alert');
+            }
+        }
+
+        /* ==========================================================================
+           VIEW SWITCHER — toggles between Collection Plan and Manual Entry Audit
+           ========================================================================== */
+        function toDateInputValue(d) {
+            const pad = n => String(n).padStart(2, '0');
+            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+        }
+        function setDefaultAuditDateRange() {
+            const now = new Date();
+            const first = new Date(now.getFullYear(), now.getMonth(), 1);
+            const last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            document.getElementById('au-from').value = toDateInputValue(first);
+            document.getElementById('au-to').value = toDateInputValue(last);
+        }
+
+        function switchView(view) {
+            const isPlan = view === 'plan';
+            document.getElementById('view-plan').style.display = isPlan ? '' : 'none';
+            document.getElementById('view-audit').style.display = isPlan ? 'none' : '';
+            document.getElementById('hdr-actions-plan').style.display = isPlan ? '' : 'none';
+            document.getElementById('hdr-actions-audit').style.display = isPlan ? 'none' : '';
+            document.getElementById('tab-plan').classList.toggle('active', isPlan);
+            document.getElementById('tab-audit').classList.toggle('active', !isPlan);
+            document.getElementById('pg-title-text').textContent = isPlan ? 'Collection Plan' : 'Manual Entry Audit';
+            document.getElementById('pg-sub-text').textContent = isPlan
+                ? 'Auto-populated from DotCare and controlled by AR Supervisor before routing to Collection.'
+                : 'Every change made to Manual Entry fields after a Collection Plan was sent — who changed it, when, and what it was before.';
+
+            if (!isPlan && !AUDIT_LOADED) {
+                AUDIT_LOADED = true;
+                setDefaultAuditDateRange(); // default the filter to the current month
+                reloadAudit();
+            }
+        }
+
+        /* ==========================================================================
+           BOOT / HELPERS
+           ========================================================================== */
+        function setPlanPeriodLabel() {
+            const now = new Date();
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            document.getElementById('plan-period').textContent = months[now.getMonth()] + ' ' + now.getFullYear();
+        }
+        function setLastRefresh() {
+            const d = new Date();
+            const t = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+            document.getElementById('last-refresh').textContent = t;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setPlanPeriodLabel();
+            checkPlanLock();
+            reload();
+        });
+    </script>
+</body>
+
+</html>

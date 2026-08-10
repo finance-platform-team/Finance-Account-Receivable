@@ -1,0 +1,242 @@
+/* ============================================================================
+   App shell — persistent left sidebar navigation + main content area.
+   Uses the shared tokens from src/styles/tokens.css.
+   ============================================================================ */
+
+.shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--canvas);
+  font-family: var(--body);
+}
+
+/* ============================ SIDEBAR ============================ */
+.sidebar {
+  flex-shrink: 0;
+  width: 240px;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--sidebar-grad);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sidebarCollapsed {
+  width: 72px;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 18px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.sidebarHeaderCollapsed {
+  justify-content: center;
+}
+
+.sidebarTitle {
+  font: 800 13px var(--sans);
+  letter-spacing: -0.1px;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toggleBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-md);
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.toggleBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.navList {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px 10px;
+}
+
+.navItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.68);
+  font: 600 12px var(--sans);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.navItemCollapsed {
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.navItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.navItemActive {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.navItemActive::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: var(--r-pill);
+  background: var(--gold-light);
+}
+
+.navItemIcon {
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.navItemLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================ CONTENT COLUMN (topbar + main) ============================ */
+.contentArea {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================ TOPBAR ============================ */
+.topbar {
+  flex-shrink: 0;
+  height: 60px;
+  padding: 0 24px;
+  background: var(--sidebar-grad);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.topbarTitle {
+  font: 700 15px var(--sans);
+  color: #fff;
+  letter-spacing: -0.1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userChip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.userText {
+  text-align: right;
+}
+
+.userName {
+  font: 600 12px var(--sans);
+  color: #fff;
+  white-space: nowrap;
+}
+
+.userSub {
+  font: 500 10px var(--body);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.userAvatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--grad-gold);
+  color: var(--brand-gold-600);
+  font: 800 12px var(--sans);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ============================ MAIN CONTENT ============================ */
+.main {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+/* ============================ COMING SOON PLACEHOLDER ============================ */
+.comingSoon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 40px;
+  text-align: center;
+  gap: 4px;
+}
+
+.comingSoonIcon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 10px;
+  border-radius: var(--r-lg);
+  background: var(--gold-soft);
+  color: var(--gold-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.comingSoonTitle {
+  font: 800 16px var(--sans);
+  color: var(--brand-black);
+}
+
+.comingSoonMsg {
+  font: 400 12px var(--body);
+  color: var(--muted);
+  max-width: 360px;
+}
