@@ -265,6 +265,14 @@
           "x-ms-dataverse-type": "DecimalType",
           "x-ms-schema-name": "cfm_NotDue"
         },
+        "cfm_notes_ar_aging": {
+          "type": "string",
+          "title": "Notes",
+          "x-ms-dataverse-attribute": "cfm_notes_ar_aging",
+          "x-ms-dataverse-type": "MemoType",
+          "x-ms-schema-name": "cfm_Notes_AR_Aging",
+          "maxLength": 4000
+        },
         "cfm_notesvisits": {
           "type": "string",
           "title": "Notes ",
@@ -296,6 +304,13 @@
           "x-ms-schema-name": "cfm_PaymentTermName",
           "x-ms-read-only": true,
           "maxLength": 850
+        },
+        "cfm_pendingconfirmation": {
+          "type": "string",
+          "title": "Pending confirmation",
+          "x-ms-dataverse-attribute": "cfm_pendingconfirmation",
+          "x-ms-dataverse-type": "DecimalType",
+          "x-ms-schema-name": "cfm_Pendingconfirmation"
         },
         "cfm_plannedvisit": {
           "type": "string",
@@ -421,6 +436,15 @@
           "x-ms-schema-name": "cfm_typeName",
           "x-ms-read-only": true,
           "maxLength": 160
+        },
+        "cfm_unique": {
+          "type": "string",
+          "title": "Unique",
+          "x-ms-dataverse-attribute": "cfm_unique",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cfm_Unique",
+          "x-ms-read-only": true,
+          "maxLength": 4000
         },
         "cfm_visittarget": {
           "type": "string",

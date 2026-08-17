@@ -47,3 +47,7 @@ export function lookupLabel(row: AnnotatedRow, nameField: string, valueField: st
 
 export const fmt = (v: number): string => (v ? v.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '—');
 export const fmtTotal = (v: number): string => v.toLocaleString('en-US', { maximumFractionDigits: 0 });
+
+export function escODataString(value: string): string {
+  return value.replace(/'/g, "''");
+}

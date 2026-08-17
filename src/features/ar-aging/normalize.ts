@@ -1,7 +1,16 @@
 /**
- * cfm_aragings is a read-only aging snapshot (see ref.html header comment) — this
- * module only ever reads records, it never constructs a payload to create/update one.
- * Label resolution (choice/lookup fallback chain) lives in shared/dataverseLabels.
+ * cfm_aragings is a read-only aging snapshot from DotCare (see ref.html header
+ * comment) — every bracket/metadata field here is display-only. cfm_notesvisits
+ * ("Notes") is the one exception: AR can attach a short note per company, saved
+ * back via useAgingData's updateRow. Label resolution (choice/lookup fallback
+ * chain) lives in shared/dataverseLabels.
+ *
+ * Payment Term / Customer Class / Company Type are joined in from
+ * cfm_insurancecompanies (matched by company code) rather than read off
+ * cfm_aragings' own copies of those fields — the Insurance Company record is
+ * the authoritative source (it's what Business Partners edits), so AR Aging
+ * should reflect it instead of DotCare's possibly-stale snapshot values. Falls
+ * back to cfm_aragings' own fields when no matching company code is found.
  */
 import {
   Cfm_aragingscfm_companytype,
@@ -10,20 +19,30 @@ import {
 import type { Cfm_aragings } from '../../generated/models/Cfm_aragingsModel';
 import { choiceLabel, lookupLabel } from '../../shared/dataverseLabels';
 import type { AnnotatedRow } from '../../shared/dataverseLabels';
+import { buildInsuranceCompanyLookup } from '../../shared/insuranceCompanyLookup';
+import type { InsuranceCompanyInfo, InsuranceCompanyLookup } from '../../shared/insuranceCompanyLookup';
 import type { AgingRow } from './types';
 
 const n = (v: number | undefined | null): number => Number(v ?? 0);
 
-export function normalizeRow(row: Cfm_aragings): AgingRow {
+export { buildInsuranceCompanyLookup };
+export type { InsuranceCompanyInfo, InsuranceCompanyLookup };
+
+export function normalizeRow(row: Cfm_aragings, companyByCode: InsuranceCompanyLookup): AgingRow {
   const r = row as unknown as AnnotatedRow;
+  const code = row.cfm_companycode?.trim() || '—';
+  const matched = code !== '—' ? companyByCode.get(code.toUpperCase()) : undefined;
   return {
     id: row.cfm_aragingid,
-    code: row.cfm_companycode?.trim() || '—',
+    code,
     name: row.cfm_companyname?.trim() || '—',
-    customerClass: choiceLabel(r, 'cfm_customerclass', 'cfm_customerclassname', Cfm_aragingscfm_customerclass),
-    companyType: choiceLabel(r, 'cfm_companytype', 'cfm_companytypename', Cfm_aragingscfm_companytype),
+    customerClass:
+      matched?.customerClass ?? choiceLabel(r, 'cfm_customerclass', 'cfm_customerclassname', Cfm_aragingscfm_customerclass),
+    companyType:
+      matched?.companyType ?? choiceLabel(r, 'cfm_companytype', 'cfm_companytypename', Cfm_aragingscfm_companytype),
     type: lookupLabel(r, 'cfm_typename', '_cfm_type_value'),
-    paymentTerm: lookupLabel(r, 'cfm_paymenttermname', '_cfm_paymentterm_value'),
+    typeId: row._cfm_type_value || null,
+    paymentTerm: matched?.paymentTerm ?? lookupLabel(r, 'cfm_paymenttermname', '_cfm_paymentterm_value'),
     taskOwner: lookupLabel(r, 'cfm_taskownername', '_cfm_taskowner_value'),
     supervisor: lookupLabel(r, 'cfm_supervisorname', '_cfm_supervisor_value'),
     notDue: n(row.cfm_notdue),
@@ -32,8 +51,11 @@ export function normalizeRow(row: Cfm_aragings): AgingRow {
     b6190: n(row.cfm_61to90),
     b91120: n(row.cfm_91to120),
     gt120: n(row.cfm_121to150) + n(row.cfm_150days),
+    notes: row.cfm_notesvisits ?? '',
   };
 }
+
+export const NOTES_MAX_LENGTH = 100;
 
 export { fmt, fmtTotal } from '../../shared/dataverseLabels';
 

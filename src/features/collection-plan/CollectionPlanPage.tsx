@@ -1,17 +1,34 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import styles from './CollectionPlan.module.css';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { AuditView } from './components/AuditView';
+import { AuditFilterBar } from './components/AuditFilterBar';
+import { AuditKpis } from './components/AuditKpis';
+import { AuditPagination, AUDIT_PAGE_SIZE } from './components/AuditPagination';
 import { KpiCards } from './components/KpiCards';
 import { FilterBar } from './components/FilterBar';
 import { PlanTable } from './components/PlanTable';
+import { PlanDetailDrawer } from './components/PlanDetailDrawer';
+import { CreateDecisionDrawer } from '../../shared/components/CreateDecisionDrawer';
+import type { DecisionFormInput } from '../../shared/components/CreateDecisionDrawer';
 import { useCollectionPlanData } from './useCollectionPlanData';
+import { useAuditData } from './useAuditData';
 import { usePlanSubmissionLock } from './usePlanSubmissionLock';
 import { useToasts } from '../../shared/useToasts';
 import { ToastRack } from '../../shared/components/ToastRack';
 import { Pagination } from '../../shared/components/Pagination';
 import { EDITABLE_FIELDS, EDITABLE_FIELD_LABELS, rowTargetPlan } from './normalize';
+import { computeAuditKpis, createManualEntryAudit, defaultAuditMonthRange } from './normalizeAudit';
+import { useRegion } from '../../shared/regionContext';
+import { regionForBu } from '../../shared/region';
+import { Cfm_tmshandoffsService } from '../../generated/services/Cfm_tmshandoffsService';
+import type {
+  Cfm_tmshandoffscfm_decisionfromwhere,
+  Cfm_tmshandoffscfm_priority,
+  Cfm_tmshandoffscfm_progress,
+  Cfm_tmshandoffscfm_tagename,
+} from '../../generated/models/Cfm_tmshandoffsModel';
 import type { PageSize } from '../../shared/types';
-import type { DirtyChange, EditableFieldKey, PlanTotals } from './types';
+import type { DirtyChange, EditableFieldKey, PlanRow, PlanTotals } from './types';
 
 const EMPTY_TOTALS: PlanTotals = {
   agreedrecon: 0,
@@ -33,10 +50,65 @@ function dirtyKey(rowId: string, field: EditableFieldKey): string {
   return `${rowId}|${field}`;
 }
 
+const escCsv = (v: string | number): string => `"${String(v ?? '').replace(/"/g, '""')}"`;
+
+const TAB_BTN_BASE: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 8,
+  padding: '9px 16px',
+  borderRadius: 9,
+  fontWeight: 600,
+  fontSize: 13,
+  fontFamily: "'Outfit',sans-serif",
+  cursor: 'pointer',
+};
+
+function tabButtonStyle(active: boolean): CSSProperties {
+  return {
+    ...TAB_BTN_BASE,
+    border: active ? '1px solid var(--brown)' : '1px solid var(--line)',
+    background: active ? 'var(--brown)' : 'var(--card)',
+    color: active ? '#fff' : 'var(--ink)',
+  };
+}
+
+function pctInputStyle(state: PctSaveState): CSSProperties {
+  const base: CSSProperties = {
+    width: 64,
+    padding: '6px 10px',
+    border: '1px solid var(--line)',
+    borderRadius: 8,
+    fontFamily: "'Outfit',sans-serif",
+    fontWeight: 700,
+    fontSize: 13,
+    color: 'var(--ink)',
+    textAlign: 'center',
+    outline: 'none',
+    background: 'var(--card)',
+  };
+  if (state === 'saving') return { ...base, borderColor: 'var(--gold)', background: 'var(--goldbg)' };
+  if (state === 'saved') return { ...base, borderColor: 'var(--ok)', background: 'var(--okbg)' };
+  if (state === 'error') return { ...base, borderColor: 'var(--bad)', background: 'var(--badbg)' };
+  return base;
+}
+
 export function CollectionPlanPage() {
-  const { rows, loading, error, updateRow } = useCollectionPlanData();
+  const { rows: allRows, loading, error, updateRow } = useCollectionPlanData();
   const { locked, send } = usePlanSubmissionLock();
   const { toasts, push } = useToasts();
+  const { region } = useRegion();
+
+  // Scope every company on this page to the selected region's BU list before any
+  // other filter runs. `region` is null only while the (blocking) picker hasn't
+  // been answered yet — show everything rather than guess in that window. The
+  // Audit tab keeps joining against the unfiltered `allRows` (see auditFiltered
+  // below) so its company/type lookups never break, then applies the same
+  // region check on the result.
+  const rows = useMemo(
+    () => (region ? allRows.filter((r) => regionForBu(r.bu) === region) : allRows),
+    [allRows, region]
+  );
 
   const [viewTab, setViewTab] = useState<ViewTab>('plan');
   const [search, setSearch] = useState('');
@@ -51,6 +123,20 @@ export function CollectionPlanPage() {
   const [manualUnlock, setManualUnlock] = useState(false);
   const [dirtyChanges, setDirtyChanges] = useState<Map<string, DirtyChange>>(new Map());
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [decisionDrawerOpen, setDecisionDrawerOpen] = useState(false);
+  const [decisionSubmitting, setDecisionSubmitting] = useState(false);
+  const [selectedPlanRow, setSelectedPlanRow] = useState<PlanRow | null>(null);
+  const [planDrawerOpen, setPlanDrawerOpen] = useState(false);
+
+  const [auditSearch, setAuditSearch] = useState('');
+  const [auditField, setAuditField] = useState('');
+  const [auditUser, setAuditUser] = useState('');
+  const [auditFrom, setAuditFrom] = useState('');
+  const [auditTo, setAuditTo] = useState('');
+  const [auditGroup, setAuditGroup] = useState(false);
+  const [auditPage, setAuditPage] = useState(1);
+  const auditDefaultsSetRef = useRef(false);
+  const targetPctInitRef = useRef(false);
 
   // ref.html's reload() toasts once on a successful initial load — AR Aging's
   // equivalent doesn't. Both are read from the same real source (ref.html).
@@ -64,6 +150,34 @@ export function CollectionPlanPage() {
     // Only the initial load transition matters here; `rows`/`push` deliberately excluded.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, error]);
+
+  // Restores the last-saved target % once data loads, instead of always resetting to 100.
+  useEffect(() => {
+    if (!loading && !error && !targetPctInitRef.current && allRows.length > 0) {
+      targetPctInitRef.current = true;
+      const withPct = allRows.find((r) => r.targetPercentage != null);
+      if (withPct?.targetPercentage != null) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setTargetPct(withPct.targetPercentage);
+      }
+    }
+  }, [loading, error, allRows]);
+
+  const { auditRows, loading: auditLoading, error: auditError, reload: reloadAudit } = useAuditData(
+    allRows,
+    viewTab === 'audit'
+  );
+
+  // Defaults the audit date filter to the current month the first time the tab is opened,
+  // matching ref.html's setDefaultAuditDateRange() call on the AUDIT_LOADED false->true transition.
+  useEffect(() => {
+    if (viewTab === 'audit' && !auditDefaultsSetRef.current) {
+      auditDefaultsSetRef.current = true;
+      const { from, to } = defaultAuditMonthRange();
+      setAuditFrom(from);
+      setAuditTo(to);
+    }
+  }, [viewTab]);
 
   const cellMode = !locked ? 'instant' : manualUnlock ? 'dirty' : 'locked';
 
@@ -119,6 +233,37 @@ export function CollectionPlanPage() {
     return filtered.slice(start, start + pageSize);
   }, [filtered, currentPage, pageSize]);
 
+  const auditUserOptions = useMemo(
+    () => Array.from(new Set(auditRows.map((r) => r.changedBy))).filter((u) => u && u !== '—').sort(),
+    [auditRows]
+  );
+
+  const auditFiltered = useMemo(() => {
+    const q = auditSearch.trim().toLowerCase();
+    return auditRows.filter((r) => {
+      if (region && regionForBu(r.type) !== region) return false;
+      if (auditField && r.field !== auditField) return false;
+      if (auditUser && r.changedBy !== auditUser) return false;
+      if (auditFrom && new Date(r.when) < new Date(`${auditFrom}T00:00:00`)) return false;
+      if (auditTo && new Date(r.when) > new Date(`${auditTo}T23:59:59`)) return false;
+      if (q) {
+        const haystack = `${r.companyName} ${r.companyCode} ${r.type} ${r.changedBy}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [auditRows, region, auditField, auditUser, auditFrom, auditTo, auditSearch]);
+
+  const auditKpis = useMemo(() => computeAuditKpis(auditFiltered), [auditFiltered]);
+
+  const auditCurrentPage = Math.min(auditPage, Math.max(1, Math.ceil(auditFiltered.length / AUDIT_PAGE_SIZE)));
+
+  const auditDisplayRows = useMemo(() => {
+    if (auditGroup) return auditFiltered;
+    const start = (auditCurrentPage - 1) * AUDIT_PAGE_SIZE;
+    return auditFiltered.slice(start, start + AUDIT_PAGE_SIZE);
+  }, [auditFiltered, auditGroup, auditCurrentPage]);
+
   const resetPage = useCallback(() => setPage(1), []);
 
   const handleClearFilters = useCallback(() => {
@@ -129,6 +274,17 @@ export function CollectionPlanPage() {
     setCompanyType('');
     resetPage();
   }, [resetPage]);
+
+  const handleClearAuditFilters = useCallback(() => {
+    setAuditSearch('');
+    setAuditField('');
+    setAuditUser('');
+    setAuditGroup(false);
+    const { from, to } = defaultAuditMonthRange();
+    setAuditFrom(from);
+    setAuditTo(to);
+    setAuditPage(1);
+  }, []);
 
   const handleInstantSave = useCallback(
     async (rowId: string, field: EditableFieldKey, value: number) => {
@@ -184,14 +340,22 @@ export function CollectionPlanPage() {
       return;
     }
 
+    const nowISO = new Date().toISOString();
     let okCount = 0;
     let failCount = 0;
     let firstErr = '';
+    let auditFailCount = 0;
     for (const [key, change] of entries) {
       const [rowId, field] = key.split('|') as [string, EditableFieldKey];
       try {
         await updateRow(rowId, { [EDITABLE_FIELDS[field]]: change.value });
         okCount++;
+        try {
+          await createManualEntryAudit(rowId, EDITABLE_FIELD_LABELS[field], change.orig, change.value, nowISO);
+        } catch (auditErr) {
+          auditFailCount++;
+          console.error('Audit log failed for', rowId, field, auditErr);
+        }
       } catch (err) {
         failCount++;
         if (!firstErr) firstErr = err instanceof Error ? err.message : 'Save failed.';
@@ -204,8 +368,11 @@ export function CollectionPlanPage() {
     if (failCount === 0) {
       push(
         'Changes saved',
-        `${okCount} field(s) updated successfully. (Audit log not recorded — connect cfm_manualentryaudits to enable it.)`,
-        'alert'
+        `${okCount} field(s) updated successfully.` +
+          (auditFailCount
+            ? ` (${auditFailCount} audit log entr${auditFailCount === 1 ? 'y' : 'ies'} failed to record.)`
+            : ''),
+        auditFailCount ? 'alert' : 'success'
       );
     } else {
       push('Saved with errors', `Saved ${okCount}, failed ${failCount}. ${firstErr}`, 'alert');
@@ -220,9 +387,11 @@ export function CollectionPlanPage() {
     for (const r of rows) {
       const target = r.targetPlanDB > 0 ? r.targetPlanDB : rowTargetPlan(r, targetPct);
       const achv = target > 0 ? (r.collected / target) * 100 : 0;
-      if (r.achievement != null && Math.abs(r.achievement - achv) < 0.005) continue;
+      const achvChanged = r.achievement == null || Math.abs(r.achievement - achv) >= 0.005;
+      const pctChanged = r.targetPercentage == null || Math.abs(r.targetPercentage - targetPct) >= 0.005;
+      if (!achvChanged && !pctChanged) continue;
       try {
-        await updateRow(r.id, { cfm_achievement: achv });
+        await updateRow(r.id, { cfm_achievement: achv, cfm_targetpercentage: targetPct });
         ok++;
       } catch (err) {
         fail++;
@@ -267,7 +436,6 @@ export function CollectionPlanPage() {
       'Collected',
       'Collected + Tax + Rej',
     ];
-    const esc = (v: string | number) => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const lines = [cols.join(',')].concat(
       filtered.map((r) =>
         [
@@ -293,7 +461,7 @@ export function CollectionPlanPage() {
           r.collected,
           r.collectedPlus,
         ]
-          .map(esc)
+          .map(escCsv)
           .join(',')
       )
     );
@@ -307,9 +475,84 @@ export function CollectionPlanPage() {
     push('Exported', `${filtered.length} rows saved to CSV.`, 'success');
   }, [filtered, targetPct, push]);
 
-  const handleOpenDecision = useCallback(() => {
-    push('Create Task Decision', 'Decision modal not yet wired. Will open the Task Decision form and route via TMS.', 'info');
-  }, [push]);
+  const handleExportAuditCsv = useCallback(() => {
+    if (!auditFiltered.length) {
+      push('Export', 'Nothing to export with current filters.', 'alert');
+      return;
+    }
+    const cols = ['Date & Time', 'Company', 'Company Code', 'Type', 'Field', 'Old Value', 'New Value', 'Changed By'];
+    const lines = [cols.join(',')].concat(
+      auditFiltered.map((r) =>
+        [
+          new Date(r.when).toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          r.companyName,
+          r.companyCode,
+          r.type,
+          r.field,
+          r.oldValue ?? '',
+          r.newValue ?? '',
+          r.changedBy,
+        ]
+          .map(escCsv)
+          .join(',')
+      )
+    );
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `manual_entry_audit_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    push('Exported', `${auditFiltered.length} rows saved to CSV.`, 'success');
+  }, [auditFiltered, push]);
+
+  const handleOpenDecision = useCallback(() => setDecisionDrawerOpen(true), []);
+  const handleCloseDecision = useCallback(() => setDecisionDrawerOpen(false), []);
+
+  const handleRowDoubleClick = useCallback((row: PlanRow) => {
+    setSelectedPlanRow(row);
+    setPlanDrawerOpen(true);
+  }, []);
+  const handleClosePlanDrawer = useCallback(() => setPlanDrawerOpen(false), []);
+
+  const handleSubmitDecision = useCallback(
+    async (input: DecisionFormInput) => {
+      setDecisionSubmitting(true);
+      try {
+        const result = await Cfm_tmshandoffsService.create({
+          cfm_tasktitle: input.title,
+          ...(input.description ? { cfm_taskdescription: input.description } : {}),
+          ...(input.actionToBeTaken ? { cfm_typeaction: input.actionToBeTaken } : {}),
+          'cfm_Assignee@odata.bind': `/systemusers(${input.assigneeId})`,
+          ...(input.priority != null ? { cfm_priority: input.priority as Cfm_tmshandoffscfm_priority } : {}),
+          cfm_duedate: new Date(`${input.dueDate}T00:00:00`).toISOString(),
+          // This button lives on the AR / Collection Plan module.
+          cfm_decisionfromwhere: 5 as Cfm_tmshandoffscfm_decisionfromwhere, // 'AR'
+          cfm_tagename: 766340000 as Cfm_tmshandoffscfm_tagename, // 'Collection'
+          // "Send Decision" submits it immediately, rather than leaving it as a draft.
+          cfm_progress: 123200005 as Cfm_tmshandoffscfm_progress, // 'Submited'
+          statecode: 0,
+        });
+        if (!result.success) {
+          throw new Error(result.error?.message || 'Could not save the decision.');
+        }
+        push('Decision sent', `"${input.title}" was created and routed via TMS.`, 'success');
+        setDecisionDrawerOpen(false);
+      } catch (err) {
+        push('Could not save decision', err instanceof Error ? err.message : 'Unknown error.', 'alert');
+      } finally {
+        setDecisionSubmitting(false);
+      }
+    },
+    [push]
+  );
 
   const handleSend = useCallback(async () => {
     const result = await send();
@@ -345,159 +588,159 @@ export function CollectionPlanPage() {
     : 'Every change made to Manual Entry fields after a Collection Plan was sent — who changed it, when, and what it was before.';
 
   return (
-    <div className={styles.page}>
-      <div className={styles.pgHdr}>
+    <div className="acc-wrap">
+      <div className="acc-head">
         <div>
-          <div className={styles.pgEyebrow}>
-            <i className="fa-solid fa-chart-line" /> AR Planning
-          </div>
-          <h1 className={styles.pgTitle}>
+          <h1 className="acc-title">
             {pgTitle}
-            <span className={styles.statusChip}>
-              <i className="fa-solid fa-circle" /> {locked ? 'Sent' : 'Draft'}
+            <span
+              style={{
+                marginLeft: 10,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 11,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '.04em',
+                padding: '4px 10px',
+                borderRadius: 999,
+                background: locked ? 'var(--okbg)' : 'var(--warnbg)',
+                color: locked ? 'var(--ok)' : 'var(--warn)',
+                verticalAlign: 'middle',
+              }}
+            >
+              <i className="fa-solid fa-circle" style={{ fontSize: 8 }} /> {locked ? 'Sent' : 'Draft'}
             </span>
           </h1>
-          <div className={styles.pgSub}>{pgSub}</div>
+          <div className="acc-sub">{pgSub}</div>
         </div>
 
-        {isPlan ? (
-          <div className={styles.hdrActions}>
-            <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} onClick={handleExportCsv}>
-              <i className="fa-solid fa-file-arrow-down" /> Export
-            </button>
-            <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} onClick={handleOpenDecision}>
-              <i className="fa-solid fa-clipboard-check" /> Decision
-            </button>
-            {locked && !manualUnlock && (
-              <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} onClick={handleEditUnlock}>
-                <i className="fa-solid fa-lock-open" /> Edit
+        <div className="acc-actions">
+          {isPlan ? (
+            <>
+              <button className="acc-btn" onClick={handleExportCsv}>
+                <i className="fa-solid fa-file-arrow-down" /> Export
               </button>
-            )}
-            {locked && manualUnlock && (
-              <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} onClick={handleCancelEdit}>
-                <i className="fa-solid fa-xmark" /> Cancel
+              <button className="acc-btn" onClick={handleOpenDecision}>
+                <i className="fa-solid fa-clipboard-check" /> Decision
               </button>
-            )}
-            {locked && manualUnlock && (
-              <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`} onClick={handleConfirmEdit}>
-                <i className="fa-solid fa-check" /> Confirm Edit{dirtyChanges.size ? ` (${dirtyChanges.size})` : ''}
+              {locked && !manualUnlock && (
+                <button className="acc-btn" onClick={handleEditUnlock}>
+                  <i className="fa-solid fa-lock-open" /> Edit
+                </button>
+              )}
+              {locked && manualUnlock && (
+                <button className="acc-btn" onClick={handleCancelEdit}>
+                  <i className="fa-solid fa-xmark" /> Cancel
+                </button>
+              )}
+              {locked && manualUnlock && (
+                <button
+                  className="acc-btn"
+                  style={{ color: 'var(--ok)', borderColor: 'var(--ok)' }}
+                  onClick={handleConfirmEdit}
+                >
+                  <i className="fa-solid fa-check" /> Confirm Edit{dirtyChanges.size ? ` (${dirtyChanges.size})` : ''}
+                </button>
+              )}
+              <button
+                className="acc-btn acc-btn-primary"
+                style={locked ? { opacity: 0.5, cursor: 'not-allowed', filter: 'grayscale(.4)' } : undefined}
+                onClick={handleSend}
+                title={locked ? 'Already sent this month' : undefined}
+              >
+                <i className="fa-solid fa-paper-plane" /> Send to Collection Team
               </button>
-            )}
-            <button
-              className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm} ${locked ? styles.btnLocked : ''}`}
-              onClick={handleSend}
-              title={locked ? 'Already sent this month' : undefined}
-            >
-              <i className="fa-solid fa-paper-plane" /> Send to Collection Team
-            </button>
-          </div>
-        ) : (
-          <div className={styles.hdrActions}>
-            <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} disabled>
-              <i className="fa-solid fa-file-arrow-down" /> Export
-            </button>
-            <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`} disabled>
-              <i className="fa-solid fa-rotate" /> Refresh
-            </button>
-          </div>
-        )}
+            </>
+          ) : (
+            <>
+              <button className="acc-btn" onClick={handleExportAuditCsv}>
+                <i className="fa-solid fa-file-arrow-down" /> Export
+              </button>
+              <button className="acc-btn acc-btn-primary" onClick={reloadAudit}>
+                <i className="fa-solid fa-rotate" /> Refresh
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
-      <div className={styles.viewTabs}>
-        <button
-          className={`${styles.viewTab} ${isPlan ? styles.viewTabActive : ''}`}
-          onClick={() => setViewTab('plan')}
-        >
+      <div style={{ display: 'inline-flex', gap: 8, marginBottom: 16 }}>
+        <button onClick={() => setViewTab('plan')} style={tabButtonStyle(isPlan)}>
           <i className="fa-solid fa-clipboard-list" /> Collection Plan
         </button>
-        <button
-          className={`${styles.viewTab} ${!isPlan ? styles.viewTabActive : ''}`}
-          onClick={() => setViewTab('audit')}
-        >
+        <button onClick={() => setViewTab('audit')} style={tabButtonStyle(!isPlan)}>
           <i className="fa-solid fa-clock-rotate-left" /> Manual Entry Audit
         </button>
       </div>
 
       {isPlan ? (
         <div>
-          <div className={styles.planMeta}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-              <div className={styles.metaGroup}>
-                <i className="fa-solid fa-calendar-days" />
-                <span>
-                  <strong>Plan Period:</strong> {planPeriodLabel}
-                </span>
-              </div>
-              <div className={styles.metaSep} />
-              <div className={styles.metaGroup}>
-                <i className="fa-solid fa-bullseye" />
-                <span>
-                  <strong>Target Plan:</strong> Total Dues ×
-                </span>
-                <input
-                  className={`${styles.pctInput} ${
-                    pctSaveState === 'saving'
-                      ? styles.saving
-                      : pctSaveState === 'saved'
-                        ? styles.saved
-                        : pctSaveState === 'error'
-                          ? styles.errorState
-                          : ''
-                  }`}
-                  type="number"
-                  min={0}
-                  step={1}
-                  value={targetPct}
-                  onChange={(e) => setTargetPct(isNaN(parseFloat(e.target.value)) ? 100 : parseFloat(e.target.value))}
-                  onBlur={handleTargetPctBlur}
-                />
-                <span>%</span>
-              </div>
-              <div className={styles.metaSep} />
-              <div className={styles.metaGroup}>
-                <i className="fa-solid fa-clock" />
-                <span>
-                  Last refresh: <strong>{lastRefreshLabel}</strong>
-                </span>
-              </div>
-            </div>
+          <div className="acc-bar">
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--muted)', fontSize: 12.5 }}>
+              <i className="fa-solid fa-calendar-days" style={{ color: 'var(--gold)' }} />
+              <strong style={{ color: 'var(--brown)' }}>Plan Period:</strong> {planPeriodLabel}
+            </span>
+            <span style={{ width: 1, height: 20, background: 'var(--line)' }} />
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--muted)', fontSize: 12.5 }}>
+              <i className="fa-solid fa-bullseye" style={{ color: 'var(--gold)' }} />
+              <strong style={{ color: 'var(--brown)' }}>Target Plan:</strong> Total Dues ×
+              <input
+                type="number"
+                min={0}
+                step={1}
+                value={targetPct}
+                onChange={(e) => setTargetPct(isNaN(parseFloat(e.target.value)) ? 100 : parseFloat(e.target.value))}
+                onBlur={handleTargetPctBlur}
+                style={pctInputStyle(pctSaveState)}
+              />
+              %
+            </span>
+            <span style={{ width: 1, height: 20, background: 'var(--line)' }} />
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--muted)', fontSize: 12.5 }}>
+              <i className="fa-solid fa-clock" style={{ color: 'var(--gold)' }} />
+              Last refresh: <strong style={{ color: 'var(--brown)' }}>{lastRefreshLabel}</strong>
+            </span>
           </div>
 
           <KpiCards totals={loading || error ? EMPTY_TOTALS : totals} />
 
-          <div className={styles.tblShell}>
-            <FilterBar
-              search={search}
-              onSearchChange={(v) => {
-                setSearch(v);
-                resetPage();
-              }}
-              bu={bu}
-              onBuChange={(v) => {
-                setBu(v);
-                resetPage();
-              }}
-              buOptions={buOptions}
-              paymentTerm={paymentTerm}
-              onPaymentTermChange={(v) => {
-                setPaymentTerm(v);
-                resetPage();
-              }}
-              paymentTermOptions={paymentTermOptions}
-              customerClass={customerClass}
-              onCustomerClassChange={(v) => {
-                setCustomerClass(v);
-                resetPage();
-              }}
-              companyType={companyType}
-              onCompanyTypeChange={(v) => {
-                setCompanyType(v);
-                resetPage();
-              }}
-              onClear={handleClearFilters}
-              showing={loading || error ? 0 : filtered.length}
-              total={rows.length}
-            />
+          <div className="tbl-shell">
+            <div className="tbl-hdr">
+              <FilterBar
+                search={search}
+                onSearchChange={(v) => {
+                  setSearch(v);
+                  resetPage();
+                }}
+                bu={bu}
+                onBuChange={(v) => {
+                  setBu(v);
+                  resetPage();
+                }}
+                buOptions={buOptions}
+                paymentTerm={paymentTerm}
+                onPaymentTermChange={(v) => {
+                  setPaymentTerm(v);
+                  resetPage();
+                }}
+                paymentTermOptions={paymentTermOptions}
+                customerClass={customerClass}
+                onCustomerClassChange={(v) => {
+                  setCustomerClass(v);
+                  resetPage();
+                }}
+                companyType={companyType}
+                onCompanyTypeChange={(v) => {
+                  setCompanyType(v);
+                  resetPage();
+                }}
+                onClear={handleClearFilters}
+                showing={loading || error ? 0 : filtered.length}
+                total={rows.length}
+              />
+            </div>
 
             <PlanTable
               rows={paged}
@@ -510,6 +753,7 @@ export function CollectionPlanPage() {
               dirtyChanges={dirtyChanges}
               onInstantSave={handleInstantSave}
               onDirtyChange={handleDirtyChange}
+              onRowDoubleClick={handleRowDoubleClick}
             />
 
             {!loading && !error && (
@@ -517,6 +761,7 @@ export function CollectionPlanPage() {
                 page={currentPage}
                 pageSize={pageSize}
                 totalRows={filtered.length}
+                itemLabel="companies"
                 onPageChange={setPage}
                 onPageSizeChange={(size) => {
                   setPageSize(size);
@@ -527,8 +772,66 @@ export function CollectionPlanPage() {
           </div>
         </div>
       ) : (
-        <AuditView />
+        <div>
+          <AuditKpis kpis={auditKpis} />
+
+          <div className="tbl-shell">
+            <div className="tbl-hdr">
+              <AuditFilterBar
+                search={auditSearch}
+                onSearchChange={(v) => {
+                  setAuditSearch(v);
+                  setAuditPage(1);
+                }}
+                field={auditField}
+                onFieldChange={(v) => {
+                  setAuditField(v);
+                  setAuditPage(1);
+                }}
+                user={auditUser}
+                onUserChange={(v) => {
+                  setAuditUser(v);
+                  setAuditPage(1);
+                }}
+                userOptions={auditUserOptions}
+                from={auditFrom}
+                onFromChange={(v) => {
+                  setAuditFrom(v);
+                  setAuditPage(1);
+                }}
+                to={auditTo}
+                onToChange={(v) => {
+                  setAuditTo(v);
+                  setAuditPage(1);
+                }}
+                group={auditGroup}
+                onGroupChange={(v) => {
+                  setAuditGroup(v);
+                  setAuditPage(1);
+                }}
+                onClear={handleClearAuditFilters}
+                showing={auditFiltered.length}
+                total={auditRows.length}
+              />
+            </div>
+
+            <AuditView rows={auditDisplayRows} grouped={auditGroup} loading={auditLoading} error={auditError} />
+
+            {!auditGroup && !auditLoading && !auditError && (
+              <AuditPagination page={auditCurrentPage} totalRows={auditFiltered.length} onPageChange={setAuditPage} />
+            )}
+          </div>
+        </div>
       )}
+
+      <CreateDecisionDrawer
+        open={decisionDrawerOpen}
+        submitting={decisionSubmitting}
+        onClose={handleCloseDecision}
+        onSubmit={handleSubmitDecision}
+      />
+
+      <PlanDetailDrawer row={selectedPlanRow} open={planDrawerOpen} targetPct={targetPct} onClose={handleClosePlanDrawer} />
 
       <ToastRack toasts={toasts} />
     </div>

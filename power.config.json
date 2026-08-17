@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "appId": null,
+  "appId": "e6944b49-4c5d-4fb9-a54d-f8d455017bc5",
   "appDisplayName": "Accounts Receivable",
   "region": "prod",
   "appType": "CodeApp",
@@ -42,6 +42,51 @@
         "aragings": {
           "entitySetName": "cfm_aragings",
           "logicalName": "cfm_araging",
+          "isHidden": false
+        },
+        "manualentryaudits": {
+          "entitySetName": "cfm_manualentryaudits",
+          "logicalName": "cfm_manualentryaudit",
+          "isHidden": false
+        },
+        "dailycollections": {
+          "entitySetName": "cfm_dailycollections",
+          "logicalName": "cfm_dailycollection",
+          "isHidden": false
+        },
+        "collectionmonthallocations": {
+          "entitySetName": "cfm_collectionmonthallocations",
+          "logicalName": "cfm_collectionmonthallocation",
+          "isHidden": false
+        },
+        "disputemanagementupdates": {
+          "entitySetName": "cfm_disputemanagementupdateses",
+          "logicalName": "cfm_disputemanagementupdates",
+          "isHidden": false
+        },
+        "slas": {
+          "entitySetName": "cfm_slas",
+          "logicalName": "cfm_sla",
+          "isHidden": false
+        },
+        "slatrackings": {
+          "entitySetName": "cfm_slatrackings",
+          "logicalName": "cfm_slatracking",
+          "isHidden": false
+        },
+        "paymentterms": {
+          "entitySetName": "cfm_paymentterms",
+          "logicalName": "cfm_paymentterm",
+          "isHidden": false
+        },
+        "tmshandoffs": {
+          "entitySetName": "cfm_tmshandoffs",
+          "logicalName": "cfm_tmshandoff",
+          "isHidden": false
+        },
+        "users": {
+          "entitySetName": "systemusers",
+          "logicalName": "systemuser",
           "isHidden": false
         }
       },

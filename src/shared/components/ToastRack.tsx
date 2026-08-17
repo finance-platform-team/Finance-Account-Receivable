@@ -1,4 +1,3 @@
-import styles from '../shared.module.css';
 import type { ToastItem } from '../types';
 import { Toast } from './Toast';
 
@@ -8,10 +7,10 @@ interface ToastRackProps {
 
 export function ToastRack({ toasts }: ToastRackProps) {
   return (
-    <div className={styles.toastRack}>
-      {toasts.map((toast) => (
-        <Toast key={toast.id} toast={toast} />
+    <>
+      {toasts.map((toast, i) => (
+        <Toast key={toast.id} toast={toast} index={i} />
       ))}
-    </div>
+    </>
   );
 }

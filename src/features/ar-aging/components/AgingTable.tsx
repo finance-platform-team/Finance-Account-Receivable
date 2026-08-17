@@ -1,8 +1,7 @@
-import styles from '../ArAging.module.css';
-import { fmt, fmtTotal } from '../normalize';
+import { MutedDash } from '../../../shared/components/MutedDash';
 import type { AgingRow, AgingTotals } from '../types';
 
-const COLUMN_COUNT = 14;
+const COLUMN_COUNT = 13;
 
 interface AgingTableProps {
   rows: AgingRow[];
@@ -14,90 +13,69 @@ interface AgingTableProps {
   onRowClick: (row: AgingRow) => void;
 }
 
-function SkeletonRows() {
-  const widths = [60, 80, 70, 65, 75];
-  return (
-    <>
-      {widths.map((w, i) => (
-        <tr key={i} className={styles.skelRow}>
-          <td colSpan={COLUMN_COUNT}>
-            <div className={styles.skel} style={{ width: `${w}%` }} />
-          </td>
-        </tr>
-      ))}
-    </>
-  );
+// Mirrors normalize.ts's fmt(): a zero bracket amount reads as "no balance in
+// this bucket" rather than a real figure, so it renders as a muted dash too.
+function numText(value: number): string | null {
+  return value ? value.toLocaleString('en-US') : null;
 }
+
+const nameCellStyle = {
+  maxWidth: 240,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap' as const,
+};
 
 export function AgingTable({ rows, filteredCount, totals, loading, error, selectedId, onRowClick }: AgingTableProps) {
   return (
-    <div className={styles.tblScroll}>
-      <table className={styles.arTbl}>
+    <div className="acc-tablewrap">
+      <table>
         <thead>
-          <tr className={styles.headRow}>
-            <th>
-              <i className="fa-solid fa-calendar-check" />
-              Payment Term
-            </th>
-            <th>
-              <i className="fa-solid fa-tags" />
-              Customer Class
-            </th>
-            <th>
-              <i className="fa-solid fa-layer-group" />
-              Company Type
-            </th>
-            <th>
-              <i className="fa-solid fa-building" />
-              Type
-            </th>
-            <th>
-              <i className="fa-solid fa-user" />
-              Task Owner
-            </th>
-            <th>
-              <i className="fa-solid fa-user-shield" />
-              Supervisor
-            </th>
-            <th>
-              <i className="fa-solid fa-hashtag" />
-              Company Code
-            </th>
-            <th className={`${styles.stickCol} ${styles.colGroupEnd}`}>
-              <i className="fa-solid fa-briefcase" />
-              Company Name
-            </th>
-            <th className={styles.numeric}>Not Due</th>
-            <th className={styles.numeric}>&lt; 30 Days</th>
-            <th className={styles.numeric}>31–60</th>
-            <th className={styles.numeric}>61–90</th>
-            <th className={styles.numeric}>91–120</th>
-            <th className={styles.numeric}>&gt; 120 Days</th>
+          <tr>
+            <th>Company Name</th>
+            <th>Company Code</th>
+            <th>Payment Term</th>
+            <th>Customer Class</th>
+            <th>Company Type</th>
+            <th title="Type (Business Unit)">Type (BU)</th>
+            <th>Task Owner</th>
+            <th>Supervisor</th>
+            <th className="acc-num">Not Due</th>
+            <th className="acc-num">31–60</th>
+            <th className="acc-num">61–90</th>
+            <th className="acc-num">91–120</th>
+            <th className="acc-num">&gt; 120 Days</th>
           </tr>
         </thead>
 
         <tbody>
           {loading ? (
-            <SkeletonRows />
+            Array.from({ length: 8 }).map((_, i) => (
+              <tr key={i}>
+                {Array.from({ length: COLUMN_COUNT }).map((__, j) => (
+                  <td key={j}>
+                    <div className="acc-skel" />
+                  </td>
+                ))}
+              </tr>
+            ))
           ) : error ? (
             <tr>
-              <td colSpan={COLUMN_COUNT} className={styles.stateCell}>
-                <div className={`${styles.stateIcon} ${styles.stateIconError}`}>
-                  <i className="fa-solid fa-circle-exclamation" />
+              <td colSpan={COLUMN_COUNT}>
+                <div className="acc-state">
+                  <i className="fa-solid fa-triangle-exclamation" />
+                  Couldn&apos;t load AR aging.
+                  <br />
+                  <small>{error}</small>
                 </div>
-                <div className={styles.stateTitle}>Couldn&apos;t load AR aging</div>
-                <div className={styles.stateMsg}>{error}</div>
               </td>
             </tr>
           ) : rows.length === 0 ? (
             <tr>
-              <td colSpan={COLUMN_COUNT} className={styles.stateCell}>
-                <div className={styles.stateIcon}>
+              <td colSpan={COLUMN_COUNT}>
+                <div className="acc-state">
                   <i className="fa-solid fa-filter-circle-xmark" />
-                </div>
-                <div className={styles.stateTitle}>No matches</div>
-                <div className={styles.stateMsg}>
-                  No records match the current filters. Try adjusting the search or clearing filters.
+                  No records match the current filters.
                 </div>
               </td>
             </tr>
@@ -105,23 +83,49 @@ export function AgingTable({ rows, filteredCount, totals, loading, error, select
             rows.map((r) => (
               <tr
                 key={r.id}
-                className={`${styles.rowClickable} ${r.id === selectedId ? styles.rowSelected : ''}`}
+                className="acc-row"
                 onClick={() => onRowClick(r)}
+                style={r.id === selectedId ? { background: 'var(--goldbg)' } : undefined}
               >
-                <td>{r.paymentTerm}</td>
-                <td>{r.customerClass}</td>
-                <td>{r.companyType}</td>
-                <td>{r.type}</td>
-                <td>{r.taskOwner}</td>
-                <td>{r.supervisor}</td>
-                <td className={styles.colId}>{r.code}</td>
-                <td className={`${styles.colBold} ${styles.stickCol} ${styles.colGroupEnd}`}>{r.name}</td>
-                <td className={`${styles.colAmt} ${styles.numeric}`}>{fmt(r.notDue)}</td>
-                <td className={`${styles.colAmt} ${styles.numeric}`}>{fmt(r.lt30)}</td>
-                <td className={`${styles.colAmt} ${styles.numeric}`}>{fmt(r.b3160)}</td>
-                <td className={`${styles.colAmt} ${styles.numeric}`}>{fmt(r.b6190)}</td>
-                <td className={`${styles.colNeg} ${styles.numeric}`}>{fmt(r.b91120)}</td>
-                <td className={`${styles.colNeg} ${styles.numeric}`}>{fmt(r.gt120)}</td>
+                <td className="acc-name" style={nameCellStyle} title={r.name} dir="auto">
+                  <MutedDash value={r.name} />
+                </td>
+                <td className="acc-code">
+                  <MutedDash value={r.code} />
+                </td>
+                <td>
+                  <MutedDash value={r.paymentTerm} />
+                </td>
+                <td>
+                  <MutedDash value={r.customerClass} />
+                </td>
+                <td>
+                  <MutedDash value={r.companyType} />
+                </td>
+                <td>
+                  <MutedDash value={r.type} />
+                </td>
+                <td>
+                  <MutedDash value={r.taskOwner} />
+                </td>
+                <td>
+                  <MutedDash value={r.supervisor} />
+                </td>
+                <td className="acc-num">
+                  <MutedDash value={numText(r.notDue)} />
+                </td>
+                <td className="acc-num">
+                  <MutedDash value={numText(r.b3160)} />
+                </td>
+                <td className="acc-num">
+                  <MutedDash value={numText(r.b6190)} />
+                </td>
+                <td className="acc-num">
+                  <MutedDash value={numText(r.b91120)} />
+                </td>
+                <td className="acc-num">
+                  <MutedDash value={numText(r.gt120)} />
+                </td>
               </tr>
             ))
           )}
@@ -129,18 +133,26 @@ export function AgingTable({ rows, filteredCount, totals, loading, error, select
 
         {!loading && !error && rows.length > 0 && (
           <tfoot>
-            <tr>
-              <td colSpan={7} className={styles.colBold}>
-                <i className="fa-solid fa-square-poll-vertical" style={{ color: 'var(--gold-dark)', marginRight: 6 }} />
-                Total ({filteredCount} companies)
+            <tr style={{ background: 'var(--cream)', fontWeight: 700 }}>
+              <td colSpan={8} style={{ padding: '13px 16px', borderTop: '2px solid var(--gold)' }}>
+                <i className="fa-solid fa-square-poll-vertical" style={{ color: 'var(--gold)', marginRight: 6 }} />
+                Total ({filteredCount.toLocaleString('en-US')} companies)
               </td>
-              <td className={`${styles.stickCol} ${styles.colGroupEnd}`} />
-              <td className={styles.numeric}>{fmtTotal(totals.notDue)}</td>
-              <td className={styles.numeric}>{fmtTotal(totals.lt30)}</td>
-              <td className={styles.numeric}>{fmtTotal(totals.b3160)}</td>
-              <td className={styles.numeric}>{fmtTotal(totals.b6190)}</td>
-              <td className={styles.numeric}>{fmtTotal(totals.b91120)}</td>
-              <td className={styles.numeric}>{fmtTotal(totals.gt120)}</td>
+              <td className="acc-num" style={{ borderTop: '2px solid var(--gold)' }}>
+                {totals.notDue.toLocaleString('en-US')}
+              </td>
+              <td className="acc-num" style={{ borderTop: '2px solid var(--gold)' }}>
+                {totals.b3160.toLocaleString('en-US')}
+              </td>
+              <td className="acc-num" style={{ borderTop: '2px solid var(--gold)' }}>
+                {totals.b6190.toLocaleString('en-US')}
+              </td>
+              <td className="acc-num" style={{ borderTop: '2px solid var(--gold)' }}>
+                {totals.b91120.toLocaleString('en-US')}
+              </td>
+              <td className="acc-num" style={{ borderTop: '2px solid var(--gold)' }}>
+                {totals.gt120.toLocaleString('en-US')}
+              </td>
             </tr>
           </tfoot>
         )}

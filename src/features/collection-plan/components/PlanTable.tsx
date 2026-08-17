@@ -1,4 +1,5 @@
-import styles from '../CollectionPlan.module.css';
+import type { CSSProperties } from 'react';
+import { MutedDash } from '../../../shared/components/MutedDash';
 import { EditableCell } from './EditableCell';
 import { achvIcon, achvLevel, fmt, fmtTotal, rowAchievement, rowTargetPlan } from '../normalize';
 import type { DirtyChange, EditableFieldKey, PlanRow, PlanTotals } from '../types';
@@ -18,16 +19,41 @@ interface PlanTableProps {
   dirtyChanges: Map<string, DirtyChange>;
   onInstantSave: (rowId: string, field: EditableFieldKey, value: number) => Promise<void>;
   onDirtyChange: (rowId: string, field: EditableFieldKey, value: number, orig: number) => void;
+  onRowDoubleClick: (row: PlanRow) => void;
 }
+
+// theme.css has no notion of grouped column headers or a totals tfoot, so
+// this dense 22-column table hand-styles those bits inline (tokens only) on
+// top of the shared .acc-tablewrap/table shape. No sticky column — a
+// position:sticky;left:0 cell only aligns with the content beneath it if its
+// left offset matches the cumulative width of every preceding column, which
+// isn't knowable for auto-sized columns without JS measurement; a naive
+// left:0 just overlaps column 1's header/body, which is what produced the
+// stray dark rectangle + clipped header text reported earlier.
+const GROUP_TH: CSSProperties = {
+  padding: '7px 13px',
+  fontSize: 9.5,
+  fontWeight: 700,
+  textTransform: 'uppercase',
+  letterSpacing: '.06em',
+  color: 'rgba(255,255,255,.7)',
+  textAlign: 'left',
+  whiteSpace: 'nowrap',
+  borderRight: '1px solid rgba(255,255,255,.1)',
+};
+const GROUP_TH_END: CSSProperties = { ...GROUP_TH, borderRight: '2px solid rgba(255,255,255,.25)' };
+const GROUP_END_TD: CSSProperties = { borderRight: '1px dashed var(--line)' };
+const FOOT_TD: CSSProperties = { fontWeight: 800, color: 'var(--ink)', borderTop: '2px solid var(--gold)', background: 'var(--goldbg)' };
+const nameCellStyle: CSSProperties = { maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
 
 function SkeletonRows() {
   const widths = [60, 80, 70, 65, 75];
   return (
     <>
       {widths.map((w, i) => (
-        <tr key={i} className={styles.skelRow}>
-          <td colSpan={COLUMN_COUNT}>
-            <div className={styles.skel} style={{ width: `${w}%` }} />
+        <tr key={i}>
+          <td colSpan={COLUMN_COUNT} style={{ padding: '13px 16px' }}>
+            <div className="acc-skel" style={{ width: `${w}%` }} />
           </td>
         </tr>
       ))}
@@ -35,11 +61,32 @@ function SkeletonRows() {
   );
 }
 
-function AchvBadge({ pct }: { pct: number }) {
+function achvBadgeStyle(pct: number): CSSProperties {
   const level = achvLevel(pct);
-  const levelClass = level === 'over' ? styles.achvOver : level === 'mid' ? styles.achvMid : styles.achvLow;
+  const tones = {
+    over: { bg: 'var(--okbg)', fg: 'var(--ok)' },
+    mid: { bg: 'var(--warnbg)', fg: 'var(--warn)' },
+    low: { bg: 'var(--badbg)', fg: 'var(--bad)' },
+  } as const;
+  const { bg, fg } = tones[level];
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    fontWeight: 800,
+    fontSize: 11,
+    padding: '5px 12px',
+    borderRadius: 999,
+    minWidth: 62,
+    background: bg,
+    color: fg,
+  };
+}
+
+function AchvBadge({ pct }: { pct: number }) {
   return (
-    <span className={`${styles.achvBadge} ${levelClass}`}>
+    <span style={achvBadgeStyle(pct)}>
       <i className={`fa-solid ${achvIcon(pct)}`} />
       {Math.round(pct)}%
     </span>
@@ -57,6 +104,7 @@ export function PlanTable({
   dirtyChanges,
   onInstantSave,
   onDirtyChange,
+  onRowDoubleClick,
 }: PlanTableProps) {
   const overallAchv = totals.targetPlan > 0 ? (totals.collectedPlus / totals.targetPlan) * 100 : 0;
 
@@ -76,76 +124,54 @@ export function PlanTable({
   };
 
   return (
-    <div className={styles.tblScroll}>
-      <table className={styles.planTbl}>
+    <div className="acc-tablewrap" style={{ maxHeight: '70vh', overflow: 'auto' }}>
+      <table style={{ minWidth: 2400 }}>
         <thead>
-          <tr className={styles.groupRow}>
-            <th colSpan={6}>
-              <i className="fa-solid fa-address-book" />
-              Company Metadata
+          <tr style={{ background: 'var(--brown)' }}>
+            <th colSpan={8} style={GROUP_TH}>
+              <i className="fa-solid fa-address-book" /> Company Metadata
             </th>
-            <th colSpan={1} />
-            <th colSpan={1} className={`${styles.stickCol} ${styles.colGroupEnd}`} />
-            <th colSpan={6} className={styles.colGroupEnd}>
-              <i className="fa-solid fa-pen-to-square" />
-              Manual Entry — AR Team
+            <th colSpan={6} style={GROUP_TH_END}>
+              <i className="fa-solid fa-pen-to-square" /> Manual Entry — AR Team
             </th>
-            <th colSpan={5} className={styles.colGroupEnd}>
-              <i className="fa-solid fa-calculator" />
-              Calculated / DotCare
+            <th colSpan={5} style={GROUP_TH_END}>
+              <i className="fa-solid fa-calculator" /> Calculated / DotCare
             </th>
-            <th colSpan={3}>
-              <i className="fa-solid fa-cash-register" />
-              Collection Achievement
+            <th colSpan={3} style={GROUP_TH}>
+              <i className="fa-solid fa-cash-register" /> Collection Achievement
             </th>
           </tr>
-          <tr className={styles.headRow}>
-            <th>
-              <i className="fa-solid fa-calendar-check" />
-              Payment Term
+          <tr>
+            <th style={{ minWidth: 150 }}>Payment Term</th>
+            <th style={{ minWidth: 140 }}>Customer Class</th>
+            <th>Company Type</th>
+            <th style={{ minWidth: 140 }} title="Type (Business Unit)">
+              Type (BU)
             </th>
-            <th>
-              <i className="fa-solid fa-tags" />
-              Customer Class
+            <th>Task Owner</th>
+            <th>Supervisor</th>
+            <th>Company Code</th>
+            <th>Company Name</th>
+            <th className="acc-num">Early Payment</th>
+            <th className="acc-num">Legal Issues</th>
+            <th className="acc-num">Bankruptcy</th>
+            <th className="acc-num">Claims Issue</th>
+            <th className="acc-num">Stopped</th>
+            <th className="acc-num" style={GROUP_END_TD}>
+              Agreed Recon.
             </th>
-            <th>
-              <i className="fa-solid fa-layer-group" />
-              Company Type
+            <th className="acc-num">Total Outstanding</th>
+            <th className="acc-num">Rejections</th>
+            <th className="acc-num">Outstanding + Rej</th>
+            <th className="acc-num">Total Dues</th>
+            <th className="acc-num" style={GROUP_END_TD}>
+              Target Plan
             </th>
-            <th>
-              <i className="fa-solid fa-building" />
-              Type
+            <th className="acc-num">Collected</th>
+            <th className="acc-num">Collected + Tax + Rej</th>
+            <th className="acc-num" title="Achievement %">
+              Achievement %
             </th>
-            <th>
-              <i className="fa-solid fa-user" />
-              Task Owner
-            </th>
-            <th>
-              <i className="fa-solid fa-user-shield" />
-              Supervisor
-            </th>
-            <th>
-              <i className="fa-solid fa-hashtag" />
-              Company Code
-            </th>
-            <th className={`${styles.stickCol} ${styles.colGroupEnd}`}>
-              <i className="fa-solid fa-briefcase" />
-              Company Name
-            </th>
-            <th className={styles.numeric}>Early Payment</th>
-            <th className={styles.numeric}>Legal Issues</th>
-            <th className={styles.numeric}>Bankruptcy</th>
-            <th className={styles.numeric}>Claims Issue</th>
-            <th className={styles.numeric}>Stopped</th>
-            <th className={`${styles.numeric} ${styles.colGroupEnd}`}>Agreed Recon.</th>
-            <th className={styles.numeric}>Total Outstanding</th>
-            <th className={styles.numeric}>Rejections</th>
-            <th className={styles.numeric}>Outstanding + Rej</th>
-            <th className={styles.numeric}>Total Dues</th>
-            <th className={`${styles.numeric} ${styles.colGroupEnd}`}>Target Plan</th>
-            <th className={styles.numeric}>Collected</th>
-            <th className={styles.numeric}>Collected + Tax + Rej</th>
-            <th className={styles.numeric}>ACHV %</th>
           </tr>
         </thead>
 
@@ -154,23 +180,21 @@ export function PlanTable({
             <SkeletonRows />
           ) : error ? (
             <tr>
-              <td colSpan={COLUMN_COUNT} className={styles.stateCell}>
-                <div className={`${styles.stateIcon} ${styles.stateIconError}`}>
-                  <i className="fa-solid fa-circle-exclamation" />
+              <td colSpan={COLUMN_COUNT}>
+                <div className="acc-state">
+                  <i className="fa-solid fa-triangle-exclamation" />
+                  Couldn&apos;t load Collection Plan.
+                  <br />
+                  <small>{error}</small>
                 </div>
-                <div className={styles.stateTitle}>Couldn&apos;t load Collection Plan</div>
-                <div className={styles.stateMsg}>{error}</div>
               </td>
             </tr>
           ) : rows.length === 0 ? (
             <tr>
-              <td colSpan={COLUMN_COUNT} className={styles.stateCell}>
-                <div className={styles.stateIcon}>
+              <td colSpan={COLUMN_COUNT}>
+                <div className="acc-state">
                   <i className="fa-solid fa-filter-circle-xmark" />
-                </div>
-                <div className={styles.stateTitle}>No matches</div>
-                <div className={styles.stateMsg}>
-                  No records match the current filters. Try adjusting the search or clearing filters.
+                  No records match the current filters.
                 </div>
               </td>
             </tr>
@@ -179,29 +203,59 @@ export function PlanTable({
               const targetPlan = rowTargetPlan(r, targetPct);
               const achv = rowAchievement(r, targetPct);
               return (
-                <tr key={r.id}>
-                  <td>{r.paymentTerm}</td>
-                  <td>{r.customerClass}</td>
-                  <td>{r.companyType}</td>
-                  <td>{r.bu}</td>
-                  <td>{r.taskOwner}</td>
-                  <td>{r.supervisor}</td>
-                  <td className={styles.colId}>{r.code}</td>
-                  <td className={`${styles.colBold} ${styles.stickCol} ${styles.colGroupEnd}`}>{r.name}</td>
+                <tr key={r.id} onDoubleClick={() => onRowDoubleClick(r)} style={{ cursor: 'pointer' }}>
+                  <td>
+                    <MutedDash value={r.paymentTerm} />
+                  </td>
+                  <td>
+                    <MutedDash value={r.customerClass} />
+                  </td>
+                  <td>
+                    <MutedDash value={r.companyType} />
+                  </td>
+                  <td>
+                    <MutedDash value={r.bu} />
+                  </td>
+                  <td>
+                    <MutedDash value={r.taskOwner} />
+                  </td>
+                  <td>
+                    <MutedDash value={r.supervisor} />
+                  </td>
+                  <td className="acc-code">
+                    <MutedDash value={r.code} />
+                  </td>
+                  <td className="acc-name" style={nameCellStyle} title={r.name} dir="auto">
+                    <MutedDash value={r.name} />
+                  </td>
                   {editableCell(r, 'earlypayment')}
                   {editableCell(r, 'legalissues')}
                   {editableCell(r, 'bankruptcy')}
                   {editableCell(r, 'claimsissue')}
                   {editableCell(r, 'stopped')}
                   {editableCell(r, 'agreedrecon', true)}
-                  <td className={`${styles.colAmt} ${styles.numeric}`}>{fmt(r.totalOutstanding)}</td>
-                  <td className={`${styles.colRej} ${styles.numeric}`}>{fmt(r.rejections)}</td>
-                  <td className={`${styles.colAmt} ${styles.numeric}`}>{fmt(r.outstandingRej)}</td>
-                  <td className={`${styles.colAmt} ${styles.numeric}`}>{fmt(r.totalDues)}</td>
-                  <td className={`${styles.colPos} ${styles.numeric} ${styles.colGroupEnd}`}>{fmt(targetPlan)}</td>
-                  <td className={`${styles.colAmt} ${styles.numeric}`}>{fmt(r.collected)}</td>
-                  <td className={`${styles.colAmt} ${styles.numeric}`}>{fmt(r.collectedPlus)}</td>
-                  <td className={styles.numeric}>
+                  <td className="acc-num">
+                    <MutedDash value={fmt(r.totalOutstanding)} />
+                  </td>
+                  <td className="acc-num" style={{ color: 'var(--gold)', fontWeight: 600 }}>
+                    <MutedDash value={fmt(r.rejections)} />
+                  </td>
+                  <td className="acc-num">
+                    <MutedDash value={fmt(r.outstandingRej)} />
+                  </td>
+                  <td className="acc-num">
+                    <MutedDash value={fmt(r.totalDues)} />
+                  </td>
+                  <td className="acc-num" style={{ ...GROUP_END_TD, color: 'var(--ok)', fontWeight: 700 }}>
+                    <MutedDash value={fmt(targetPlan)} />
+                  </td>
+                  <td className="acc-num">
+                    <MutedDash value={fmt(r.collected)} />
+                  </td>
+                  <td className="acc-num">
+                    <MutedDash value={fmt(r.collectedPlus)} />
+                  </td>
+                  <td className="acc-num">
                     <AchvBadge pct={achv} />
                   </td>
                 </tr>
@@ -213,37 +267,36 @@ export function PlanTable({
         {!loading && !error && rows.length > 0 && (
           <tfoot>
             <tr>
-              <td colSpan={7} className={styles.colBold}>
-                <i className="fa-solid fa-square-poll-vertical" style={{ color: 'var(--gold-dark)', marginRight: 6 }} />
+              <td colSpan={8} style={FOOT_TD}>
+                <i className="fa-solid fa-square-poll-vertical" style={{ color: 'var(--gold)', marginRight: 6 }} />
                 Total ({filteredCount} companies)
               </td>
-              <td className={`${styles.stickCol} ${styles.colGroupEnd}`} />
-              <td colSpan={5} />
-              <td className={`${styles.colAmt} ${styles.colGroupEnd}`} style={{ textAlign: 'right' }}>
+              <td colSpan={5} style={FOOT_TD} />
+              <td className="acc-num" style={{ ...FOOT_TD, ...GROUP_END_TD }}>
                 {fmtTotal(totals.agreedrecon)}
               </td>
-              <td className={styles.colAmt} style={{ textAlign: 'right' }}>
+              <td className="acc-num" style={FOOT_TD}>
                 {fmtTotal(totals.totalOutstanding)}
               </td>
-              <td className={styles.colRej} style={{ textAlign: 'right' }}>
+              <td className="acc-num" style={{ ...FOOT_TD, color: 'var(--gold)' }}>
                 {fmtTotal(totals.rejections)}
               </td>
-              <td className={styles.colAmt} style={{ textAlign: 'right' }}>
+              <td className="acc-num" style={FOOT_TD}>
                 {fmtTotal(totals.outstandingRej)}
               </td>
-              <td className={styles.colAmt} style={{ textAlign: 'right' }}>
+              <td className="acc-num" style={FOOT_TD}>
                 {fmtTotal(totals.totalDues)}
               </td>
-              <td className={`${styles.colPos} ${styles.colGroupEnd}`} style={{ textAlign: 'right' }}>
+              <td className="acc-num" style={{ ...FOOT_TD, ...GROUP_END_TD, color: 'var(--ok)' }}>
                 {fmtTotal(totals.targetPlan)}
               </td>
-              <td className={styles.colAmt} style={{ textAlign: 'right' }}>
+              <td className="acc-num" style={FOOT_TD}>
                 {fmtTotal(totals.collected)}
               </td>
-              <td className={styles.colAmt} style={{ textAlign: 'right' }}>
+              <td className="acc-num" style={FOOT_TD}>
                 {fmtTotal(totals.collectedPlus)}
               </td>
-              <td style={{ textAlign: 'right' }}>
+              <td className="acc-num" style={FOOT_TD}>
                 <AchvBadge pct={overallAchv} />
               </td>
             </tr>

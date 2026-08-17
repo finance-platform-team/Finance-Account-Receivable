@@ -1,0 +1,389 @@
+/* ============================================================================
+   Andalusia Pulse design system — copied verbatim from the Collection
+   Networking app (C:\Users\abdelwahed.ahmed\Collection\src\styles\shared.css
+   + Layout.css), token-for-token and class-for-class, so this app is visually
+   indistinguishable from it. Two additions on top of the verbatim base, built
+   to the same conventions (see the marked sections below):
+     1. --goldbg + the :root[data-theme="dark"] override block (dark mode
+        doesn't exist in the source app yet).
+     2. The .kpi-grid/.kpi-card variant system (the source only has the
+        untinted .acc-kpis/.acc-kpi — this app's pages need tinted variants).
+   ============================================================================ */
+
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --brown:#2b160a; --gold:#a5845b; --cream:#f7f4ee;
+  --ink:#2b160a; --muted:#8a7a6c; --line:#e7ded2;
+  --card:#ffffff; --bg:#f7f4ee;
+  --ok:#2f7d5b; --okbg:#e6f3ec;
+  --warn:#b06a1f; --warnbg:#fbeede;
+  --bad:#b03636; --badbg:#f8e6e6;
+  --info:#2f5d7d; --infobg:#e6eef3;
+  --shadow:0 1px 2px rgba(43,22,10,.06),0 8px 24px rgba(43,22,10,.06);
+
+  --shell-bg:#0d2018;
+  --shell-bg-2:#132c22;
+  --shell-line:rgba(255,255,255,.08);
+  --shell-text:rgba(255,255,255,.72);
+  --shell-text-strong:#ffffff;
+  --shell-muted:rgba(255,255,255,.45);
+  --shell-active-bg:rgba(255,255,255,.10);
+  --shell-accent:#c9a06b;
+  --topbar-bg:#081611;
+
+  /* --- addition: pastel pair for the gold/highlighted KPI variant, matching
+     the existing ok/warn/bad/info bg+fg pattern --- */
+  --goldbg:#f5ead6;
+
+  /* --- addition: the reference stylesheet hardcodes this same off-white
+     (#fbf8f2) directly in ~7 rules (input backgrounds, hover states, table
+     header) instead of a variable — fine when there's only ever one (light)
+     theme, but each one needs a token to be dark-mode-aware. Reusing the
+     exact existing literal for light mode, no new color. --- */
+  --field-bg:#fbf8f2;
+  --skel-a:#f0e9df;
+  --skel-b:#f7f2ea;
+}
+
+/* --- addition: dark mode. --shell-* is untouched — the sidebar is already
+   dark green-black in light mode. Everything else (surfaces, text, and the
+   semantic tint pairs) gets its own dark-mode value below. The tinted KPI
+   variant cards are special-cased further down: they're pinned back to a
+   light background with locally-scoped --ink/--muted overrides, so they read
+   as light "accent islands" against the otherwise dark page instead of
+   inheriting the page's dark ink/surface colors. --- */
+:root[data-theme="dark"]{
+  --brown:#c9a06b;
+  --gold:#b89268;
+  --ink:#ece7dc;
+  --muted:#9a9488;
+  --line:#33392f;
+  --card:#20251d;
+  --bg:#181c16;
+  --cream:#181c16;
+  --goldbg:rgba(165,132,91,.2);
+  --ok:#7fbf85; --okbg:rgba(63,92,60,.28);
+  --warn:#dba25b; --warnbg:rgba(176,106,31,.24);
+  --bad:#e2807f; --badbg:rgba(176,54,54,.26);
+  --info:#82bce0; --infobg:rgba(47,93,125,.26);
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.35);
+
+  /* Reuse --card/--line — already-defined dark tokens — instead of the
+     light-only #fbf8f2 literal, so inputs/hover-states/table headers/skeleton
+     shimmer don't stay stuck as light boxes on the dark page. */
+  --field-bg:var(--card);
+  --skel-a:var(--line);
+  --skel-b:var(--card);
+}
+
+/* --- addition: KPI variant "accent island" overrides. The values below are
+   the exact light-mode-equivalent colors reused as fixed literals scoped only
+   to these selectors (not new colors) — the same technique applied to every
+   variant so each tinted KPI card stays a light, legible tile in dark mode
+   instead of inheriting the page's dark surface/text tokens. Locally
+   redefining --ink/--muted here works because .kpi-value/.kpi-label read
+   var(--ink)/var(--muted) (see the .kpi-card rules below) — only the small
+   label icon needs its own explicit color since it reads the global
+   --ok/--warn/--bad/--info/--brown token directly. --- */
+:root[data-theme="dark"] .kpi-card.kpi-ok{background:#e6f3ec;border-color:#c9ddd0;--ink:#17331f;--muted:#4b6b56}
+:root[data-theme="dark"] .kpi-card.kpi-ok .kpi-label i{color:#2f7d5b}
+:root[data-theme="dark"] .kpi-card.kpi-warn{background:#fbeede;border-color:#f0ddbe;--ink:#3a2a10;--muted:#8a7550}
+:root[data-theme="dark"] .kpi-card.kpi-warn .kpi-label i{color:#b06a1f}
+:root[data-theme="dark"] .kpi-card.kpi-gold{background:#faf4ea;border-color:#ecdcc2;--ink:#2b1f14;--muted:#8a7a63}
+:root[data-theme="dark"] .kpi-card.kpi-gold .kpi-label i{color:#2b160a}
+:root[data-theme="dark"] .kpi-card.kpi-info{background:#e6eef3;border-color:#cfe0ea;--ink:#132a38;--muted:#5b7686}
+:root[data-theme="dark"] .kpi-card.kpi-info .kpi-label i{color:#2f5d7d}
+:root[data-theme="dark"] .kpi-card.kpi-bad{background:#f8e6e6;border-color:#e8c9c9;--ink:#3a1414;--muted:#8a5555}
+:root[data-theme="dark"] .kpi-card.kpi-bad .kpi-label i{color:#b03636}
+
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+  font-family:'Inter',system-ui,sans-serif;font-size:14px;height:100%;
+  display:block;min-width:0;place-items:unset}
+#root{max-width:none;margin:0;padding:0;text-align:left}
+
+/* --- change: dropped the reference's 1400px cap — full width with clean side
+   padding on every page, so wide/dense tables (Collection Plan, AR
+   Verification) get the room they need instead of scrolling inside an
+   artificially boxed-in column. --- */
+.acc-wrap{padding:20px 24px;width:100%}
+
+/* Page header */
+.acc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+.acc-title{font-family:'Outfit',sans-serif;font-weight:700;font-size:24px;letter-spacing:-.02em;margin:0}
+.acc-sub{color:var(--muted);font-size:13px;margin-top:3px}
+.acc-actions{display:flex;gap:8px;flex-shrink:0;align-items:center;flex-wrap:wrap}
+.acc-btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);
+  background:var(--card);color:var(--ink);padding:9px 14px;border-radius:9px;
+  font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;cursor:pointer;
+  transition:.15s;white-space:nowrap}
+.acc-btn:hover{background:var(--field-bg);border-color:var(--gold)}
+.acc-btn:disabled{opacity:.5;cursor:not-allowed}
+.acc-btn-primary{background:var(--brown);color:#fff;border-color:var(--brown)}
+.acc-btn-primary:hover{background:#3c2110;border-color:#3c2110}
+.acc-btn-ghost{background:transparent}
+
+/* KPI cards (verbatim, untinted — kept for parity; this app's pages use the
+   tinted .kpi-grid/.kpi-card system below instead) */
+.acc-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.acc-kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:14px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.acc-kpi .acc-lab{color:var(--muted);font-size:12px;font-weight:500;display:flex;align-items:center;gap:7px}
+.acc-kpi .acc-lab i{color:var(--gold)}
+.acc-kpi .acc-val{font-family:'Outfit',sans-serif;font-weight:700;font-size:26px;margin-top:6px;letter-spacing:-.02em}
+.acc-kpi .acc-val small{font-size:13px;font-weight:500;color:var(--muted)}
+
+/* --- addition: tinted KPI variant system (.kpi-grid/.kpi-card), same shape as
+   .acc-kpis/.acc-kpi above but with meaning-coded tint variants. In dark mode
+   the variant cards keep their light background (see the dark-mode note
+   above) — that's the "accent island" effect. --- */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi-card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:14px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.kpi-card .kpi-label{color:var(--muted);font-size:12px;font-weight:500;
+  text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:7px}
+.kpi-card .kpi-label i{color:var(--gold)}
+.kpi-card .kpi-value{font-family:'Outfit',sans-serif;font-weight:700;font-size:26px;
+  margin-top:6px;letter-spacing:-.02em;color:var(--ink)}
+.kpi-card .kpi-value small{font-size:13px;font-weight:500;color:var(--muted)}
+.kpi-card[role="button"]{cursor:pointer;transition:transform .15s,border-color .15s}
+.kpi-card[role="button"]:hover{border-color:var(--gold);transform:translateY(-2px)}
+.kpi-card-active{border-color:var(--gold) !important;box-shadow:0 0 0 2px var(--goldbg)}
+
+/* Text (.kpi-label/.kpi-value) stays var(--ink)/var(--muted) — same as a
+   plain neutral card — for every variant; only the background tints and the
+   label icon change. This is what lets the dark-mode overrides above pin a
+   variant card's text back to dark-on-light by redefining --ink/--muted in
+   that one selector's scope, with no separate per-variant text-color rule to
+   fight against. */
+.kpi-card.kpi-ok{background:var(--okbg);border-color:transparent}
+.kpi-card.kpi-ok .kpi-label i{color:var(--ok)}
+.kpi-card.kpi-warn{background:var(--warnbg);border-color:transparent}
+.kpi-card.kpi-warn .kpi-label i{color:var(--warn)}
+.kpi-card.kpi-bad{background:var(--badbg);border-color:transparent}
+.kpi-card.kpi-bad .kpi-label i{color:var(--bad)}
+.kpi-card.kpi-gold{background:var(--goldbg);border-color:transparent}
+.kpi-card.kpi-gold .kpi-label i{color:var(--brown)}
+.kpi-card.kpi-info{background:var(--infobg);border-color:transparent}
+.kpi-card.kpi-info .kpi-label i{color:var(--info)}
+
+/* Filter bar */
+.acc-bar{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  box-shadow:var(--shadow);margin-bottom:14px}
+.acc-search{flex:1;min-width:220px;position:relative}
+.acc-search i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px}
+.acc-search input{width:100%;padding:9px 12px 9px 34px;border:1px solid var(--line);
+  border-radius:9px;font-family:'Inter';font-size:13px;background:var(--field-bg);color:var(--ink);box-sizing:border-box}
+.acc-search input:focus{outline:none;border-color:var(--gold);background:var(--card)}
+select.acc-f{padding:9px 12px;border:1px solid var(--line);border-radius:9px;
+  font-family:'Inter';font-size:13px;background:var(--field-bg);color:var(--ink);cursor:pointer;min-width:150px}
+select.acc-f:focus{outline:none;border-color:var(--gold)}
+select.acc-f option{background:var(--card);color:var(--ink)}
+.acc-date{padding:8px 12px;border:1px solid var(--line);border-radius:999px;
+  font-family:'Inter';font-size:12.5px;background:var(--field-bg);color:var(--ink);cursor:pointer}
+.acc-date:focus{outline:none;border-color:var(--gold)}
+.acc-date::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.75}
+:root[data-theme="dark"] .acc-date::-webkit-calendar-picker-indicator{filter:invert(1) brightness(1.8)}
+
+/* Table */
+.tbl-shell{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  box-shadow:var(--shadow);overflow:hidden;margin-bottom:14px}
+.tbl-hdr{padding:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  border-bottom:1px solid var(--line)}
+.acc-tablewrap{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  box-shadow:var(--shadow);overflow:hidden;overflow-x:auto}
+.tbl-shell .acc-tablewrap{border:none;border-radius:0;box-shadow:none}
+.acc-tablewrap table{width:100%;border-collapse:collapse}
+.acc-tablewrap thead th{background:var(--field-bg);color:var(--muted);text-transform:uppercase;
+  font-size:11px;letter-spacing:.06em;font-weight:600;text-align:left;
+  padding:12px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+.acc-tablewrap thead th.acc-num{text-align:right}
+.acc-tablewrap tbody td{padding:13px 16px;border-bottom:1px solid var(--line);font-size:13.5px}
+.acc-tablewrap tbody tr:last-child td{border-bottom:none}
+.acc-tablewrap tbody tr.acc-row:hover{background:var(--field-bg);cursor:pointer}
+.acc-name{font-family:'Outfit',sans-serif;font-weight:600}
+.acc-code{font-family:'JetBrains Mono',monospace;color:var(--gold);font-size:12.5px}
+.acc-tablewrap td.acc-num{text-align:right;font-variant-numeric:tabular-nums}
+
+/* Categorical badges/chips */
+.acc-cls{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
+  border-radius:6px;font-weight:700;font-size:12px;font-family:'Outfit'}
+.acc-cls-A,.acc-cls-ok{background:var(--okbg);color:var(--ok)}
+.acc-cls-B,.acc-cls-warn{background:var(--warnbg);color:var(--warn)}
+.acc-cls-C,.acc-cls-bad{background:var(--badbg);color:var(--bad)}
+.acc-cls-info{background:var(--infobg);color:var(--info)}
+.acc-cls-gold{background:var(--goldbg);color:var(--brown)}
+.acc-cls-none{background:var(--line);color:var(--muted)}
+.acc-typ{display:inline-flex;align-items:center;gap:6px;color:var(--brown);font-weight:500}
+.acc-cover{display:inline-flex;align-items:center;gap:6px}
+.acc-dot{width:8px;height:8px;border-radius:50%}
+.acc-dot.acc-ok{background:var(--ok)}.acc-dot.acc-warn{background:var(--warn)}.acc-dot.acc-bad{background:var(--bad)}
+
+.acc-check{width:36px;text-align:center}
+.acc-check input[type="checkbox"]{width:16px;height:16px;cursor:pointer;accent-color:var(--brown)}
+
+.acc-bulkbar{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--goldbg);border:1px solid var(--gold);border-radius:12px;padding:10px 16px;
+  margin-bottom:14px;font-size:13px;color:var(--brown)}
+.acc-bulkbar strong{font-family:'Outfit',sans-serif;font-weight:700}
+.acc-bulkbar-actions{display:flex;gap:8px;flex-shrink:0}
+
+/* States */
+.acc-state{padding:48px 20px;text-align:center;color:var(--muted)}
+.acc-state i{font-size:28px;color:var(--line);margin-bottom:10px;display:block}
+.acc-skel{height:14px;background:linear-gradient(90deg,var(--skel-a) 25%,var(--skel-b) 50%,var(--skel-a) 75%);
+  background-size:200% 100%;animation:acc-sh 1.2s infinite;border-radius:5px}
+@keyframes acc-sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* Footer */
+.acc-foot{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;color:var(--muted);font-size:12.5px;flex-wrap:wrap;gap:10px}
+.acc-pg{display:flex;gap:4px;align-items:center}
+.acc-pg button{border:1px solid var(--line);background:var(--card);padding:6px 10px;
+  border-radius:7px;cursor:pointer;font-family:'Inter';font-size:12px}
+.acc-pg button:disabled{opacity:.4;cursor:default}
+.acc-pg button.active{background:var(--brown);color:#fff;border-color:var(--brown)}
+
+/* Drawer */
+.acc-scrim{position:fixed;inset:0;background:rgba(43,22,10,.4);opacity:0;
+  pointer-events:none;transition:.2s;z-index:40}
+.acc-scrim.on{opacity:1;pointer-events:auto}
+.acc-drawer{position:fixed;top:0;right:0;height:100%;width:420px;max-width:92vw;
+  background:var(--card);box-shadow:-8px 0 40px rgba(43,22,10,.18);
+  transform:translateX(100%);transition:transform .24s cubic-bezier(.4,0,.2,1);
+  z-index:50;display:flex;flex-direction:column}
+.acc-drawer.on{transform:translateX(0)}
+.acc-dhead{padding:20px 22px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between}
+.acc-dhead h2{margin:0;font-family:'Outfit';font-weight:700;font-size:19px;
+  display:flex;align-items:center;gap:9px}
+.acc-dclose{border:none;background:none;font-size:18px;color:var(--muted);cursor:pointer;padding:4px}
+.acc-dbody{padding:22px;overflow-y:auto;flex:1}
+.acc-fld{margin-bottom:16px;position:relative}
+.acc-fld label{display:block;font-size:12.5px;font-weight:600;color:var(--brown);margin-bottom:6px}
+.acc-fld input,.acc-fld select,.acc-fld textarea{width:100%;padding:10px 12px;border:1px solid var(--line);
+  border-radius:9px;font-family:'Inter';font-size:14px;background:var(--field-bg);color:var(--ink);box-sizing:border-box}
+.acc-fld textarea{resize:vertical;min-height:74px;font-family:'Inter'}
+.acc-fld input:focus,.acc-fld select:focus,.acc-fld textarea:focus{outline:none;border-color:var(--gold);background:var(--card)}
+.acc-fld input:disabled{color:var(--muted);cursor:not-allowed}
+.acc-fld select option{background:var(--card);color:var(--ink)}
+.acc-hint{font-size:12px;color:var(--muted);margin-top:6px}
+.acc-hint b{color:var(--brown)}
+.acc-typebadge{display:inline-flex;align-items:center;gap:7px;background:var(--okbg);
+  color:var(--ok);padding:8px 12px;border-radius:9px;font-weight:600;font-size:13px}
+.acc-ro-wrap{background:var(--field-bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+.acc-ro-wrap .acc-ro-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.acc-ro-wrap .acc-ro-value{font-family:'JetBrains Mono',monospace;font-size:13px;margin-top:3px}
+.acc-dfoot{padding:16px 22px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
+.acc-err{background:var(--badbg);color:var(--bad);padding:9px 12px;border-radius:8px;
+  font-size:12.5px;margin-bottom:14px;display:none}
+.acc-err.on{display:block}
+.acc-toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--brown);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;
+  font-weight:500;opacity:0;pointer-events:none;transition:.25s;z-index:60}
+.acc-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+/* --- addition: kind-coded toast variants, same bg+white-text shape as the
+   default (brand) toast above --- */
+.acc-toast.acc-toast-ok{background:var(--ok)}
+.acc-toast.acc-toast-bad{background:var(--bad)}
+.acc-toast.acc-toast-info{background:var(--info)}
+
+/* Searchable picker (combobox) */
+.acc-combo{position:relative}
+.acc-combo-list{position:absolute;top:calc(100% + 4px);left:0;right:0;max-height:220px;
+  overflow-y:auto;background:var(--card);border:1px solid var(--line);border-radius:9px;
+  box-shadow:var(--shadow);z-index:5;padding:4px}
+.acc-combo-item{padding:8px 10px;border-radius:7px;cursor:pointer;font-size:13px}
+.acc-combo-item:hover,.acc-combo-item.hi{background:var(--field-bg)}
+.acc-combo-item small{display:block;color:var(--muted);font-size:11.5px;margin-top:1px}
+.acc-combo-empty{padding:10px;color:var(--muted);font-size:12.5px;text-align:center}
+
+@media(max-width:900px){.acc-kpis{grid-template-columns:repeat(2,1fr)}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* Custom scrollbars — slim brand-colored pill instead of the OS default */
+*{scrollbar-width:thin;scrollbar-color:rgba(165,132,91,.45) transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background-color:rgba(165,132,91,.35);border-radius:20px;
+  border:3px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background-color:rgba(165,132,91,.6)}
+::-webkit-scrollbar-corner{background:transparent}
+
+/* Dark shell (sidebar) gets a lighter thumb so it stays visible on the dark background */
+.acc-sidebar{scrollbar-color:rgba(255,255,255,.28) transparent}
+.acc-sidebar ::-webkit-scrollbar-thumb{background-color:rgba(255,255,255,.22)}
+.acc-sidebar ::-webkit-scrollbar-thumb:hover{background-color:rgba(255,255,255,.4)}
+
+/* ============================================================================
+   App shell (sidebar) — copied verbatim from Collection Networking's
+   Layout.css, minus the top bar (removed per this app's Step 3 — the page
+   title/user/avatar live in .acc-head / .acc-actions instead) and plus a
+   sidebar-footer theme toggle (new).
+   ============================================================================ */
+.acc-shell{display:flex;min-height:100vh}
+
+.acc-sidebar{width:230px;flex-shrink:0;background:var(--shell-bg);
+  background:linear-gradient(180deg,var(--shell-bg),var(--shell-bg-2));
+  color:var(--shell-text);display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;transition:width .18s ease;z-index:70}
+.acc-sb-brand{display:flex;align-items:center;justify-content:space-between;
+  padding:18px 18px 16px;border-bottom:1px solid var(--shell-line)}
+.acc-sb-brand .acc-logo{display:flex;align-items:center;gap:10px;overflow:hidden}
+.acc-sb-brand .acc-logo i{color:var(--shell-accent);font-size:18px;flex-shrink:0}
+.acc-sb-brand .acc-logo span{font-family:'Outfit',sans-serif;font-weight:700;
+  font-size:15.5px;color:var(--shell-text-strong);line-height:1.15;white-space:nowrap}
+.acc-sb-toggle{background:rgba(255,255,255,.06);border:none;color:var(--shell-text);
+  width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:12px;flex-shrink:0}
+.acc-sb-toggle:hover{background:rgba(255,255,255,.12)}
+.acc-sb-nav{list-style:none;margin:0;padding:10px 10px;flex:1;overflow-y:auto;overflow-x:hidden}
+.acc-sb-nav li{margin-bottom:2px}
+.acc-sb-nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;
+  border-radius:8px;color:var(--shell-text);text-decoration:none;
+  font-size:13.2px;font-weight:500;border-left:3px solid transparent;
+  transition:.15s;white-space:nowrap;cursor:pointer}
+.acc-sb-nav a i{width:16px;text-align:center;font-size:13px;color:var(--shell-muted);flex-shrink:0}
+.acc-sb-nav a:hover{background:rgba(255,255,255,.06);color:var(--shell-text-strong)}
+.acc-sb-nav a.active{background:var(--shell-active-bg);color:var(--shell-text-strong);
+  font-weight:600;border-left-color:var(--shell-accent)}
+.acc-sb-nav a.active i{color:var(--shell-accent)}
+
+/* --- addition: sidebar footer + light/dark toggle --- */
+.acc-sb-footer{padding:12px 14px;border-top:1px solid var(--shell-line);flex-shrink:0;
+  display:flex;flex-direction:column;gap:6px}
+.acc-theme-toggle{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  background:rgba(255,255,255,.06);border:none;border-radius:8px;padding:9px 11px;
+  width:100%;color:var(--shell-text);cursor:pointer;font-size:12.5px;
+  font-family:'Inter';transition:.15s}
+.acc-theme-toggle:hover{background:rgba(255,255,255,.12)}
+.acc-theme-toggle .acc-theme-label{display:flex;align-items:center;gap:9px;overflow:hidden;white-space:nowrap}
+.acc-theme-toggle i{color:var(--shell-accent);width:14px;text-align:center;flex-shrink:0}
+
+/* Collapsed (desktop icon rail) */
+@media(min-width:761px){
+  .acc-sidebar.collapsed{width:72px}
+  .acc-sidebar.collapsed .acc-sb-brand{padding:18px 0;justify-content:center;gap:10px}
+  .acc-sidebar.collapsed .acc-logo span{display:none}
+  .acc-sidebar.collapsed .acc-sb-nav a{justify-content:center;padding:12px 0}
+  .acc-sidebar.collapsed .acc-sb-label{display:none}
+  .acc-sidebar.collapsed .acc-theme-label{display:none}
+  .acc-sidebar.collapsed .acc-theme-toggle{justify-content:center}
+}
+
+/* Mobile sidebar overlay */
+.acc-scrim-mobile{position:fixed;inset:0;background:rgba(13,32,24,.45);opacity:0;
+  pointer-events:none;transition:.2s;z-index:65}
+@media(max-width:760px){
+  .acc-scrim-mobile.on{opacity:1;pointer-events:auto}
+  .acc-sidebar{position:fixed;left:0;top:0;width:230px;transform:translateX(-100%);
+    transition:transform .2s}
+  .acc-sidebar.collapsed{width:230px}
+  .acc-sidebar.collapsed .acc-sb-brand{padding:18px 18px 16px;justify-content:space-between}
+  .acc-sidebar.collapsed .acc-logo span,.acc-sidebar.collapsed .acc-sb-label{display:inline}
+  .acc-sidebar.collapsed .acc-sb-nav a{justify-content:flex-start;padding:10px 12px}
+  .acc-sidebar.collapsed .acc-theme-label{display:flex}
+  .acc-sidebar.collapsed .acc-theme-toggle{justify-content:space-between}
+  .acc-sidebar.mobile-open{transform:translateX(0)}
+}
+
+.acc-content-col{flex:1;min-width:0;display:flex;flex-direction:column}
+.acc-main{flex:1;min-width:0}

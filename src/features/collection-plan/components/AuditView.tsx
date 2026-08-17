@@ -1,153 +1,285 @@
-import styles from '../CollectionPlan.module.css';
+import { Fragment } from 'react';
+import type { CSSProperties } from 'react';
+import { MutedDash } from '../../../shared/components/MutedDash';
+import { auditInitials, fmtAuditNum } from '../normalizeAudit';
+import type { AuditRow } from '../types';
 
-// cfm_manualentryaudits (the table ref.html reads/writes for this tab) isn't a
-// connected data source in this Code App yet — see power.config.json's
-// databaseReferences. This renders the real chrome (KPIs, filters, column
-// headers) so the tab reads as a real page, with a clear state explaining
-// what's missing instead of fabricating data.
-const MISSING_TABLE = 'cfm_manualentryaudits';
+const COLUMN_COUNT = 7;
 
-export function AuditView() {
+interface AuditViewProps {
+  rows: AuditRow[];
+  grouped: boolean;
+  loading: boolean;
+  error: string | null;
+}
+
+function SkeletonRows() {
+  const widths = [60, 80, 70, 65, 75];
   return (
-    <div>
-      <div className={`${styles.kpiWrap} ${styles.kpiWrapAudit}`}>
-        <div className={styles.kpiCell}>
-          <div className={styles.kpiTop}>
-            <div className={styles.kpiIcon}>
-              <i className="fa-solid fa-pen-to-square" />
-            </div>
-            <div className={styles.kpiLabel}>Total Changes</div>
-          </div>
-          <div className={styles.kpiValue}>0</div>
-          <div className={styles.kpiSub}>Logged field-level edits</div>
-        </div>
-        <div className={styles.kpiCell}>
-          <div className={styles.kpiTop}>
-            <div className={`${styles.kpiIcon} ${styles.kpiIconInfo}`}>
-              <i className="fa-solid fa-building" />
-            </div>
-            <div className={styles.kpiLabel}>Companies Affected</div>
-          </div>
-          <div className={styles.kpiValue}>0</div>
-          <div className={styles.kpiSub}>Distinct companies touched</div>
-        </div>
-        <div className={styles.kpiCell}>
-          <div className={styles.kpiTop}>
-            <div className={`${styles.kpiIcon} ${styles.kpiIconGreen}`}>
-              <i className="fa-solid fa-user-group" />
-            </div>
-            <div className={styles.kpiLabel}>Team Members</div>
-          </div>
-          <div className={styles.kpiValue}>0</div>
-          <div className={styles.kpiSub}>Distinct people who edited</div>
-        </div>
-        <div className={styles.kpiCell}>
-          <div className={styles.kpiTop}>
-            <div className={`${styles.kpiIcon} ${styles.kpiIconWarn}`}>
-              <i className="fa-solid fa-tags" />
-            </div>
-            <div className={styles.kpiLabel}>Most Edited Field</div>
-          </div>
-          <div className={styles.kpiValue} style={{ fontSize: 15 }}>
-            —
-          </div>
-          <div className={styles.kpiSub}>No data yet</div>
-        </div>
-      </div>
+    <>
+      {widths.map((w, i) => (
+        <tr key={i}>
+          <td colSpan={COLUMN_COUNT} style={{ padding: '13px 16px' }}>
+            <div className="acc-skel" style={{ width: `${w}%` }} />
+          </td>
+        </tr>
+      ))}
+    </>
+  );
+}
 
-      <div className={styles.tblShell}>
-        <div className={styles.tblHdrRow}>
-          <div className={styles.filterInlineBar}>
-            <div className={styles.filterInlineSearch}>
-              <i className="fa-solid fa-magnifying-glass" />
-              <input type="text" placeholder="Search company, code, or user…" disabled />
-            </div>
-            <div className={styles.selectWrap}>
-              <i className={`fa-solid fa-tags ${styles.selectIcon}`} />
-              <select className={styles.fieldInput} disabled defaultValue="">
-                <option value="">All Fields</option>
-              </select>
-              <span className={styles.selArrow}>
-                <i className="fa-solid fa-chevron-down" />
-              </span>
-            </div>
-            <div className={styles.selectWrap}>
-              <i className={`fa-solid fa-user ${styles.selectIcon}`} />
-              <select className={styles.fieldInput} disabled defaultValue="">
-                <option value="">All Users</option>
-              </select>
-              <span className={styles.selArrow}>
-                <i className="fa-solid fa-chevron-down" />
-              </span>
-            </div>
-            <input type="date" className={styles.dateInput} title="From date" disabled />
-            <input type="date" className={styles.dateInput} title="To date" disabled />
-            <label className={styles.groupToggle}>
-              <input type="checkbox" disabled />
-              <span>Group by Company</span>
-            </label>
-            <button className={styles.filterClear} disabled>
-              <i className="fa-solid fa-xmark" /> Clear
-            </button>
-          </div>
-          <div className={styles.tblCount}>
-            <i className="fa-solid fa-table" />
-            Showing <strong>0</strong> of <strong>0</strong> changes
-          </div>
-        </div>
+function fmtAuditDateTime(iso: string): string {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
 
-        <div className={styles.tblScroll}>
-          <table className={styles.auTbl}>
-            <thead>
-              <tr>
-                <th>
-                  <i className="fa-solid fa-clock" />
-                  Date &amp; Time
-                </th>
-                <th>
-                  <i className="fa-solid fa-briefcase" />
-                  Company
-                </th>
-                <th>
-                  <i className="fa-solid fa-hashtag" />
-                  Code
-                </th>
-                <th>
-                  <i className="fa-solid fa-building" />
-                  Type
-                </th>
-                <th>
-                  <i className="fa-solid fa-tags" />
-                  Field
-                </th>
-                <th>
-                  <i className="fa-solid fa-right-left" />
-                  Old → New
-                </th>
-                <th>
-                  <i className="fa-solid fa-user" />
-                  Changed By
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td colSpan={7} className={styles.stateCell}>
-                  <div className={`${styles.stateIcon} ${styles.stateIconError}`}>
-                    <i className="fa-solid fa-plug-circle-xmark" />
-                  </div>
-                  <div className={styles.stateTitle}>Data source not connected</div>
-                  <div className={styles.stateMsg}>
-                    This tab reads and writes <code>{MISSING_TABLE}</code>, which isn&apos;t one of this Code App&apos;s
-                    connected Dataverse tables yet. Add it via <code>pac code add-data-source</code> (or the Data
-                    panel in Power Apps Studio) and regenerate the typed services to bring this tab online.
-                  </div>
+function pillStyle(bg: string, fg: string): CSSProperties {
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    fontSize: 11,
+    fontWeight: 700,
+    padding: '3px 9px',
+    borderRadius: 999,
+    background: bg,
+    color: fg,
+    whiteSpace: 'nowrap',
+  };
+}
+
+function TypePill({ value }: { value: string }) {
+  if (!value || value === '—') return <MutedDash value={value} />;
+  return <span style={pillStyle('var(--infobg)', 'var(--info)')}>{value}</span>;
+}
+
+function FieldPill({ value }: { value: string }) {
+  return <span style={pillStyle('var(--goldbg)', 'var(--brown)')}>{value}</span>;
+}
+
+function DeltaCell({ row }: { row: AuditRow }) {
+  const oldN = row.oldValue ?? 0;
+  const newN = row.newValue ?? 0;
+  const diff = newN - oldN;
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 600, fontSize: 13 }}>
+      <span style={{ color: 'var(--muted)', textDecoration: 'line-through' }}>{fmtAuditNum(row.oldValue)}</span>
+      <i className="fa-solid fa-arrow-right" style={{ color: 'var(--muted)', fontSize: 11 }} />
+      <span style={{ color: 'var(--ink)', fontWeight: 800 }}>{fmtAuditNum(row.newValue)}</span>
+      {diff !== 0 && (
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 3,
+            fontWeight: 700,
+            fontSize: 10.5,
+            padding: '2px 7px',
+            borderRadius: 999,
+            background: diff > 0 ? 'var(--okbg)' : 'var(--badbg)',
+            color: diff > 0 ? 'var(--ok)' : 'var(--bad)',
+          }}
+        >
+          <i className={`fa-solid ${diff > 0 ? 'fa-arrow-up' : 'fa-arrow-down'}`} />
+          {fmtAuditNum(Math.abs(diff))}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function UserCell({ name }: { name: string }) {
+  return (
+    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <span
+        style={{
+          width: 22,
+          height: 22,
+          borderRadius: '50%',
+          background: 'var(--goldbg)',
+          color: 'var(--brown)',
+          fontSize: 9,
+          fontWeight: 700,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}
+      >
+        {auditInitials(name)}
+      </span>
+      <MutedDash value={name} />
+    </span>
+  );
+}
+
+interface AuditGroup {
+  name: string;
+  code: string;
+  type: string;
+  rows: AuditRow[];
+}
+
+function groupRows(rows: AuditRow[]): AuditGroup[] {
+  const groups = new Map<string, AuditGroup>();
+  rows.forEach((r) => {
+    const key = `${r.companyName}|${r.companyCode}`;
+    let group = groups.get(key);
+    if (!group) {
+      group = { name: r.companyName, code: r.companyCode, type: r.type, rows: [] };
+      groups.set(key, group);
+    }
+    group.rows.push(r);
+  });
+  // Most recently-changed company first; each group's rows are already
+  // newest-first since the audit trail is loaded ordered by createdon desc.
+  return Array.from(groups.values()).sort(
+    (a, b) => new Date(b.rows[0].when).getTime() - new Date(a.rows[0].when).getTime()
+  );
+}
+
+export function AuditView({ rows, grouped, loading, error }: AuditViewProps) {
+  return (
+    <div className="acc-tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>
+              <i className="fa-solid fa-clock" /> Date &amp; Time
+            </th>
+            <th>
+              <i className="fa-solid fa-briefcase" /> Company
+            </th>
+            <th>
+              <i className="fa-solid fa-hashtag" /> Code
+            </th>
+            <th>
+              <i className="fa-solid fa-building" /> Type
+            </th>
+            <th>
+              <i className="fa-solid fa-tags" /> Field
+            </th>
+            <th>
+              <i className="fa-solid fa-right-left" /> Old → New
+            </th>
+            <th>
+              <i className="fa-solid fa-user" /> Changed By
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {loading ? (
+            <SkeletonRows />
+          ) : error ? (
+            <tr>
+              <td colSpan={COLUMN_COUNT}>
+                <div className="acc-state">
+                  <i className="fa-solid fa-triangle-exclamation" />
+                  Couldn&apos;t load audit trail.
+                  <br />
+                  <small>{error}</small>
+                </div>
+              </td>
+            </tr>
+          ) : rows.length === 0 ? (
+            <tr>
+              <td colSpan={COLUMN_COUNT}>
+                <div className="acc-state">
+                  <i className="fa-solid fa-filter-circle-xmark" />
+                  No audit entries match the current filters.
+                </div>
+              </td>
+            </tr>
+          ) : grouped ? (
+            groupRows(rows).map((g) => (
+              <Fragment key={`${g.name}|${g.code}`}>
+                <tr style={{ background: 'var(--goldbg)' }}>
+                  <td colSpan={COLUMN_COUNT} style={{ borderTop: '2px solid var(--gold)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          fontWeight: 800,
+                          fontSize: 13,
+                          color: 'var(--brown)',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <i className="fa-solid fa-building" style={{ color: 'var(--gold)' }} />
+                        {g.name}
+                        <span className="acc-code">{g.code}</span>
+                        {g.type && g.type !== '—' && <TypePill value={g.type} />}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          color: 'var(--muted)',
+                          background: 'var(--card)',
+                          padding: '3px 10px',
+                          borderRadius: 999,
+                          border: '1px solid var(--line)',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {g.rows.length} change{g.rows.length === 1 ? '' : 's'}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+                {g.rows.map((r) => (
+                  <tr key={r.id}>
+                    <td style={{ paddingLeft: 30, color: 'var(--muted)' }}>{fmtAuditDateTime(r.when)}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>
+                      <FieldPill value={r.field} />
+                    </td>
+                    <td>
+                      <DeltaCell row={r} />
+                    </td>
+                    <td>
+                      <UserCell name={r.changedBy} />
+                    </td>
+                  </tr>
+                ))}
+              </Fragment>
+            ))
+          ) : (
+            rows.map((r) => (
+              <tr key={r.id}>
+                <td style={{ color: 'var(--muted)' }}>{fmtAuditDateTime(r.when)}</td>
+                <td className="acc-name" dir="auto">
+                  <MutedDash value={r.companyName} />
+                </td>
+                <td className="acc-code">
+                  <MutedDash value={r.companyCode} />
+                </td>
+                <td>
+                  <TypePill value={r.type} />
+                </td>
+                <td>
+                  <FieldPill value={r.field} />
+                </td>
+                <td>
+                  <DeltaCell row={r} />
+                </td>
+                <td>
+                  <UserCell name={r.changedBy} />
                 </td>
               </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+            ))
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }

@@ -2,6 +2,11 @@
  * Sourced from the same cfm_aragings table as AR Aging. Unlike AR Aging this
  * page writes back to six "Manual Entry — AR Team" fields (see EDITABLE_FIELDS
  * below) — everything else here is read-only, mirroring ref.html's normalise().
+ *
+ * Payment Term / Customer Class / Company Type are joined in from
+ * cfm_insurancecompanies (matched by company code), same as AR Aging — see
+ * shared/insuranceCompanyLookup.ts for why. Falls back to cfm_aragings' own
+ * fields when no matching company code is found.
  */
 import {
   Cfm_aragingscfm_companytype,
@@ -10,7 +15,12 @@ import {
 import type { Cfm_aragings, Cfm_aragingsBase } from '../../generated/models/Cfm_aragingsModel';
 import { choiceLabel, lookupLabel } from '../../shared/dataverseLabels';
 import type { AnnotatedRow } from '../../shared/dataverseLabels';
+import { buildInsuranceCompanyLookup } from '../../shared/insuranceCompanyLookup';
+import type { InsuranceCompanyLookup } from '../../shared/insuranceCompanyLookup';
 import type { EditableFieldKey, PlanRow } from './types';
+
+export { buildInsuranceCompanyLookup };
+export type { InsuranceCompanyLookup };
 
 const n = (v: number | undefined | null): number => Number(v ?? 0);
 
@@ -33,19 +43,23 @@ export const EDITABLE_FIELD_LABELS: Record<EditableFieldKey, string> = {
   agreedrecon: 'Agreed Recon.',
 };
 
-export function normalizePlanRow(row: Cfm_aragings): PlanRow {
+export function normalizePlanRow(row: Cfm_aragings, companyByCode: InsuranceCompanyLookup): PlanRow {
   const r = row as unknown as AnnotatedRow;
   const collected = n(row.cfm_collectedamount);
   const tax = n(row.cfm_tax);
   const rejections = n(row.cfm_rejections);
+  const code = row.cfm_companycode?.trim() || '—';
+  const matched = code !== '—' ? companyByCode.get(code.toUpperCase()) : undefined;
   return {
     id: row.cfm_aragingid,
-    code: row.cfm_companycode?.trim() || '—',
+    code,
     name: row.cfm_companyname?.trim() || '—',
-    customerClass: choiceLabel(r, 'cfm_customerclass', 'cfm_customerclassname', Cfm_aragingscfm_customerclass),
-    companyType: choiceLabel(r, 'cfm_companytype', 'cfm_companytypename', Cfm_aragingscfm_companytype),
+    customerClass:
+      matched?.customerClass ?? choiceLabel(r, 'cfm_customerclass', 'cfm_customerclassname', Cfm_aragingscfm_customerclass),
+    companyType:
+      matched?.companyType ?? choiceLabel(r, 'cfm_companytype', 'cfm_companytypename', Cfm_aragingscfm_companytype),
     bu: lookupLabel(r, 'cfm_typename', '_cfm_type_value'),
-    paymentTerm: lookupLabel(r, 'cfm_paymenttermname', '_cfm_paymentterm_value'),
+    paymentTerm: matched?.paymentTerm ?? lookupLabel(r, 'cfm_paymenttermname', '_cfm_paymentterm_value'),
     taskOwner: lookupLabel(r, 'cfm_taskownername', '_cfm_taskowner_value'),
     supervisor: lookupLabel(r, 'cfm_supervisorname', '_cfm_supervisor_value'),
     earlypayment: n(row.cfm_earlypayment),
@@ -59,6 +73,7 @@ export function normalizePlanRow(row: Cfm_aragings): PlanRow {
     outstandingRej: n(row.cfm_outstandingrej),
     totalDues: n(row.cfm_totaldues),
     targetPlanDB: n(row.cfm_targetplan),
+    targetPercentage: row.cfm_targetpercentage == null ? null : n(row.cfm_targetpercentage),
     achievement: row.cfm_achievement == null ? null : n(row.cfm_achievement),
     collected,
     tax,

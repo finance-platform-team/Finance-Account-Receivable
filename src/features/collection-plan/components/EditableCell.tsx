@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
-import type { KeyboardEvent } from 'react';
-import styles from '../CollectionPlan.module.css';
+import type { CSSProperties, KeyboardEvent } from 'react';
 import { fmt } from '../normalize';
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error';
@@ -15,15 +14,48 @@ interface EditableCellProps {
   onDirtyChange: (value: number, orig: number) => void;
 }
 
+const BASE_INPUT_STYLE: CSSProperties = {
+  width: 88,
+  padding: '5px 4px',
+  border: 'none',
+  borderBottom: '1px solid var(--line)',
+  background: 'transparent',
+  fontFamily: 'inherit',
+  fontSize: 13,
+  fontWeight: 600,
+  color: 'var(--ink)',
+  textAlign: 'right',
+  outline: 'none',
+};
+
+function inputStyle(saveState: SaveState, dirty: boolean): CSSProperties {
+  if (saveState === 'saving') return { ...BASE_INPUT_STYLE, borderBottomColor: 'var(--gold)', background: 'var(--goldbg)' };
+  if (saveState === 'saved') return { ...BASE_INPUT_STYLE, borderBottomColor: 'var(--ok)', background: 'var(--okbg)' };
+  if (saveState === 'error') return { ...BASE_INPUT_STYLE, borderBottomColor: 'var(--bad)', background: 'var(--badbg)' };
+  if (dirty) return { ...BASE_INPUT_STYLE, borderBottomColor: 'var(--gold)', background: 'var(--goldbg)' };
+  return BASE_INPUT_STYLE;
+}
+
 export function EditableCell({ value, mode, isGroupEnd, isDirty, onInstantSave, onDirtyChange }: EditableCellProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [saveState, setSaveState] = useState<SaveState>('idle');
-  const tdClass = isGroupEnd ? `${styles.numeric} ${styles.colGroupEnd}` : styles.numeric;
+  const tdStyle: CSSProperties | undefined = isGroupEnd ? { borderRight: '1px dashed var(--line)' } : undefined;
 
   if (mode === 'locked') {
     return (
-      <td className={tdClass}>
-        <span className={styles.cellLocked} title="Locked — plan already sent for this month">
+      <td className="acc-num" style={tdStyle}>
+        <span
+          title="Locked — plan already sent for this month"
+          style={{
+            display: 'inline-block',
+            width: 88,
+            padding: '5px 4px',
+            color: 'var(--muted)',
+            textAlign: 'right',
+            fontSize: 13,
+            cursor: 'not-allowed',
+          }}
+        >
           {fmt(value)}
         </span>
       </td>
@@ -62,30 +94,18 @@ export function EditableCell({ value, mode, isGroupEnd, isDirty, onInstantSave, 
     }
   };
 
-  const inputClass = [
-    styles.cellInput,
-    saveState === 'saving' && styles.cellInputSaving,
-    saveState === 'saved' && styles.cellInputSaved,
-    saveState === 'error' && styles.cellInputError,
-    mode === 'dirty' && isDirty && styles.cellInputDirty,
-  ]
-    .filter(Boolean)
-    .join(' ');
-
   return (
-    <td className={tdClass}>
-      <span className={styles.cellEditWrap}>
-        <i className={`fa-solid fa-pen ${styles.editHint}`} />
-        <input
-          ref={inputRef}
-          className={inputClass}
-          type="number"
-          step="any"
-          defaultValue={value}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-        />
-      </span>
+    <td className="acc-num" style={tdStyle} onClick={(e) => e.stopPropagation()}>
+      <input
+        ref={inputRef}
+        type="number"
+        step="any"
+        defaultValue={value}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        onClick={(e) => e.stopPropagation()}
+        style={inputStyle(saveState, mode === 'dirty' && !!isDirty)}
+      />
     </td>
   );
 }

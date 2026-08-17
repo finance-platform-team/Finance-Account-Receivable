@@ -56,8 +56,10 @@ export interface Cfm_aragingsBase {
   "cfm_Insurance_Company@odata.bind"?: string;
   cfm_legalissues?: number;
   cfm_notdue?: number;
+  cfm_notes_ar_aging?: string;
   cfm_notesvisits?: string;
   "cfm_PaymentTerm@odata.bind"?: string;
+  cfm_pendingconfirmation?: number;
   cfm_plannedvisit?: number;
   cfm_rejections?: number;
   cfm_stopped?: number;
@@ -90,6 +92,7 @@ export interface Cfm_aragings extends Cfm_aragingsBase {
   cfm_totaldues?: number;
   cfm_totaloutstanding?: number;
   cfm_typename?: string;
+  cfm_unique?: string;
   createdbyname?: string;
   createdbyyominame: string;
   createdon?: string;

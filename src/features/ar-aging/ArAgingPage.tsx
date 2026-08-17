@@ -1,13 +1,23 @@
 import { useCallback, useMemo, useState } from 'react';
-import styles from './ArAging.module.css';
 import { AgingDrawer } from './components/AgingDrawer';
 import { AgingTable } from './components/AgingTable';
 import { FilterBar } from './components/FilterBar';
 import { KpiCards } from './components/KpiCards';
 import { Pagination } from '../../shared/components/Pagination';
 import { ToastRack } from '../../shared/components/ToastRack';
+import { CreateDecisionDrawer } from '../../shared/components/CreateDecisionDrawer';
+import type { DecisionFormInput } from '../../shared/components/CreateDecisionDrawer';
 import { useAgingData } from './useAgingData';
 import { useToasts } from '../../shared/useToasts';
+import { useRegion } from '../../shared/regionContext';
+import { regionForBu } from '../../shared/region';
+import { Cfm_tmshandoffsService } from '../../generated/services/Cfm_tmshandoffsService';
+import type {
+  Cfm_tmshandoffscfm_decisionfromwhere,
+  Cfm_tmshandoffscfm_priority,
+  Cfm_tmshandoffscfm_progress,
+  Cfm_tmshandoffscfm_tagename,
+} from '../../generated/models/Cfm_tmshandoffsModel';
 import type { AgingRow, AgingTotals, DatasetKey } from './types';
 import type { PageSize } from '../../shared/types';
 
@@ -56,8 +66,9 @@ function toCsvRow(r: AgingRow): string {
 }
 
 export function ArAgingPage() {
-  const { rows, loading, error, lastRefresh } = useAgingData();
+  const { rows: allRows, loading, error, lastRefresh, updateRow } = useAgingData();
   const { toasts, push } = useToasts();
+  const { region } = useRegion();
 
   const [dataset, setDataset] = useState<DatasetKey>('core');
   const [search, setSearch] = useState('');
@@ -67,6 +78,16 @@ export function ArAgingPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<PageSize>(15);
   const [selectedRow, setSelectedRow] = useState<AgingRow | null>(null);
+  const [decisionDrawerOpen, setDecisionDrawerOpen] = useState(false);
+  const [decisionSubmitting, setDecisionSubmitting] = useState(false);
+
+  // Scope every company on this page to the selected region's BU list before
+  // any other filter runs. `region` is null only while the (blocking) picker
+  // hasn't been answered yet — show everything rather than guess in that window.
+  const rows = useMemo(
+    () => (region ? allRows.filter((r) => regionForBu(r.type) === region) : allRows),
+    [allRows, region]
+  );
 
   const buOptions = useMemo(
     () => Array.from(new Set(rows.map((r) => r.type).filter((t) => t && t !== '—'))).sort(),
@@ -154,24 +175,69 @@ export function ArAgingPage() {
     push('Exported', `${filtered.length} rows saved to CSV.`, 'success');
   }, [filtered, push]);
 
-  const handleOpenDecision = useCallback(() => {
-    // Decision modal / Power Automate flow (creates a decision record, routes via TMS)
-    // is not wired up in the source view yet — this mirrors ref.html's placeholder.
-    push('Create Task Decision', 'Decision modal not yet wired. Will open the Task Decision form and route via TMS.', 'info');
-  }, [push]);
-
   const handleRowClick = useCallback((row: AgingRow) => {
     setSelectedRow((current) => (current?.id === row.id ? null : row));
   }, []);
 
   const handleCloseDrawer = useCallback(() => setSelectedRow(null), []);
 
+  const handleSaveNote = useCallback(
+    async (row: AgingRow, note: string) => {
+      try {
+        await updateRow(row.id, { cfm_notesvisits: note });
+        setSelectedRow((current) => (current && current.id === row.id ? { ...current, notes: note } : current));
+        push('Saved', 'Note saved.', 'success');
+      } catch (err) {
+        push('Could not save note', err instanceof Error ? err.message : 'Unknown error.', 'alert');
+      }
+    },
+    [updateRow, push]
+  );
+
+  const handleSaveType = useCallback(
+    async (row: AgingRow, buId: string, buName: string) => {
+      try {
+        await updateRow(row.id, { 'cfm_type@odata.bind': `/businessunits(${buId})` });
+        setSelectedRow((current) =>
+          (current && current.id === row.id ? { ...current, type: buName, typeId: buId } : current)
+        );
+        push('Saved', 'Type (BU) updated.', 'success');
+      } catch (err) {
+        push('Could not update Type (BU)', err instanceof Error ? err.message : 'Unknown error.', 'alert');
+      }
+    },
+    [updateRow, push]
+  );
+
+  const handleOpenDecision = useCallback(() => setDecisionDrawerOpen(true), []);
+  const handleCloseDecision = useCallback(() => setDecisionDrawerOpen(false), []);
+
   const handleSubmitDecision = useCallback(
-    (row: AgingRow, decisionType: string) => {
-      // Same "not wired" business rule as the header Decision button — no real
-      // Task Decision entity/TMS flow is exposed to this app yet.
-      push('Decision Submitted', `"${decisionType}" for ${row.name} will route via TMS once that flow is wired up.`, 'info');
-      setSelectedRow(null);
+    async (input: DecisionFormInput) => {
+      setDecisionSubmitting(true);
+      try {
+        const result = await Cfm_tmshandoffsService.create({
+          cfm_tasktitle: input.title,
+          ...(input.description ? { cfm_taskdescription: input.description } : {}),
+          ...(input.actionToBeTaken ? { cfm_typeaction: input.actionToBeTaken } : {}),
+          'cfm_Assignee@odata.bind': `/systemusers(${input.assigneeId})`,
+          ...(input.priority != null ? { cfm_priority: input.priority as Cfm_tmshandoffscfm_priority } : {}),
+          cfm_duedate: new Date(`${input.dueDate}T00:00:00`).toISOString(),
+          cfm_decisionfromwhere: 5 as Cfm_tmshandoffscfm_decisionfromwhere, // 'AR'
+          cfm_tagename: 766340000 as Cfm_tmshandoffscfm_tagename, // 'Collection'
+          cfm_progress: 123200005 as Cfm_tmshandoffscfm_progress, // 'Submited'
+          statecode: 0,
+        });
+        if (!result.success) {
+          throw new Error(result.error?.message || 'Could not save the decision.');
+        }
+        push('Decision sent', `"${input.title}" was created and routed via TMS.`, 'success');
+        setDecisionDrawerOpen(false);
+      } catch (err) {
+        push('Could not save decision', err instanceof Error ? err.message : 'Unknown error.', 'alert');
+      } finally {
+        setDecisionSubmitting(false);
+      }
     },
     [push]
   );
@@ -181,58 +247,42 @@ export function ArAgingPage() {
     : '—';
 
   return (
-    <div className={styles.page}>
-      <div className={styles.pgHdr}>
+    <div className="acc-wrap">
+      <div className="acc-head">
         <div>
-          <div className={styles.pgEyebrow}>
-            <i className="fa-solid fa-chart-simple" /> AR Planning · Aging &amp; Reconciliation
-          </div>
-          <h1 className={styles.pgTitle}>
-            AR Aging &amp; Recon.
-            <span className={styles.statusChip}>
-              <i className="fa-solid fa-circle" /> Live from DotCare
-            </span>
-          </h1>
-          <div className={styles.pgSub}>
-            Aging brackets auto-populated from DotCare, per bracket and per insurance company. Read-only snapshot for
-            AR planning.
-          </div>
+          <h1 className="acc-title">AR Aging</h1>
         </div>
-        <div className={styles.hdrActions}>
-          <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} onClick={handleExportCsv}>
+        <div className="acc-actions">
+          <button className="acc-btn" onClick={handleExportCsv}>
             <i className="fa-solid fa-file-arrow-down" /> Export
           </button>
-          <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`} onClick={handleOpenDecision}>
-            <i className="fa-solid fa-clipboard-check" /> Decision
+          <button className="acc-btn acc-btn-primary" onClick={handleOpenDecision}>
+            <i className="fa-solid fa-clipboard-check" /> Create Decision
           </button>
         </div>
       </div>
 
-      <div className={styles.metaBar}>
-        <div className={styles.metaBarLeft}>
-          <div className={styles.metaGroup}>
-            <i className="fa-solid fa-database" />
-            <span>
-              Source: <strong>DotCare</strong>
-            </span>
-          </div>
-          <div className={styles.metaSep} />
-          <div className={styles.metaGroup}>
-            <i className="fa-solid fa-clock" />
-            <span>
-              Last refresh: <strong>{lastRefreshLabel}</strong>
-            </span>
-          </div>
+      <div className="acc-bar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--muted)', fontWeight: 500 }}>
+            <i className="fa-solid fa-database" style={{ color: 'var(--gold)' }} />
+            Source: <strong style={{ color: 'var(--ink)' }}>DotCare</strong>
+          </span>
+          <span style={{ width: 1, height: 22, background: 'var(--line)' }} />
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--muted)', fontWeight: 500 }}>
+            <i className="fa-solid fa-clock" style={{ color: 'var(--gold)' }} />
+            Last refresh: <strong style={{ color: 'var(--ink)' }}>{lastRefreshLabel}</strong>
+          </span>
         </div>
-        <div className={styles.dsWrap}>
+        <div style={{ display: 'inline-flex', gap: 6, marginLeft: 'auto' }}>
           <button
-            className={`${styles.dsTab} ${dataset === 'core' ? styles.dsTabActive : ''}`}
+            className={`acc-btn${dataset === 'core' ? ' acc-btn-primary' : ''}`}
             onClick={() => handleSetDataset('core')}
           >
             <i className="fa-solid fa-scale-balanced" /> AR Aging
           </button>
           <button
-            className={`${styles.dsTab} ${dataset === 'africa' ? styles.dsTabActive : ''}`}
+            className={`acc-btn${dataset === 'africa' ? ' acc-btn-primary' : ''}`}
             onClick={() => handleSetDataset('africa')}
           >
             <i className="fa-solid fa-globe" /> Africa
@@ -242,33 +292,35 @@ export function ArAgingPage() {
 
       <KpiCards totals={loading || error ? EMPTY_TOTALS : totals} />
 
-      <div className={styles.tblShell}>
-        <FilterBar
-          search={search}
-          onSearchChange={(v) => {
-            setSearch(v);
-            resetPage();
-          }}
-          bu={bu}
-          onBuChange={(v) => {
-            setBu(v);
-            resetPage();
-          }}
-          buOptions={buOptions}
-          customerClass={customerClass}
-          onCustomerClassChange={(v) => {
-            setCustomerClass(v);
-            resetPage();
-          }}
-          companyType={companyType}
-          onCompanyTypeChange={(v) => {
-            setCompanyType(v);
-            resetPage();
-          }}
-          onClear={handleClearFilters}
-          showing={loading || error ? 0 : filtered.length}
-          total={rows.length}
-        />
+      <div className="tbl-shell">
+        <div className="tbl-hdr">
+          <FilterBar
+            search={search}
+            onSearchChange={(v) => {
+              setSearch(v);
+              resetPage();
+            }}
+            bu={bu}
+            onBuChange={(v) => {
+              setBu(v);
+              resetPage();
+            }}
+            buOptions={buOptions}
+            customerClass={customerClass}
+            onCustomerClassChange={(v) => {
+              setCustomerClass(v);
+              resetPage();
+            }}
+            companyType={companyType}
+            onCompanyTypeChange={(v) => {
+              setCompanyType(v);
+              resetPage();
+            }}
+            onClear={handleClearFilters}
+            showing={loading || error ? 0 : filtered.length}
+            total={rows.length}
+          />
+        </div>
 
         <AgingTable
           rows={paged}
@@ -285,6 +337,7 @@ export function ArAgingPage() {
             page={currentPage}
             pageSize={pageSize}
             totalRows={filtered.length}
+            itemLabel="companies"
             onPageChange={setPage}
             onPageSizeChange={(size) => {
               setPageSize(size);
@@ -294,16 +347,22 @@ export function ArAgingPage() {
         )}
       </div>
 
-      <ToastRack toasts={toasts} />
+      <AgingDrawer
+        row={selectedRow}
+        open={selectedRow !== null}
+        onClose={handleCloseDrawer}
+        onSaveNote={handleSaveNote}
+        onSaveType={handleSaveType}
+      />
 
-      {selectedRow && (
-        <AgingDrawer
-          key={selectedRow.id}
-          row={selectedRow}
-          onClose={handleCloseDrawer}
-          onSubmitDecision={handleSubmitDecision}
-        />
-      )}
+      <CreateDecisionDrawer
+        open={decisionDrawerOpen}
+        submitting={decisionSubmitting}
+        onClose={handleCloseDecision}
+        onSubmit={handleSubmitDecision}
+      />
+
+      <ToastRack toasts={toasts} />
     </div>
   );
 }

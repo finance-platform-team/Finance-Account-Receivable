@@ -27,6 +27,7 @@ export interface PlanRow {
   outstandingRej: number;
   totalDues: number;
   targetPlanDB: number;
+  targetPercentage: number | null;
   achievement: number | null;
   collected: number;
   tax: number;
