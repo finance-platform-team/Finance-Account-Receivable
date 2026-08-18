@@ -179,6 +179,14 @@
           "x-ms-schema-name": "cfm_CompanyName",
           "maxLength": 100
         },
+        "cfm_foldername": {
+          "type": "string",
+          "title": "Folder Name",
+          "x-ms-dataverse-attribute": "cfm_foldername",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cfm_FolderName",
+          "maxLength": 100
+        },
         "cfm_owner": {
           "type": "string",
           "title": "Owner",
@@ -210,7 +218,7 @@
           "x-ms-dataverse-attribute": "cfm_proof",
           "x-ms-dataverse-type": "StringType",
           "x-ms-schema-name": "cfm_Proof",
-          "maxLength": 100
+          "maxLength": 850
         },
         "createdby": {
           "type": "string",

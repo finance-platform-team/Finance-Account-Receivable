@@ -5,7 +5,6 @@ import { useRegion } from '../../shared/regionContext';
 import { REGION_OPTIONS } from '../../shared/region';
 import { ThemeProvider } from '../../shared/ThemeProvider';
 import { useTheme } from '../../shared/themeContext';
-import { ComingSoonPanel } from './ComingSoonPanel';
 import { ArAgingPage } from '../../features/ar-aging/ArAgingPage';
 import { CollectionPlanPage } from '../../features/collection-plan/CollectionPlanPage';
 import { ArVerificationPage } from '../../features/AR Verification/ArVerificationPage';
@@ -13,6 +12,8 @@ import { DisputeManagementPage } from '../../features/dispute-management/Dispute
 import { BusinessPartnersPage } from '../../features/business-partners/BusinessPartnersPage';
 import { PaymentTermsPage } from '../../features/payment-terms/PaymentTermsPage';
 import { TmsHandoffPage } from '../../features/tms-handoff/TmsHandoffPage';
+import { SlaPage } from '../../features/sla/SlaPage';
+import { TreasuryWorkflowPage } from '../../features/treasury-workflow/TreasuryWorkflowPage';
 
 interface NavItem {
   key: string;
@@ -29,6 +30,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'payment-terms', label: 'Payment Term', icon: 'fa-calendar-days' },
   { key: 'tms-handoff', label: 'TMS Hand Off', icon: 'fa-right-left' },
   { key: 'sla', label: 'SLA', icon: 'fa-stopwatch' },
+  { key: 'treasury-workflow', label: 'Treasury Workflow', icon: 'fa-building-columns' },
 ];
 
 const NARROW_QUERY = '(max-width: 900px)';
@@ -120,7 +122,8 @@ function ShellInner() {
           {activeKey === 'business-partners' && <BusinessPartnersPage />}
           {activeKey === 'payment-terms' && <PaymentTermsPage />}
           {activeKey === 'tms-handoff' && <TmsHandoffPage />}
-          {activeKey === 'sla' && <ComingSoonPanel icon="fa-stopwatch" title="SLA" />}
+          {activeKey === 'sla' && <SlaPage />}
+          {activeKey === 'treasury-workflow' && <TreasuryWorkflowPage />}
         </main>
       </div>
     </div>

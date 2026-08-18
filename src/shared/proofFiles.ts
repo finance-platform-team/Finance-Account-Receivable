@@ -5,6 +5,56 @@ export interface ProofFile {
   size?: number;
 }
 
+function stripForFolderName(s: string | null | undefined): string {
+  return String(s ?? '')
+    .replace(/["*:<>?/\\|]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Confirmed convention for AR Verification / Daily Collection folders (from
+ * ref.html's docsFolderName(), re-confirmed directly against a real record):
+ * "CompanyName - Code - dd-mm-yyyy - (Ref)". NOTE: this is a DIFFERENT
+ * convention than Dispute Management's stored cfm_foldername format — do not
+ * unify the two, they're apparently produced by different processes. */
+export function buildDocsFolderName(companyName: string, companyCode: string, dateIso: string, ref: string): string {
+  const name = stripForFolderName(companyName) || 'Company';
+  const code = stripForFolderName(companyCode) || 'NA';
+  let dateStr = 'NODATE';
+  if (dateIso) {
+    const d = new Date(dateIso);
+    if (!isNaN(d.getTime())) {
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      dateStr = `${dd}-${mm}-${d.getFullYear()}`;
+    }
+  }
+  const refP = stripForFolderName(ref) || 'REF';
+  return `${name} - ${code} - ${dateStr} - (${refP})`;
+}
+
+/** Confirmed convention for Dispute Management's cfm_foldername field (a real
+ * stored value: "2026-08-18 - 116 - اوميجا كير للرعاية الطبية - DColl-1031"):
+ * "yyyy-mm-dd - Code - CompanyName - Ref", no parentheses. Only used as a
+ * fallback for older dispute records that predate cfm_foldername being
+ * populated — normally the stored field is used directly. */
+export function buildDisputeDocsFolderName(companyName: string, companyCode: string, dateIso: string, ref: string): string {
+  const name = stripForFolderName(companyName) || 'Company';
+  const code = stripForFolderName(companyCode) || 'NA';
+  let dateStr = 'NODATE';
+  if (dateIso) {
+    const d = new Date(dateIso);
+    if (!isNaN(d.getTime())) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      dateStr = `${yyyy}-${mm}-${dd}`;
+    }
+  }
+  const refP = stripForFolderName(ref) || 'REF';
+  return `${dateStr} - ${code} - ${name} - ${refP}`;
+}
+
 async function docsFlow(flowUrl: string, payload: Record<string, unknown>): Promise<unknown> {
   const res = await fetch(flowUrl, {
     method: 'POST',

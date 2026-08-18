@@ -13,6 +13,7 @@ import type { Cfm_collectionmonthallocations } from '../../generated/models/Cfm_
 import type { Cfm_aragings } from '../../generated/models/Cfm_aragingsModel';
 import { choiceLabel, lookupLabel } from '../../shared/dataverseLabels';
 import type { AnnotatedRow } from '../../shared/dataverseLabels';
+import { buildDocsFolderName } from '../../shared/proofFiles';
 import type { AllocationRow, VerificationRow } from './types';
 
 export const AR_STATUS = {
@@ -70,8 +71,6 @@ export function statusIcon(status: number | null): string {
 export const fmt = (v: number | null | undefined): string =>
   !v ? '—' : Number(v).toLocaleString('en-US', { maximumFractionDigits: 0 });
 
-export const fmtSAR = (v: number | null | undefined): string => (!v ? '—' : `SAR ${Number(v).toLocaleString('en-US', { maximumFractionDigits: 0 })}`);
-
 export function fmtDate(iso: string | null | undefined): string {
   if (!iso) return '—';
   const d = new Date(iso);
@@ -90,29 +89,6 @@ export function fmtDateTime(iso: string | null | undefined): string {
   const ap = hh >= 12 ? 'PM' : 'AM';
   hh = hh % 12 || 12;
   return `${dd}-${mm}-${yyyy} ${hh}:${min} ${ap}`;
-}
-
-/* Folder name must MATCH the Daily Collection screen exactly:
-   "CompanyName - Code - dd-mm-yyyy - (Ref)"  (SharePoint-forbidden chars stripped) */
-export function buildDocsFolder(ref: string, companyName: string, companyCode: string, dateIso: string): string {
-  const strip = (s: string | null | undefined) =>
-    String(s ?? '')
-      .replace(/["*:<>?/\\|]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-  const name = strip(companyName) || 'Company';
-  const code = strip(companyCode) || 'NA';
-  let dateStr = 'NODATE';
-  if (dateIso) {
-    const d = new Date(dateIso);
-    if (!isNaN(d.getTime())) {
-      const dd = String(d.getDate()).padStart(2, '0');
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      dateStr = `${dd}-${mm}-${d.getFullYear()}`;
-    }
-  }
-  const refP = strip(ref) || 'REF';
-  return `${name} - ${code} - ${dateStr} - (${refP})`;
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -183,6 +159,7 @@ export function normalizeEntry(
     id: row.cfm_dailycollectionid,
     ref: row.cfm_name?.trim() || '—',
     entity,
+    companyId: co ? co.cfm_aragingid : null,
     companyCode: code,
     companyName: name,
     date: row.cfm_collectiondate || '',
@@ -201,7 +178,7 @@ export function normalizeEntry(
     statusLabel,
     actionBy: lookupLabel(r, 'cfm_actionbyname', '_cfm_actionby_value'),
     actionOn: row.cfm_actionon || '',
-    docsFolder: buildDocsFolder(row.cfm_name || '', name, code, row.cfm_collectiondate || ''),
+    docsFolder: buildDocsFolderName(name, code, row.cfm_collectiondate || '', row.cfm_name || ''),
     monthsLabel: monthRange(allocsForRow),
     claimsLabel: claimLabel(allocsForRow),
     tax: sum('tax'),

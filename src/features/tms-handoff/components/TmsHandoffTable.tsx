@@ -131,17 +131,21 @@ export function TmsHandoffTable({ rows, loading, error, onView }: TmsHandoffTabl
                   </td>
                   <td>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <span
-                        style={{
-                          fontFamily: "'JetBrains Mono',monospace",
-                          fontSize: 11.5,
-                          fontWeight: 700,
-                          color: SLA_COLOR[tone],
-                        }}
-                      >
-                        <i className="fa-regular fa-clock" style={{ marginRight: 3 }} />
-                        {r.sla}
-                      </span>
+                      {r.sla && r.sla !== '—' ? (
+                        <span
+                          style={{
+                            fontFamily: "'JetBrains Mono',monospace",
+                            fontSize: 11.5,
+                            fontWeight: 700,
+                            color: SLA_COLOR[tone],
+                          }}
+                        >
+                          <i className="fa-regular fa-clock" style={{ marginRight: 3 }} />
+                          {r.sla}
+                        </span>
+                      ) : (
+                        <MutedDash value={null} />
+                      )}
                       <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>{fmtDate(r.dueDate)}</span>
                     </div>
                   </td>

@@ -12,7 +12,7 @@ import { Cfm_disputemanagementupdatesescfm_updatetype } from '../../generated/mo
 import type { Cfm_disputemanagementupdateses } from '../../generated/models/Cfm_disputemanagementupdatesesModel';
 import { choiceLabel, lookupLabel } from '../../shared/dataverseLabels';
 import type { AnnotatedRow } from '../../shared/dataverseLabels';
-import { buildDisputeDocsFolder } from './proofFiles';
+import { buildDisputeDocsFolderName } from '../../shared/proofFiles';
 import type { DisputeHistoryRow, DisputeRow } from './types';
 
 const n = (v: number | undefined | null): number => Number(v ?? 0);
@@ -40,11 +40,20 @@ export function normalizeDisputeRow(row: Ar_disputemanagements): DisputeRow {
     owner: lookupLabel(r, 'createdbyname', '_createdby_value'),
     agreement: row.ar_agreement ?? '',
     proof: row.cfm_proof ?? '',
-    docsFolder: buildDisputeDocsFolder(
-      row.cfm_companyname?.trim() || lookupLabel(r, 'cfm_companycodename', '_cfm_companycode_value'),
-      row.ar_code?.trim() || '',
-      row.ar_code?.trim() || ''
-    ),
+    // cfm_foldername is the actual SharePoint folder name stored on the
+    // record — prefer it over reconstructing one, since it's the authoritative
+    // value the upload flow itself used. Only reconstruct as a fallback for
+    // older records that predate this field being populated (Dispute
+    // Management's own convention — confirmed different from AR
+    // Verification/Daily Collection's, do not unify them).
+    docsFolder:
+      row.cfm_foldername?.trim() ||
+      buildDisputeDocsFolderName(
+        row.cfm_companyname?.trim() || lookupLabel(r, 'cfm_companycodename', '_cfm_companycode_value'),
+        row.ar_code?.trim() || '',
+        row.createdon ?? '',
+        row.ar_code?.trim() || ''
+      ),
   };
 }
 

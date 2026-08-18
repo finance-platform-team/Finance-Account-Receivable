@@ -15,6 +15,7 @@ export interface VerificationRow {
   id: string;
   ref: string;
   entity: string;
+  companyId: string | null;
   companyCode: string;
   companyName: string;
   date: string;

@@ -10,26 +10,6 @@ import type { ProofFilesTarget } from '../../shared/components/ProofFilesDrawer'
 const DOCS_FLOW_URL =
   'https://9ce6fb095b63e9f49185b707b4b342.5e.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/30/workflows/f925d853a7c944ca88f9e886f1290e45/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=XnsQ8q4II-APCA1K7gBM--Zd0E_2kcqxV5fnaVVDlDU';
 
-// TODO CONFIRM: the actual SharePoint folder-naming convention used when a
-// dispute's proof documents were uploaded is not confirmed (unlike AR
-// Verification's buildDocsFolder, which matches the confirmed Daily
-// Collection screen convention exactly, from ref.html's docsFolderName()).
-// This is a best-guess placeholder — "CompanyName - Code - (ar_code)" —
-// until the real pattern is provided. Until then, listing may return "not
-// found" (shown as an empty folder) even when files exist under a different
-// real folder name.
-export function buildDisputeDocsFolder(companyName: string, code: string, arCode: string): string {
-  const strip = (s: string | null | undefined) =>
-    String(s ?? '')
-      .replace(/["*:<>?/\\|]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-  const name = strip(companyName) || 'Company';
-  const c = strip(code) || 'NA';
-  const ref = strip(arCode) || 'REF';
-  return `${name} - ${c} - (${ref})`;
-}
-
 export function fetchDisputeProofFiles(docsFolder: string): Promise<ProofFile[]> {
   return fetchProofFilesFromFlow(DOCS_FLOW_URL, docsFolder);
 }

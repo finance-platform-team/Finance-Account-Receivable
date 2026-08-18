@@ -127,6 +127,11 @@ export function ProofFilesDrawer({ target, onClose, fetchFiles, uploadFile, dele
     e.target.value = '';
     if (!file || !active || !uploadFile) return;
     const generation = generationRef.current;
+    // Compare COUNT, not the exact uploaded name — SharePoint renames on a
+    // filename collision (e.g. "Report.pdf" → "Report 2.pdf"), so waiting for
+    // the original name to show up would never resolve for a renamed file
+    // even though the upload succeeded.
+    const countBefore = files.length;
     setUploading(true);
     setActionError(null);
     try {
@@ -135,9 +140,11 @@ export function ProofFilesDrawer({ target, onClose, fetchFiles, uploadFile, dele
       setFiles(result);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Could not upload file.';
+      // A gateway timeout doesn't mean it failed — the flow is usually still
+      // running. Stay quiet and keep checking; only surface an error if it
+      // genuinely never resolves.
       if (looksLikeTimeout(message)) {
-        setActionError(`${message} — the flow may still be finishing; checking…`);
-        await pollUntil(active.folder, (files) => files.some((f) => f.name === file.name), generation);
+        await pollUntil(active.folder, (result) => result.length > countBefore, generation);
       } else {
         setActionError(message);
       }
@@ -159,7 +166,6 @@ export function ProofFilesDrawer({ target, onClose, fetchFiles, uploadFile, dele
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Could not delete file.';
       if (looksLikeTimeout(message)) {
-        setActionError(`${message} — the flow may still be finishing; checking…`);
         await pollUntil(active.folder, (files) => !files.some((f) => f.path === file.path), generation);
       } else {
         setActionError(message);

@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { MutedDash } from '../../../shared/components/MutedDash';
-import { fmt, fmtDate, fmtDateTime, fmtSAR, isLocked, statusIcon, statusPillClass } from '../normalize';
+import { fmt, fmtDate, fmtDateTime, isLocked, statusIcon, statusPillClass } from '../normalize';
 import type { VerificationRow } from '../types';
 
 const COLUMN_COUNT = 23;
@@ -305,7 +305,7 @@ export function VerificationTable({
                       <MutedDash value={r.bankAccount} />
                     </td>
                     <td className="acc-num">
-                      <MutedDash value={fmtSAR(r.net)} />
+                      <MutedDash value={fmt(r.net)} />
                     </td>
                     <td>
                       <MutedDash value={r.monthsLabel} />

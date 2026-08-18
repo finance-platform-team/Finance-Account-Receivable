@@ -40,6 +40,7 @@ export interface Ar_disputemanagementsBase {
   cfm_arreview?: Ar_disputemanagementscfm_arreview;
   "cfm_CompanyCode@odata.bind"?: string;
   cfm_companyname?: string;
+  cfm_foldername?: string;
   "cfm_Owner@odata.bind"?: string;
   cfm_proof?: string;
   importsequencenumber?: number;

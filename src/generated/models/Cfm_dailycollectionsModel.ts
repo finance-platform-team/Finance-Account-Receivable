@@ -12,7 +12,8 @@ export const Cfm_dailycollectionscfm_statusaction = {
   766340001: 'Rejected from AR',
   766340002: 'Approved',
   766340003: 'Allocated ',
-  766340004: 'Pending Bank Statement '
+  766340004: 'Pending Bank Statement ',
+  766340005: 'Awaiting documents'
 } as const;
 export type Cfm_dailycollectionscfm_statusaction = keyof typeof Cfm_dailycollectionscfm_statusaction;
 export const Cfm_dailycollectionsstatecode = {
@@ -52,6 +53,7 @@ export interface Cfm_dailycollections extends Cfm_dailycollectionsBase {
   cfm_actionbyname?: string;
   cfm_actionbyyominame?: string;
   cfm_companycodename?: string;
+  cfm_companycodetodispute?: string;
   cfm_companynamefx?: string;
   cfm_entityfx?: string;
   cfm_paymentmethodname?: string;

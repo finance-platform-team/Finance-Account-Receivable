@@ -7,6 +7,12 @@ export const Cfm_slascfm_slatype = {
   766340001: 'hours'
 } as const;
 export type Cfm_slascfm_slatype = keyof typeof Cfm_slascfm_slatype;
+export const Cfm_slascfm_tagename = {
+  766340000: 'Collection',
+  766340001: 'AR',
+  766340002: 'AP'
+} as const;
+export type Cfm_slascfm_tagename = keyof typeof Cfm_slascfm_tagename;
 export const Cfm_slasstatecode = {
   0: 'Active',
   1: 'Inactive'
@@ -30,6 +36,7 @@ export interface Cfm_slasBase {
   cfm_slaid: string;
   cfm_slanoofhoursordate?: string;
   cfm_slatype?: Cfm_slascfm_slatype;
+  cfm_tagename?: Cfm_slascfm_tagename;
   importsequencenumber?: number;
   overriddencreatedon?: string;
   statecode: Cfm_slasstatecode;
@@ -46,6 +53,7 @@ export interface Cfm_slas extends Cfm_slasBase {
   cfm_responsiblename?: string;
   cfm_responsibleyominame?: string;
   cfm_slatypename?: string;
+  cfm_tagenamename?: string;
   createdbyname?: string;
   createdbyyominame: string;
   createdon?: string;

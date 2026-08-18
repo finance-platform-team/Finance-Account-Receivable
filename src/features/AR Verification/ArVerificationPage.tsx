@@ -9,6 +9,7 @@ import { deleteProofFile, fetchProofFiles, uploadProofFile } from './proofFiles'
 import { Pagination } from '../../shared/components/Pagination';
 import { useVerificationData } from './useVerificationData';
 import { AR_STATUS, PAYMENT_METHOD, isLocked } from './normalize';
+import { addRejectionsToAging } from './rejectionSync';
 import { Cfm_dailycollectionsService } from '../../generated/services/Cfm_dailycollectionsService';
 import { useToasts } from '../../shared/useToasts';
 import { ToastRack } from '../../shared/components/ToastRack';
@@ -192,6 +193,7 @@ export function ArVerificationPage() {
           let ok = 0;
           let fail = 0;
           let firstErr = '';
+          const approvedWithRejection: VerificationRow[] = [];
           for (const e of sel) {
             try {
               const result = await Cfm_dailycollectionsService.update(e.id, {
@@ -200,6 +202,7 @@ export function ArVerificationPage() {
               });
               if (!result.success) throw new Error(result.error?.message || 'Update failed.');
               ok++;
+              if (!isReject && e.reject > 0) approvedWithRejection.push(e);
             } catch (err) {
               fail++;
               if (!firstErr) firstErr = err instanceof Error ? err.message : 'Update failed.';
@@ -210,6 +213,17 @@ export function ArVerificationPage() {
             push(`${label} applied`, `${ok} entr${ok === 1 ? 'y' : 'ies'} updated.`, 'success');
           } else {
             push(`Partial: ${ok} ok, ${fail} failed`, firstErr, 'alert');
+          }
+          if (approvedWithRejection.length) {
+            const sync = await addRejectionsToAging(
+              approvedWithRejection.map((e) => ({ companyId: e.companyId, reject: e.reject }))
+            );
+            if (sync.updated) {
+              push('Collection Plan updated', `Rejection amounts added for ${sync.updated} compan${sync.updated === 1 ? 'y' : 'ies'}.`, 'success');
+            }
+            if (sync.failed) {
+              push('Collection Plan sync incomplete', `${sync.updated} updated, ${sync.failed} failed: ${sync.firstError}`, 'alert');
+            }
           }
           reload();
         },
@@ -238,7 +252,8 @@ export function ArVerificationPage() {
       body: (
         <>
           <strong>{refs}</strong> will be marked as <strong>Pending Bank Statement</strong> and Treasury will be
-          notified automatically (Power Automate flow).
+          notified automatically. Once Treasury uploads the bank statement, it will automatically come back to{' '}
+          <strong>Pending AR Verification</strong> for you to complete matching.
         </>
       ),
       confirmLabel: 'Send',

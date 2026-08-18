@@ -175,6 +175,40 @@
           "x-ms-schema-name": "cfm_slatypeName",
           "x-ms-read-only": true
         },
+        "cfm_tagename": {
+          "type": "string",
+          "title": "Tage Name",
+          "x-ms-dataverse-attribute": "cfm_tagename",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "cfm_TageName",
+          "enum": [
+            "Collection",
+            "AR",
+            "AP"
+          ],
+          "x-ms-enum-values": [
+            766340000,
+            766340001,
+            766340002
+          ],
+          "Color": [
+            null,
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "3de667dc-e693-f111-8075-00224882d001",
+          "x-ms-isGlobal": true,
+          "x-ms-optionsetdisplayname": "Tage Name",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "cfm_tagenamename": {
+          "type": "string",
+          "title": "cfm_tagenamename",
+          "x-ms-dataverse-attribute": "cfm_tagenamename",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cfm_tagenameName",
+          "x-ms-read-only": true
+        },
         "createdby": {
           "type": "string",
           "title": "Created By",

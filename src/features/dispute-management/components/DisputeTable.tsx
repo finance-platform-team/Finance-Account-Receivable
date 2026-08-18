@@ -25,7 +25,18 @@ const cellControlStyle: CSSProperties = {
   fontSize: 12,
   fontFamily: 'Inter',
   background: 'var(--field-bg)',
+  color: 'var(--ink)',
   boxSizing: 'border-box',
+};
+
+// Semantic tint per AR Review state — Pending/Approved/Rejected each get their
+// own color pair instead of only Pending being highlighted and everything
+// else falling back to the plain (harder-to-read) default control style.
+const AR_REVIEW_TONE: Record<string, CSSProperties> = {
+  Pending: { color: 'var(--warn)', background: 'var(--warnbg)', borderColor: 'var(--warn)' },
+  Approved: { color: 'var(--ok)', background: 'var(--okbg)', borderColor: 'var(--ok)' },
+  // normalize.ts trims the raw enum label ("Rejected " -> "Rejected") before it reaches this component.
+  Rejected: { color: 'var(--bad)', background: 'var(--badbg)', borderColor: 'var(--bad)' },
 };
 
 function AgreementCell({
@@ -63,7 +74,7 @@ function ArReviewCell({
   onSave: (id: string, value: number) => Promise<void>;
 }) {
   const [saving, setSaving] = useState(false);
-  const pending = row.arReview === 'Pending';
+  const tone = AR_REVIEW_TONE[row.arReview];
 
   const handleChange = async (e: ChangeEvent<HTMLSelectElement>) => {
     const value = Number(e.target.value);
@@ -82,7 +93,7 @@ function ArReviewCell({
         minWidth: 92,
         cursor: 'pointer',
         fontWeight: 600,
-        ...(pending ? { color: 'var(--warn)', background: 'var(--warnbg)', borderColor: 'var(--warn)' } : null),
+        ...tone,
       }}
       value={row.arReviewValue ?? ''}
       disabled={saving}
