@@ -69,7 +69,7 @@ export function PlanDetailDrawer({ row, open, targetPct, onClose }: PlanDetailDr
               >
                 <i className="fa-solid fa-address-book" style={{ color: 'var(--gold)' }} /> Company Metadata
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+              <div className="acc-grid-2" style={{ marginBottom: 20 }}>
                 <div className="acc-ro-wrap">
                   <div className="acc-ro-label">Payment Term</div>
                   <div className="acc-ro-value">
@@ -121,7 +121,7 @@ export function PlanDetailDrawer({ row, open, targetPct, onClose }: PlanDetailDr
               >
                 <i className="fa-solid fa-pen-to-square" style={{ color: 'var(--gold)' }} /> Manual Entry — AR Team
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
+              <div className="acc-grid-3" style={{ marginBottom: 20 }}>
                 <div className="acc-ro-wrap">
                   <div className="acc-ro-label">Early Payment</div>
                   <div className="acc-ro-value">{fmt(r.earlypayment)}</div>
@@ -161,7 +161,7 @@ export function PlanDetailDrawer({ row, open, targetPct, onClose }: PlanDetailDr
               >
                 <i className="fa-solid fa-calculator" style={{ color: 'var(--gold)' }} /> Calculated / DotCare
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+              <div className="acc-grid-2" style={{ marginBottom: 20 }}>
                 <div className="acc-ro-wrap">
                   <div className="acc-ro-label">Total Outstanding</div>
                   <div className="acc-ro-value">{fmt(r.totalOutstanding)}</div>

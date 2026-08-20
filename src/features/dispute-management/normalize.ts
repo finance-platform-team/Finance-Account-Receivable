@@ -26,7 +26,6 @@ export function normalizeDisputeRow(row: Ar_disputemanagements): DisputeRow {
     auto: Boolean(row._cfm_companycode_value),
     companyId: row._cfm_companycode_value || null,
     amount: n(row.ar_amount),
-    totalClaim: n(row.ar_totalclaim),
     rejPct: row.ar_rejection == null ? null : Number(row.ar_rejection),
     due: fmtDue(row.ar_due),
     dueRaw: row.ar_due ?? null,

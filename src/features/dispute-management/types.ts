@@ -5,7 +5,6 @@ export interface DisputeRow {
   auto: boolean;
   companyId: string | null;
   amount: number;
-  totalClaim: number;
   rejPct: number | null;
   due: string;
   dueRaw: string | null;

@@ -4,6 +4,7 @@
  */
 
 // Models
+export * as Ar_bankaccountsModel from './models/Ar_bankaccountsModel';
 export * as Ar_disputemanagementsModel from './models/Ar_disputemanagementsModel';
 export * as BusinessunitsModel from './models/BusinessunitsModel';
 export * as Cfm_aragingsModel from './models/Cfm_aragingsModel';
@@ -22,6 +23,7 @@ export * as CommonModels from './models/CommonModels';
 export * as SystemusersModel from './models/SystemusersModel';
 
 // Services
+export * from './services/Ar_bankaccountsService';
 export * from './services/Ar_disputemanagementsService';
 export * from './services/BusinessunitsService';
 export * from './services/Cfm_aragingsService';

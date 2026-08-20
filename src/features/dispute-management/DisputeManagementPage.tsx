@@ -12,6 +12,8 @@ import { CreateDecisionDrawer } from '../../shared/components/CreateDecisionDraw
 import type { DecisionFormInput } from '../../shared/components/CreateDecisionDrawer';
 import { ProofFilesDrawer } from '../../shared/components/ProofFilesDrawer';
 import type { ProofFilesTarget } from '../../shared/components/ProofFilesDrawer';
+import { Pagination } from '../../shared/components/Pagination';
+import type { PageSize } from '../../shared/types';
 import { deleteDisputeProofFile, fetchDisputeProofFiles, uploadDisputeProofFile } from './proofFiles';
 import { Cfm_tmshandoffsService } from '../../generated/services/Cfm_tmshandoffsService';
 import type {
@@ -33,6 +35,8 @@ export function DisputeManagementPage() {
   const [search, setSearch] = useState('');
   const [arReviewFilter, setArReviewFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSize>(15);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -65,6 +69,20 @@ export function DisputeManagementPage() {
   }, [rows, categoryFilter, arReviewFilter, search]);
 
   const detailRow = useMemo(() => rows.find((r) => r.id === detailId) ?? null, [rows, detailId]);
+
+  const resetPage = useCallback(() => setPage(1), []);
+
+  const totalPages = useMemo(() => {
+    const size = pageSize === 'all' ? Math.max(filtered.length, 1) : pageSize;
+    return Math.max(1, Math.ceil(filtered.length / size));
+  }, [filtered.length, pageSize]);
+  const currentPage = Math.min(page, totalPages);
+
+  const paged = useMemo(() => {
+    if (pageSize === 'all') return filtered;
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
 
   const handleSaveAgreement = useCallback(
     async (id: string, value: string) => {
@@ -184,18 +202,27 @@ export function DisputeManagementPage() {
         <div className="tbl-hdr">
           <FilterBar
             search={search}
-            onSearchChange={setSearch}
+            onSearchChange={(v) => {
+              setSearch(v);
+              resetPage();
+            }}
             arReview={arReviewFilter}
-            onArReviewChange={setArReviewFilter}
+            onArReviewChange={(v) => {
+              setArReviewFilter(v);
+              resetPage();
+            }}
             category={categoryFilter}
-            onCategoryChange={setCategoryFilter}
+            onCategoryChange={(v) => {
+              setCategoryFilter(v);
+              resetPage();
+            }}
             showing={loading || error ? 0 : filtered.length}
             total={rows.length}
           />
         </div>
 
         <DisputeTable
-          rows={filtered}
+          rows={paged}
           loading={loading}
           error={error}
           onOpenDetail={setDetailId}
@@ -203,6 +230,20 @@ export function DisputeManagementPage() {
           onSaveAgreement={handleSaveAgreement}
           onSaveArReview={handleSaveArReview}
         />
+
+        {!loading && !error && (
+          <Pagination
+            page={currentPage}
+            pageSize={pageSize}
+            totalRows={filtered.length}
+            itemLabel="disputes"
+            onPageChange={setPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              resetPage();
+            }}
+          />
+        )}
       </div>
 
       <NewDisputeDrawer

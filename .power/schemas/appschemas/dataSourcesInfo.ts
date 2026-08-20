@@ -5,6 +5,13 @@
  */
 
 export const dataSourcesInfo = {
+  "ar_bankaccounts": {
+    "tableId": "",
+    "version": "",
+    "primaryKey": "ar_bankaccountid",
+    "dataSourceType": "Dataverse",
+    "apis": {}
+  },
   "ar_disputemanagements": {
     "tableId": "",
     "version": "",

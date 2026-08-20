@@ -8,8 +8,9 @@ import type { ProofFilesTarget } from '../../shared/components/ProofFilesDrawer'
 import { deleteProofFile, fetchProofFiles, uploadProofFile } from './proofFiles';
 import { Pagination } from '../../shared/components/Pagination';
 import { useVerificationData } from './useVerificationData';
-import { AR_STATUS, PAYMENT_METHOD, isLocked } from './normalize';
+import { AR_STATUS, PAYMENT_METHOD, isLocked, isPendingVerification } from './normalize';
 import { addRejectionsToAging } from './rejectionSync';
+import { subtractFromPendingArVerification } from './pendingArVerificationSync';
 import { Cfm_dailycollectionsService } from '../../generated/services/Cfm_dailycollectionsService';
 import { useToasts } from '../../shared/useToasts';
 import { ToastRack } from '../../shared/components/ToastRack';
@@ -194,6 +195,7 @@ export function ArVerificationPage() {
           let fail = 0;
           let firstErr = '';
           const approvedWithRejection: VerificationRow[] = [];
+          const leftPending: VerificationRow[] = [];
           for (const e of sel) {
             try {
               const result = await Cfm_dailycollectionsService.update(e.id, {
@@ -203,6 +205,7 @@ export function ArVerificationPage() {
               if (!result.success) throw new Error(result.error?.message || 'Update failed.');
               ok++;
               if (!isReject && e.reject > 0) approvedWithRejection.push(e);
+              if (isPendingVerification(e.status)) leftPending.push(e);
             } catch (err) {
               fail++;
               if (!firstErr) firstErr = err instanceof Error ? err.message : 'Update failed.';
@@ -223,6 +226,12 @@ export function ArVerificationPage() {
             }
             if (sync.failed) {
               push('Collection Plan sync incomplete', `${sync.updated} updated, ${sync.failed} failed: ${sync.firstError}`, 'alert');
+            }
+          }
+          if (leftPending.length) {
+            const sync = await subtractFromPendingArVerification(leftPending.map((e) => ({ companyId: e.companyId, amount: e.net })));
+            if (sync.failed) {
+              push('AR Aging sync incomplete', `${sync.updated} updated, ${sync.failed} failed: ${sync.firstError}`, 'alert');
             }
           }
           reload();
@@ -263,11 +272,13 @@ export function ArVerificationPage() {
         let ok = 0;
         let fail = 0;
         let firstErr = '';
+        const leftPending: VerificationRow[] = [];
         for (const e of sel) {
           try {
             const result = await Cfm_dailycollectionsService.update(e.id, { cfm_statusaction: AR_STATUS.PENDING_BANK });
             if (!result.success) throw new Error(result.error?.message || 'Update failed.');
             ok++;
+            if (isPendingVerification(e.status)) leftPending.push(e);
           } catch (err) {
             fail++;
             if (!firstErr) firstErr = err instanceof Error ? err.message : 'Update failed.';
@@ -278,6 +289,12 @@ export function ArVerificationPage() {
           push('Sent to Treasury', `${ok} entr${ok === 1 ? 'y' : 'ies'} now Pending Bank Statement.`, 'success');
         } else {
           push(`Partial: ${ok} ok, ${fail} failed`, firstErr, 'alert');
+        }
+        if (leftPending.length) {
+          const sync = await subtractFromPendingArVerification(leftPending.map((e) => ({ companyId: e.companyId, amount: e.net })));
+          if (sync.failed) {
+            push('AR Aging sync incomplete', `${sync.updated} updated, ${sync.failed} failed: ${sync.firstError}`, 'alert');
+          }
         }
         reload();
       },

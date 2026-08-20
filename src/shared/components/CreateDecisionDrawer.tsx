@@ -145,7 +145,7 @@ export function CreateDecisionDrawer({ open, submitting, onClose, onSubmit }: Cr
             </select>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="acc-grid-2">
             <div className="acc-fld">
               <label>Start Date</label>
               <input value={todayLabel()} disabled />

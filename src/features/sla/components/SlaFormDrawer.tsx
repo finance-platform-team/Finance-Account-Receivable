@@ -120,7 +120,7 @@ export function SlaFormDrawer({ open, editing, submitting, onClose, onSubmit, on
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="acc-grid-2">
             <div className="acc-fld">
               <label>SLA Type</label>
               <select
@@ -158,7 +158,7 @@ export function SlaFormDrawer({ open, editing, submitting, onClose, onSubmit, on
           <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--brown)', margin: '18px 0 10px' }}>
             Escalation Level 1
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="acc-grid-2">
             <div className="acc-fld">
               <label>Department 1</label>
               <input placeholder="Department" value={form.department1} onChange={(e) => set('department1', e.target.value)} />
@@ -172,7 +172,7 @@ export function SlaFormDrawer({ open, editing, submitting, onClose, onSubmit, on
           <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--brown)', margin: '18px 0 10px' }}>
             Escalation Level 2
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="acc-grid-2">
             <div className="acc-fld">
               <label>Department 2</label>
               <input placeholder="Department" value={form.department2} onChange={(e) => set('department2', e.target.value)} />

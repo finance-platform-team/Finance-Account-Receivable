@@ -14,17 +14,6 @@ function todayValue(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-const factsGridStyle: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, 1fr)',
-  gap: 1,
-  background: 'var(--line)',
-  border: '1px solid var(--line)',
-  borderRadius: 10,
-  overflow: 'hidden',
-  marginBottom: 18,
-};
-
 const factCellStyle: CSSProperties = { background: 'var(--card)', padding: '11px 13px' };
 
 const factLabelStyle: CSSProperties = {
@@ -139,9 +128,8 @@ export function DetailModal({ row, onClose, onToast }: DetailModalProps) {
         <div className="acc-dbody">
           {displayRow && (
             <>
-              <div style={factsGridStyle}>
+              <div className="acc-facts-grid">
                 <Fact label="Amount" value={fmtEGP(displayRow.amount)} amt />
-                <Fact label="Total Claim" value={fmtEGP(displayRow.totalClaim)} amt />
                 <Fact label="Due (Y/M)" value={displayRow.due} />
                 <Fact label="AR Review" value={displayRow.arReview} />
               </div>

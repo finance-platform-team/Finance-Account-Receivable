@@ -15,7 +15,11 @@ interface FilterBarProps {
 
 function chipStyle(active: boolean, hovered: boolean): CSSProperties {
   return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    minHeight: 44,
     padding: '6px 15px',
+    boxSizing: 'border-box',
     borderRadius: 999,
     fontFamily: "'Outfit',sans-serif",
     fontWeight: 600,

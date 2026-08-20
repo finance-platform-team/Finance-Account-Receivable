@@ -80,7 +80,7 @@
           "isHidden": false
         },
         "tmshandoffs": {
-          "entitySetName": "cfm_tmshandoffs",
+          "entitySetName": "cfm_tmshandoff",
           "logicalName": "cfm_tmshandoff",
           "isHidden": false
         },

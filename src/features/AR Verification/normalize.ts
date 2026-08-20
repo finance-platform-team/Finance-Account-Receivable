@@ -36,6 +36,13 @@ export function isLocked(status: number | null): boolean {
   return status === AR_STATUS.APPROVED || status === AR_STATUS.ALLOCATED || status === AR_STATUS.PENDING_BANK;
 }
 
+// A null cfm_statusaction displays as "Pending AR Verification" too (see
+// statusLabel below) — both count as "currently pending" for the AR Aging
+// pending-AR-verification sync in pendingArVerificationSync.ts.
+export function isPendingVerification(status: number | null): boolean {
+  return status == null || status === AR_STATUS.PENDING_VERIFY;
+}
+
 export function statusPillClass(status: number | null): string {
   switch (status) {
     case AR_STATUS.APPROVED:
@@ -165,7 +172,7 @@ export function normalizeEntry(
     date: row.cfm_collectiondate || '',
     method,
     methodLabel,
-    bankAccount: '—',
+    bankAccount: lookupLabel(r, 'cfm_bankaccountname', '_cfm_bankaccount_value'),
     net: n(row.cfm_collectedamountnet),
     proof: row.cfm_proof || '',
     // cfm_arcomments is the AR reviewer's note from the approve/reject dialog

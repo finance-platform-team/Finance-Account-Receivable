@@ -31,6 +31,7 @@ export interface Cfm_dailycollectionsBase {
   "cfm_ActionBy@odata.bind"?: string;
   cfm_actionon?: string;
   cfm_arcomments?: string;
+  "cfm_BankAccount@odata.bind"?: string;
   cfm_collectedamountnet?: number;
   cfm_collectiondate?: string;
   "cfm_CompanyCode@odata.bind"?: string;
@@ -52,6 +53,7 @@ export interface Cfm_dailycollectionsBase {
 export interface Cfm_dailycollections extends Cfm_dailycollectionsBase {
   cfm_actionbyname?: string;
   cfm_actionbyyominame?: string;
+  cfm_bankaccountname?: string;
   cfm_companycodename?: string;
   cfm_companycodetodispute?: string;
   cfm_companynamefx?: string;
@@ -78,6 +80,8 @@ export interface Cfm_dailycollections extends Cfm_dailycollectionsBase {
   versionnumber?: number;
   cfm_actionby?: object;
   _cfm_actionby_value?: string;
+  cfm_bankaccount?: object;
+  _cfm_bankaccount_value?: string;
   cfm_companycode?: object;
   _cfm_companycode_value?: string;
   createdby?: object;

@@ -98,53 +98,85 @@
 
 html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
   font-family:'Inter',system-ui,sans-serif;font-size:14px;height:100%;
-  display:block;min-width:0;place-items:unset}
-#root{max-width:none;margin:0;padding:0;text-align:left}
+  display:block;min-width:0;place-items:unset;
+  overflow-x:hidden;max-width:100%}
+#root{max-width:none;margin:0;padding:0;text-align:left;overflow-x:hidden}
 
 /* --- change: dropped the reference's 1400px cap — full width with clean side
    padding on every page, so wide/dense tables (Collection Plan, AR
    Verification) get the room they need instead of scrolling inside an
-   artificially boxed-in column. --- */
-.acc-wrap{padding:20px 24px;width:100%}
+   artificially boxed-in column. ---
+   --- responsive addition: mobile-first padding — tight on phones, back to
+   the original 20/24 from tablet up. --- */
+.acc-wrap{padding:14px;width:100%;box-sizing:border-box;max-width:100vw}
+@media(min-width:768px){.acc-wrap{padding:20px 24px}}
 
 /* Page header */
-.acc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
-.acc-title{font-family:'Outfit',sans-serif;font-weight:700;font-size:24px;letter-spacing:-.02em;margin:0}
+.acc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+.acc-title{font-family:'Outfit',sans-serif;font-weight:700;font-size:clamp(19px,5vw,24px);letter-spacing:-.02em;margin:0}
 .acc-sub{color:var(--muted);font-size:13px;margin-top:3px}
 .acc-actions{display:flex;gap:8px;flex-shrink:0;align-items:center;flex-wrap:wrap}
 .acc-btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);
   background:var(--card);color:var(--ink);padding:9px 14px;border-radius:9px;
   font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;cursor:pointer;
-  transition:.15s;white-space:nowrap}
+  transition:.15s;white-space:nowrap;min-height:38px;box-sizing:border-box}
 .acc-btn:hover{background:var(--field-bg);border-color:var(--gold)}
 .acc-btn:disabled{opacity:.5;cursor:not-allowed}
 .acc-btn-primary{background:var(--brown);color:#fff;border-color:var(--brown)}
 .acc-btn-primary:hover{background:#3c2110;border-color:#3c2110}
 .acc-btn-ghost{background:transparent}
 
+/* --- responsive addition: on phones, the header stacks and its action
+   buttons become an evenly-split full-width row instead of a cramped
+   right-aligned cluster that can wrap awkwardly. --- */
+@media(max-width:640px){
+  .acc-head{flex-direction:column;align-items:stretch}
+  .acc-actions{width:100%}
+  .acc-actions .acc-btn{flex:1 1 auto;justify-content:center}
+}
+
+/* --- responsive addition: 44px minimum touch target on touch-sized
+   viewports for every clickable control, per WCAG 2.5.5 / mobile HIG. Scoped
+   to a max-width query rather than globally so desktop's denser, mouse-driven
+   density (e.g. .acc-pg page-number buttons) is untouched. --- */
+@media(max-width:640px){
+  .acc-btn,.acc-pg button,.acc-dclose,.acc-sb-toggle,.acc-mobile-menu-btn,
+  select.acc-f,.acc-date,.acc-search input,.acc-fld input,.acc-fld select,
+  .acc-theme-toggle{min-height:44px}
+  .acc-check{width:44px}
+  .acc-check input[type="checkbox"]{width:20px;height:20px}
+  .acc-pg{flex-wrap:wrap}
+}
+
 /* KPI cards (verbatim, untinted — kept for parity; this app's pages use the
-   tinted .kpi-grid/.kpi-card system below instead) */
-.acc-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+   tinted .kpi-grid/.kpi-card system below instead) ---
+   responsive addition: mobile-first — 1 column on phones, 2 from 480px, 4
+   from 1024px. Pages that need a denser auto-fit pack (AR Aging, Collection
+   Plan) already override grid-template-columns inline and are unaffected. */
+.acc-kpis{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:16px}
 .acc-kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;
   padding:14px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .acc-kpi .acc-lab{color:var(--muted);font-size:12px;font-weight:500;display:flex;align-items:center;gap:7px}
 .acc-kpi .acc-lab i{color:var(--gold)}
-.acc-kpi .acc-val{font-family:'Outfit',sans-serif;font-weight:700;font-size:26px;margin-top:6px;letter-spacing:-.02em}
+.acc-kpi .acc-val{font-family:'Outfit',sans-serif;font-weight:700;font-size:clamp(20px,5vw,26px);margin-top:6px;letter-spacing:-.02em}
 .acc-kpi .acc-val small{font-size:13px;font-weight:500;color:var(--muted)}
 
 /* --- addition: tinted KPI variant system (.kpi-grid/.kpi-card), same shape as
    .acc-kpis/.acc-kpi above but with meaning-coded tint variants. In dark mode
    the variant cards keep their light background (see the dark-mode note
-   above) — that's the "accent island" effect. --- */
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+   above) — that's the "accent island" effect. ---
+   responsive addition: same mobile-first 1 → 2 → 4 column progression. */
+.kpi-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:16px}
 .kpi-card{background:var(--card);border:1px solid var(--line);border-radius:12px;
   padding:14px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .kpi-card .kpi-label{color:var(--muted);font-size:12px;font-weight:500;
   text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:7px}
 .kpi-card .kpi-label i{color:var(--gold)}
-.kpi-card .kpi-value{font-family:'Outfit',sans-serif;font-weight:700;font-size:26px;
+.kpi-card .kpi-value{font-family:'Outfit',sans-serif;font-weight:700;font-size:clamp(20px,5vw,26px);
   margin-top:6px;letter-spacing:-.02em;color:var(--ink)}
 .kpi-card .kpi-value small{font-size:13px;font-weight:500;color:var(--muted)}
+@media(min-width:480px){.acc-kpis,.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1024px){.acc-kpis,.kpi-grid{grid-template-columns:repeat(4,1fr)}}
 .kpi-card[role="button"]{cursor:pointer;transition:transform .15s,border-color .15s}
 .kpi-card[role="button"]:hover{border-color:var(--gold);transform:translateY(-2px)}
 .kpi-card-active{border-color:var(--gold) !important;box-shadow:0 0 0 2px var(--goldbg)}
@@ -185,13 +217,27 @@ select.acc-f option{background:var(--card);color:var(--ink)}
 .acc-date::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.75}
 :root[data-theme="dark"] .acc-date::-webkit-calendar-picker-indicator{filter:invert(1) brightness(1.8)}
 
+/* --- responsive addition: stack the filter bar's controls full-width on
+   phones instead of a cramped wrapped row, and bump every text input/select
+   to 16px there — below 16px, iOS Safari auto-zooms the whole page on focus,
+   which is the single most common "this looks broken on my phone" mobile
+   form bug. Desktop keeps its tighter 12.5–13px sizing untouched. --- */
+@media(max-width:640px){
+  .acc-bar{flex-direction:column;align-items:stretch}
+  .acc-search{min-width:0;width:100%}
+  select.acc-f{width:100%;min-width:0}
+  .acc-date{width:100%;box-sizing:border-box}
+  .acc-search input,select.acc-f,.acc-date,
+  .acc-fld input,.acc-fld select,.acc-fld textarea{font-size:16px}
+}
+
 /* Table */
 .tbl-shell{background:var(--card);border:1px solid var(--line);border-radius:12px;
   box-shadow:var(--shadow);overflow:hidden;margin-bottom:14px}
 .tbl-hdr{padding:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
   border-bottom:1px solid var(--line)}
 .acc-tablewrap{background:var(--card);border:1px solid var(--line);border-radius:12px;
-  box-shadow:var(--shadow);overflow:hidden;overflow-x:auto}
+  box-shadow:var(--shadow);overflow:hidden;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tbl-shell .acc-tablewrap{border:none;border-radius:0;box-shadow:none}
 .acc-tablewrap table{width:100%;border-collapse:collapse}
 .acc-tablewrap thead th{background:var(--field-bg);color:var(--muted);text-transform:uppercase;
@@ -248,17 +294,24 @@ select.acc-f option{background:var(--card);color:var(--ink)}
 .acc-scrim{position:fixed;inset:0;background:rgba(43,22,10,.4);opacity:0;
   pointer-events:none;transition:.2s;z-index:40}
 .acc-scrim.on{opacity:1;pointer-events:auto}
-.acc-drawer{position:fixed;top:0;right:0;height:100%;width:420px;max-width:92vw;
+/* --- responsive change: mobile-first — full-screen sheet by default (every
+   "modal" in this app is built on .acc-drawer, so this one rule turns every
+   dialog into a phone-appropriate full-screen sheet at once), widening back
+   to the original fixed 420px/92vw panel from tablet up. --- */
+.acc-drawer{position:fixed;top:0;right:0;height:100%;width:100%;max-width:100vw;
   background:var(--card);box-shadow:-8px 0 40px rgba(43,22,10,.18);
   transform:translateX(100%);transition:transform .24s cubic-bezier(.4,0,.2,1);
-  z-index:50;display:flex;flex-direction:column}
+  z-index:50;display:flex;flex-direction:column;box-sizing:border-box}
 .acc-drawer.on{transform:translateX(0)}
-.acc-dhead{padding:20px 22px;border-bottom:1px solid var(--line);
-  display:flex;align-items:center;justify-content:space-between}
-.acc-dhead h2{margin:0;font-family:'Outfit';font-weight:700;font-size:19px;
-  display:flex;align-items:center;gap:9px}
-.acc-dclose{border:none;background:none;font-size:18px;color:var(--muted);cursor:pointer;padding:4px}
-.acc-dbody{padding:22px;overflow-y:auto;flex:1}
+@media(min-width:640px){.acc-drawer{width:420px;max-width:92vw}}
+.acc-dhead{padding:16px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;gap:12px}
+@media(min-width:640px){.acc-dhead{padding:20px 22px}}
+.acc-dhead h2{margin:0;font-family:'Outfit';font-weight:700;font-size:clamp(16px,4.5vw,19px);
+  display:flex;align-items:center;gap:9px;min-width:0}
+.acc-dclose{border:none;background:none;font-size:18px;color:var(--muted);cursor:pointer;padding:4px;flex-shrink:0}
+.acc-dbody{padding:16px;overflow-y:auto;flex:1}
+@media(min-width:640px){.acc-dbody{padding:22px}}
 .acc-fld{margin-bottom:16px;position:relative}
 .acc-fld label{display:block;font-size:12.5px;font-weight:600;color:var(--brown);margin-bottom:6px}
 .acc-fld input,.acc-fld select,.acc-fld textarea{width:100%;padding:10px 12px;border:1px solid var(--line);
@@ -274,7 +327,29 @@ select.acc-f option{background:var(--card);color:var(--ink)}
 .acc-ro-wrap{background:var(--field-bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px}
 .acc-ro-wrap .acc-ro-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
 .acc-ro-wrap .acc-ro-value{font-family:'JetBrains Mono',monospace;font-size:13px;margin-top:3px}
-.acc-dfoot{padding:16px 22px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
+.acc-dfoot{padding:14px 16px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;
+  gap:8px;flex-wrap:wrap}
+@media(min-width:640px){.acc-dfoot{padding:16px 22px}}
+@media(max-width:640px){.acc-dfoot .acc-btn{flex:1 1 auto;justify-content:center}}
+
+/* Reusable responsive form grids — mobile-first: single column on phones,
+   widening from 520px. Used by every drawer/modal with a 2- or 3-field row
+   (AgingDrawer, PlanDetailDrawer, SlaFormDrawer, TmsHandoffDrawer,
+   CreateDecisionDrawer, DetailModal) instead of each hardcoding an inline
+   `gridTemplateColumns:'1fr 1fr'` that never collapsed on narrow screens. */
+.acc-grid-2,.acc-grid-3{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:520px){
+  .acc-grid-2{grid-template-columns:1fr 1fr}
+  .acc-grid-3{grid-template-columns:1fr 1fr}
+}
+@media(min-width:760px){.acc-grid-3{grid-template-columns:1fr 1fr 1fr}}
+
+/* Hairline "facts" grid (1px gap on a tinted background reads as thin divider
+   lines between cells) — DetailModal's read-only fact sheet. Same
+   mobile-first collapse as the grids above. */
+.acc-facts-grid{display:grid;grid-template-columns:1fr;gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:18px}
+@media(min-width:480px){.acc-facts-grid{grid-template-columns:repeat(2,1fr)}}
 .acc-err{background:var(--badbg);color:var(--bad);padding:9px 12px;border-radius:8px;
   font-size:12.5px;margin-bottom:14px;display:none}
 .acc-err.on{display:block}
@@ -298,7 +373,6 @@ select.acc-f option{background:var(--card);color:var(--ink)}
 .acc-combo-item small{display:block;color:var(--muted);font-size:11.5px;margin-top:1px}
 .acc-combo-empty{padding:10px;color:var(--muted);font-size:12.5px;text-align:center}
 
-@media(max-width:900px){.acc-kpis{grid-template-columns:repeat(2,1fr)}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
 
 /* Custom scrollbars — slim brand-colored pill instead of the OS default */
 *{scrollbar-width:thin;scrollbar-color:rgba(165,132,91,.45) transparent}
@@ -320,12 +394,33 @@ select.acc-f option{background:var(--card);color:var(--ink)}
    title/user/avatar live in .acc-head / .acc-actions instead) and plus a
    sidebar-footer theme toggle (new).
    ============================================================================ */
-.acc-shell{display:flex;min-height:100vh}
+.acc-shell{display:flex;height:100vh;align-items:stretch;overflow:hidden}
+
+/* --- addition: mobile top bar (hamburger + compact brand). The sidebar
+   itself goes off-canvas below 760px (see the mobile sidebar overlay block
+   further down) — this bar is what's actually visible then, and its button
+   is the only way to reopen the drawer. Hidden entirely on larger screens,
+   where the real sidebar (with its own toggle) is always on-screen. --- */
+.acc-mobile-topbar{display:none}
+@media(max-width:760px){
+  .acc-shell{flex-direction:column}
+  .acc-mobile-topbar{display:flex;align-items:center;gap:12px;padding:12px 14px;
+    background:var(--shell-bg);background:linear-gradient(180deg,var(--shell-bg),var(--shell-bg-2));
+    border-bottom:1px solid var(--shell-line);position:sticky;top:0;z-index:60;flex-shrink:0}
+  .acc-mobile-topbar .acc-logo{display:flex;align-items:center;gap:9px;overflow:hidden}
+  .acc-mobile-topbar .acc-logo i{color:var(--shell-accent);font-size:16px;flex-shrink:0}
+  .acc-mobile-topbar .acc-logo span{font-family:'Outfit',sans-serif;font-weight:700;
+    font-size:14.5px;color:var(--shell-text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+.acc-mobile-menu-btn{background:rgba(255,255,255,.08);border:none;color:#fff;
+  width:44px;height:44px;border-radius:9px;cursor:pointer;
+  font-size:15px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.acc-mobile-menu-btn:hover{background:rgba(255,255,255,.16)}
 
 .acc-sidebar{width:230px;flex-shrink:0;background:var(--shell-bg);
   background:linear-gradient(180deg,var(--shell-bg),var(--shell-bg-2));
   color:var(--shell-text);display:flex;flex-direction:column;
-  position:sticky;top:0;height:100vh;transition:width .18s ease;z-index:70}
+  height:100%;transition:width .18s ease;z-index:70}
 .acc-sb-brand{display:flex;align-items:center;justify-content:space-between;
   padding:18px 18px 16px;border-bottom:1px solid var(--shell-line)}
 .acc-sb-brand .acc-logo{display:flex;align-items:center;gap:10px;overflow:hidden}
@@ -374,7 +469,7 @@ select.acc-f option{background:var(--card);color:var(--ink)}
   pointer-events:none;transition:.2s;z-index:65}
 @media(max-width:760px){
   .acc-scrim-mobile.on{opacity:1;pointer-events:auto}
-  .acc-sidebar{position:fixed;left:0;top:0;width:230px;transform:translateX(-100%);
+  .acc-sidebar{position:fixed;left:0;top:0;width:230px;height:100vh;transform:translateX(-100%);
     transition:transform .2s}
   .acc-sidebar.collapsed{width:230px}
   .acc-sidebar.collapsed .acc-sb-brand{padding:18px 18px 16px;justify-content:space-between}
@@ -385,5 +480,5 @@ select.acc-f option{background:var(--card);color:var(--ink)}
   .acc-sidebar.mobile-open{transform:translateX(0)}
 }
 
-.acc-content-col{flex:1;min-width:0;display:flex;flex-direction:column}
-.acc-main{flex:1;min-width:0}
+.acc-content-col{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
+.acc-main{flex:1;min-width:0;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}

@@ -34,6 +34,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 const NARROW_QUERY = '(max-width: 900px)';
+const MOBILE_QUERY = '(max-width: 760px)';
 
 function SidebarFooter() {
   const { theme, toggleTheme } = useTheme();
@@ -64,19 +65,61 @@ function SidebarFooter() {
 }
 
 function ShellInner() {
-  const [collapsed, setCollapsed] = useState(() => window.matchMedia(NARROW_QUERY).matches);
+  // Two independent concerns: desktop icon-rail collapse (>=761px, sidebar
+  // stays visible, just narrower) vs mobile off-canvas drawer (<=760px,
+  // sidebar is fully hidden until opened). Conflating these into one boolean
+  // used to leave the sidebar permanently off-screen with no way to reopen it
+  // on phones — the toggle button lived inside the very panel it hid.
+  const [desktopCollapsed, setDesktopCollapsed] = useState(() => window.matchMedia(NARROW_QUERY).matches);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches);
   const [activeKey, setActiveKey] = useState<string>(NAV_ITEMS[0].key);
 
   useEffect(() => {
     const mql = window.matchMedia(NARROW_QUERY);
-    const handleChange = (e: MediaQueryListEvent) => setCollapsed(e.matches);
+    const handleChange = (e: MediaQueryListEvent) => setDesktopCollapsed(e.matches);
     mql.addEventListener('change', handleChange);
     return () => mql.removeEventListener('change', handleChange);
   }, []);
 
+  useEffect(() => {
+    const mql = window.matchMedia(MOBILE_QUERY);
+    const handleChange = (e: MediaQueryListEvent) => {
+      setIsMobile(e.matches);
+      // Crossing back to desktop width with the drawer open would otherwise
+      // leave `mobile-open` set and fight the desktop layout on the next
+      // narrow-again transition.
+      if (!e.matches) setMobileOpen(false);
+    };
+    mql.addEventListener('change', handleChange);
+    return () => mql.removeEventListener('change', handleChange);
+  }, []);
+
+  const handleToggleSidebar = () => {
+    if (isMobile) setMobileOpen((v) => !v);
+    else setDesktopCollapsed((v) => !v);
+  };
+
+  const handleSelectNav = (key: string) => {
+    setActiveKey(key);
+    if (isMobile) setMobileOpen(false);
+  };
+
   return (
     <div className="acc-shell">
-      <aside className={`acc-sidebar${collapsed ? ' collapsed' : ''}`}>
+      <div className="acc-mobile-topbar">
+        <button className="acc-mobile-menu-btn" title="Open menu" onClick={() => setMobileOpen(true)}>
+          <i className="fa-solid fa-bars" />
+        </button>
+        <div className="acc-logo">
+          <i className="fa-solid fa-file-invoice-dollar" />
+          <span>Accounts Receivable</span>
+        </div>
+      </div>
+
+      <div className={`acc-scrim-mobile${mobileOpen ? ' on' : ''}`} onClick={() => setMobileOpen(false)} />
+
+      <aside className={`acc-sidebar${desktopCollapsed ? ' collapsed' : ''}${mobileOpen ? ' mobile-open' : ''}`}>
         <div className="acc-sb-brand">
           <div className="acc-logo">
             <i className="fa-solid fa-file-invoice-dollar" />
@@ -88,10 +131,10 @@ function ShellInner() {
           </div>
           <button
             className="acc-sb-toggle"
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            onClick={() => setCollapsed((v) => !v)}
+            title={isMobile ? 'Close menu' : desktopCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            onClick={handleToggleSidebar}
           >
-            <i className={`fa-solid ${collapsed ? 'fa-angles-right' : 'fa-bars'}`} />
+            <i className={`fa-solid ${isMobile ? 'fa-xmark' : desktopCollapsed ? 'fa-angles-right' : 'fa-bars'}`} />
           </button>
         </div>
 
@@ -101,7 +144,7 @@ function ShellInner() {
               <a
                 className={item.key === activeKey ? 'active' : ''}
                 title={item.label}
-                onClick={() => setActiveKey(item.key)}
+                onClick={() => handleSelectNav(item.key)}
               >
                 <i className={`fa-solid ${item.icon}`} />
                 <span className="acc-sb-label">{item.label}</span>

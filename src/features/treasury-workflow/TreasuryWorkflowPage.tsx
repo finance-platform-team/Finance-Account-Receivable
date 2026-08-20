@@ -93,6 +93,10 @@ export function TreasuryWorkflowPage() {
       if (!result.success) {
         throw new Error(result.error?.message || 'Uploaded, but could not update the status.');
       }
+      // NOTE: entering Pending AR Verification here does NOT add to AR
+      // Aging's pending-confirmation total — that ADD logic belongs
+      // exclusively to the Daily Collection creation flow (not built yet),
+      // not to this Treasury handoff. See AR Verification/pendingArVerificationSync.ts.
       push('Done', `"${target.recordRef}" bank statement uploaded — sent back to AR for matching.`, 'success');
       reload();
     },

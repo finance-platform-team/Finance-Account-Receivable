@@ -1,245 +1,41 @@
 {
-  "name": "cfm_dailycollection",
-  "title": "Daily Collections",
+  "name": "ar_bankaccount",
+  "title": "Bank Accounts",
   "schema": {
     "type": "array",
     "items": {
       "type": "object",
       "x-ms-dataverse-entity": true,
-      "x-ms-dataverse-entityset": "cfm_dailycollections",
-      "x-ms-dataverse-primary-id": "cfm_dailycollectionid",
-      "x-ms-dataverse-primary-name": "cfm_name",
+      "x-ms-dataverse-entityset": "ar_bankaccounts",
+      "x-ms-dataverse-primary-id": "ar_bankaccountid",
+      "x-ms-dataverse-primary-name": "ar_bankname",
       "properties": {
-        "cfm_actionby": {
+        "ar_accountnumbe": {
           "type": "string",
-          "title": "Action By",
-          "x-ms-dataverse-attribute": "cfm_actionby",
-          "x-ms-dataverse-type": "LookupType",
-          "x-ms-schema-name": "cfm_ActionBy"
+          "title": "Account Numbe",
+          "x-ms-dataverse-attribute": "ar_accountnumbe",
+          "x-ms-dataverse-type": "IntegerType",
+          "x-ms-schema-name": "ar_AccountNumbe"
         },
-        "cfm_actionbyname": {
-          "type": "string",
-          "title": "cfm_actionbyname",
-          "x-ms-dataverse-attribute": "cfm_actionbyname",
-          "x-ms-dataverse-type": "StringType",
-          "x-ms-schema-name": "cfm_ActionByName",
-          "x-ms-read-only": true,
-          "maxLength": 200
-        },
-        "cfm_actionbyyominame": {
-          "type": "string",
-          "title": "cfm_actionbyyominame",
-          "x-ms-dataverse-attribute": "cfm_actionbyyominame",
-          "x-ms-dataverse-type": "StringType",
-          "x-ms-schema-name": "cfm_ActionByYomiName",
-          "x-ms-read-only": true,
-          "maxLength": 200
-        },
-        "cfm_actionon": {
-          "type": "string",
-          "title": "Action On",
-          "x-ms-dataverse-attribute": "cfm_actionon",
-          "x-ms-dataverse-type": "DateTimeType",
-          "x-ms-schema-name": "cfm_ActionOn"
-        },
-        "cfm_arcomments": {
-          "type": "string",
-          "title": "AR Comments",
-          "x-ms-dataverse-attribute": "cfm_arcomments",
-          "x-ms-dataverse-type": "MemoType",
-          "x-ms-schema-name": "cfm_ARComments",
-          "maxLength": 2000
-        },
-        "cfm_bankaccount": {
+        "ar_bankaccountid": {
           "type": "string",
           "title": "Bank Account",
-          "x-ms-dataverse-attribute": "cfm_bankaccount",
-          "x-ms-dataverse-type": "LookupType",
-          "x-ms-schema-name": "cfm_BankAccount"
-        },
-        "cfm_bankaccountname": {
-          "type": "string",
-          "title": "cfm_bankaccountname",
-          "x-ms-dataverse-attribute": "cfm_bankaccountname",
-          "x-ms-dataverse-type": "StringType",
-          "x-ms-schema-name": "cfm_BankAccountName",
-          "x-ms-read-only": true,
-          "maxLength": 500
-        },
-        "cfm_collectedamountnet": {
-          "type": "string",
-          "title": "Collected Amount Net",
-          "x-ms-dataverse-attribute": "cfm_collectedamountnet",
-          "x-ms-dataverse-type": "DecimalType",
-          "x-ms-schema-name": "cfm_CollectedAmountNet"
-        },
-        "cfm_collectiondate": {
-          "type": "string",
-          "title": "Collection Date",
-          "x-ms-dataverse-attribute": "cfm_collectiondate",
-          "x-ms-dataverse-type": "DateTimeType",
-          "x-ms-schema-name": "cfm_CollectionDate"
-        },
-        "cfm_companycode": {
-          "type": "string",
-          "title": "Company Code",
-          "x-ms-dataverse-attribute": "cfm_companycode",
-          "x-ms-dataverse-type": "LookupType",
-          "x-ms-schema-name": "cfm_CompanyCode"
-        },
-        "cfm_companycodename": {
-          "type": "string",
-          "title": "cfm_companycodename",
-          "x-ms-dataverse-attribute": "cfm_companycodename",
-          "x-ms-dataverse-type": "StringType",
-          "x-ms-schema-name": "cfm_CompanyCodeName",
-          "x-ms-read-only": true,
-          "maxLength": 850
-        },
-        "cfm_companycodetodispute": {
-          "type": "string",
-          "title": "Company Code ( to dispute )",
-          "x-ms-dataverse-attribute": "cfm_companycodetodispute",
-          "x-ms-dataverse-type": "StringType",
-          "x-ms-schema-name": "cfm_CompanyCodetodispute",
-          "x-ms-read-only": true,
-          "maxLength": 4000
-        },
-        "cfm_companynamefx": {
-          "type": "string",
-          "title": "Company Name",
-          "x-ms-dataverse-attribute": "cfm_companynamefx",
-          "x-ms-dataverse-type": "StringType",
-          "x-ms-schema-name": "cfm_CompanyNameFX",
-          "x-ms-read-only": true,
-          "maxLength": 4000
-        },
-        "cfm_dailycollectionid": {
-          "type": "string",
-          "title": "Daily Collection",
-          "x-ms-dataverse-attribute": "cfm_dailycollectionid",
+          "x-ms-dataverse-attribute": "ar_bankaccountid",
           "x-ms-dataverse-type": "UniqueidentifierType",
-          "x-ms-schema-name": "cfm_DailyCollectionId",
+          "x-ms-schema-name": "ar_BankAccountId",
           "x-ms-dataverse-primary-id": true,
           "required": true,
           "x-ms-keyType": "primary"
         },
-        "cfm_entityfx": {
+        "ar_bankname": {
           "type": "string",
-          "title": "Entity",
-          "x-ms-dataverse-attribute": "cfm_entityfx",
+          "title": "Bank Name",
+          "x-ms-dataverse-attribute": "ar_bankname",
           "x-ms-dataverse-type": "StringType",
-          "x-ms-schema-name": "cfm_EntityFX",
-          "x-ms-read-only": true,
-          "maxLength": 4000
-        },
-        "cfm_name": {
-          "type": "string",
-          "title": "Name",
-          "x-ms-dataverse-attribute": "cfm_name",
-          "x-ms-dataverse-type": "StringType",
-          "x-ms-schema-name": "cfm_Name",
+          "x-ms-schema-name": "ar_BankName",
           "x-ms-dataverse-primary-name": true,
           "required": true,
           "maxLength": 850
-        },
-        "cfm_note": {
-          "type": "string",
-          "title": "Note",
-          "x-ms-dataverse-attribute": "cfm_note",
-          "x-ms-dataverse-type": "StringType",
-          "x-ms-schema-name": "cfm_Note",
-          "maxLength": 100
-        },
-        "cfm_paymentmethod": {
-          "type": "string",
-          "title": "Payment Method",
-          "x-ms-dataverse-attribute": "cfm_paymentmethod",
-          "x-ms-dataverse-type": "PicklistType",
-          "x-ms-schema-name": "cfm_PaymentMethod",
-          "enum": [
-            "Cheque",
-            "Bank transfer\t"
-          ],
-          "x-ms-enum-values": [
-            766340000,
-            766340001
-          ],
-          "Color": [
-            null,
-            null
-          ],
-          "x-ms-optionsetmetadataid": "96d0e418-027f-f111-ab0e-7ced8d92541b",
-          "x-ms-isGlobal": true,
-          "x-ms-optionsetdisplayname": "Payment Method",
-          "x-ms-optionSetType": "Picklist"
-        },
-        "cfm_paymentmethodname": {
-          "type": "string",
-          "title": "cfm_paymentmethodname",
-          "x-ms-dataverse-attribute": "cfm_paymentmethodname",
-          "x-ms-dataverse-type": "VirtualType",
-          "x-ms-schema-name": "cfm_paymentmethodName",
-          "x-ms-read-only": true
-        },
-        "cfm_paymentreference": {
-          "type": "string",
-          "title": "Payment Reference ",
-          "x-ms-dataverse-attribute": "cfm_paymentreference",
-          "x-ms-dataverse-type": "StringType",
-          "x-ms-schema-name": "cfm_PaymentReference",
-          "maxLength": 100
-        },
-        "cfm_proof": {
-          "type": "string",
-          "title": "Proof",
-          "x-ms-dataverse-attribute": "cfm_proof",
-          "x-ms-dataverse-type": "StringType",
-          "x-ms-schema-name": "cfm_Proof",
-          "maxLength": 1000
-        },
-        "cfm_statusaction": {
-          "type": "string",
-          "title": "Status / Action",
-          "x-ms-dataverse-attribute": "cfm_statusaction",
-          "x-ms-dataverse-type": "PicklistType",
-          "x-ms-schema-name": "cfm_StatusAction",
-          "enum": [
-            "Pending AR Verification",
-            "Rejected from AR",
-            "Approved",
-            "Allocated ",
-            "Pending Bank Statement ",
-            "Awaiting documents"
-          ],
-          "x-ms-enum-values": [
-            766340000,
-            766340001,
-            766340002,
-            766340003,
-            766340004,
-            766340005
-          ],
-          "Color": [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-          ],
-          "x-ms-optionsetmetadataid": "fd41f65d-4380-f111-ab0e-7ced8d92541b",
-          "x-ms-isGlobal": true,
-          "x-ms-optionsetdisplayname": "AR Status",
-          "x-ms-optionSetType": "Picklist"
-        },
-        "cfm_statusactionname": {
-          "type": "string",
-          "title": "cfm_statusactionname",
-          "x-ms-dataverse-attribute": "cfm_statusactionname",
-          "x-ms-dataverse-type": "VirtualType",
-          "x-ms-schema-name": "cfm_statusactionName",
-          "x-ms-read-only": true
         },
         "createdby": {
           "type": "string",
@@ -468,7 +264,7 @@
             null,
             null
           ],
-          "x-ms-optionsetmetadataid": "d2cbdbd6-3356-f111-a824-6045bd9cc7df",
+          "x-ms-optionsetmetadataid": "66a4e475-786c-f111-ab0e-000d3ac233eb",
           "x-ms-isGlobal": false,
           "x-ms-optionsetdisplayname": "Status",
           "x-ms-optionSetType": "State"
@@ -499,7 +295,7 @@
             null,
             null
           ],
-          "x-ms-optionsetmetadataid": "dccbdbd6-3356-f111-a824-6045bd9cc7df",
+          "x-ms-optionsetmetadataid": "70a4e475-786c-f111-ab0e-000d3ac233eb",
           "x-ms-isGlobal": false,
           "x-ms-optionsetdisplayname": "Status Reason",
           "x-ms-optionSetType": "Status"
@@ -536,8 +332,8 @@
         }
       },
       "required": [
-        "cfm_dailycollectionid",
-        "cfm_name",
+        "ar_bankaccountid",
+        "ar_bankname",
         "createdbyyominame",
         "createdonbehalfbyyominame",
         "modifiedbyyominame",

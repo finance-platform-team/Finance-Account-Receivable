@@ -62,6 +62,8 @@ const TAB_BTN_BASE: CSSProperties = {
   fontSize: 13,
   fontFamily: "'Outfit',sans-serif",
   cursor: 'pointer',
+  minHeight: 44,
+  boxSizing: 'border-box',
 };
 
 function tabButtonStyle(active: boolean): CSSProperties {

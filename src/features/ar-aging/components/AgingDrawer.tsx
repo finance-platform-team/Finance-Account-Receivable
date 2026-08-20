@@ -102,7 +102,7 @@ export function AgingDrawer({ row, open, onClose, onSaveNote, onSaveType }: Agin
         <div className="acc-dbody">
           {r && (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+              <div className="acc-grid-2" style={{ marginBottom: 20 }}>
                 <div className="acc-ro-wrap">
                   <div className="acc-ro-label">Payment Term</div>
                   <div className="acc-ro-value">
