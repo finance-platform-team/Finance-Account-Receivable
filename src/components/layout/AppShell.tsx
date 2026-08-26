@@ -21,16 +21,40 @@ interface NavItem {
   icon: string;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { key: 'ar-aging', label: 'AR Aging', icon: 'fa-scale-balanced' },
-  { key: 'collection-plan', label: 'Collection Plan', icon: 'fa-calendar-check' },
-  { key: 'daily-collection', label: 'AR Verification', icon: 'fa-list-check' },
-  { key: 'dispute-management', label: 'Dispute Management', icon: 'fa-gavel' },
-  { key: 'business-partners', label: 'Business Partners', icon: 'fa-handshake' },
-  { key: 'payment-terms', label: 'Payment Term', icon: 'fa-calendar-days' },
-  { key: 'tms-handoff', label: 'TMS Hand Off', icon: 'fa-right-left' },
-  { key: 'sla', label: 'SLA', icon: 'fa-stopwatch' },
-  { key: 'treasury-workflow', label: 'Treasury Workflow', icon: 'fa-building-columns' },
+interface NavGroup {
+  key: string;
+  label: string;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    key: 'ar-planning',
+    label: 'AR Planning',
+    items: [
+      { key: 'ar-aging', label: 'AR Aging', icon: 'fa-scale-balanced' },
+      { key: 'collection-plan', label: 'Collection Plan', icon: 'fa-calendar-check' },
+      { key: 'daily-collection', label: 'AR Verification', icon: 'fa-list-check' },
+    ],
+  },
+  {
+    key: 'management',
+    label: 'Management',
+    items: [
+      { key: 'dispute-management', label: 'Dispute Management', icon: 'fa-gavel' },
+      { key: 'tms-handoff', label: 'TMS Hand Off', icon: 'fa-right-left' },
+      { key: 'treasury-workflow', label: 'Treasury Workflow', icon: 'fa-building-columns' },
+    ],
+  },
+  {
+    key: 'configuration',
+    label: 'Configuration',
+    items: [
+      { key: 'business-partners', label: 'Business Partners', icon: 'fa-handshake' },
+      { key: 'payment-terms', label: 'Payment Term', icon: 'fa-calendar-days' },
+      { key: 'sla', label: 'SLA', icon: 'fa-stopwatch' },
+    ],
+  },
 ];
 
 const NARROW_QUERY = '(max-width: 900px)';
@@ -73,7 +97,9 @@ function ShellInner() {
   const [desktopCollapsed, setDesktopCollapsed] = useState(() => window.matchMedia(NARROW_QUERY).matches);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches);
-  const [activeKey, setActiveKey] = useState<string>(NAV_ITEMS[0].key);
+  const [activeKey, setActiveKey] = useState<string>(NAV_GROUPS[0].items[0].key);
+  // Empty set = every group expanded — the requested default.
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const mql = window.matchMedia(NARROW_QUERY);
@@ -103,6 +129,15 @@ function ShellInner() {
   const handleSelectNav = (key: string) => {
     setActiveKey(key);
     if (isMobile) setMobileOpen(false);
+  };
+
+  const toggleGroup = (key: string) => {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   };
 
   return (
@@ -139,18 +174,38 @@ function ShellInner() {
         </div>
 
         <ul className="acc-sb-nav">
-          {NAV_ITEMS.map((item) => (
-            <li key={item.key}>
-              <a
-                className={item.key === activeKey ? 'active' : ''}
-                title={item.label}
-                onClick={() => handleSelectNav(item.key)}
-              >
-                <i className={`fa-solid ${item.icon}`} />
-                <span className="acc-sb-label">{item.label}</span>
-              </a>
-            </li>
-          ))}
+          {NAV_GROUPS.map((group) => {
+            const isCollapsed = collapsedGroups.has(group.key);
+            return (
+              <li key={group.key} className="acc-sb-group">
+                <button
+                  type="button"
+                  className="acc-sb-group-header"
+                  aria-expanded={!isCollapsed}
+                  onClick={() => toggleGroup(group.key)}
+                >
+                  <span className="acc-sb-group-label">{group.label}</span>
+                  <i className={`fa-solid fa-chevron-down acc-sb-group-chevron${isCollapsed ? ' collapsed' : ''}`} />
+                </button>
+                {!isCollapsed && (
+                  <ul className="acc-sb-group-items">
+                    {group.items.map((item) => (
+                      <li key={item.key}>
+                        <a
+                          className={item.key === activeKey ? 'active' : ''}
+                          title={item.label}
+                          onClick={() => handleSelectNav(item.key)}
+                        >
+                          <i className={`fa-solid ${item.icon}`} />
+                          <span className="acc-sb-label">{item.label}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
         </ul>
 
         <SidebarFooter />

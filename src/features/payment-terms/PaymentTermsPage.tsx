@@ -7,6 +7,7 @@ import { ToastRack } from '../../shared/components/ToastRack';
 import { usePaymentTermsData } from './usePaymentTermsData';
 import type { PageSize } from '../../shared/types';
 import type { PaymentTermRow } from './types';
+import { SEARCH_MAX } from '../../shared/validation';
 
 export function PaymentTermsPage() {
   const { rows, loading, error, reload, createTerm, updateTerm } = usePaymentTermsData();
@@ -95,6 +96,7 @@ export function PaymentTermsPage() {
             <i className="fa-solid fa-magnifying-glass" />
             <input
               placeholder="Search name…"
+              maxLength={SEARCH_MAX}
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);

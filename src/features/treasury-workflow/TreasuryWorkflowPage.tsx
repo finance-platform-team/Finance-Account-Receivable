@@ -13,6 +13,8 @@ import { useToasts } from '../../shared/useToasts';
 import { useRegion } from '../../shared/regionContext';
 import { regionForBu } from '../../shared/region';
 import type { PageSize } from '../../shared/types';
+import { SEARCH_MAX } from '../../shared/validation';
+import { downloadCsv } from '../../shared/csv';
 
 function uniqueSorted(values: string[]): string[] {
   return Array.from(new Set(values.filter((v) => v && v !== '—'))).sort();
@@ -109,21 +111,19 @@ export function TreasuryWorkflowPage() {
       return;
     }
     const cols = ['Ref', 'Entity', 'Company Code', 'Company Name', 'Collection Date', 'Bank Account', 'Collected (Net)', 'Allocate To Months', 'Proof', 'Status'];
-    const escapeCsv = (v: string) => `"${v.replace(/"/g, '""')}"`;
-    const lines = [cols.join(',')].concat(
-      filtered.map((r) =>
-        [r.ref, r.entity, r.companyCode, r.companyName, r.date.slice(0, 10), r.bankAccount, String(r.net), r.monthsLabel, r.proof || '—', 'Pending Bank Statement']
-          .map(escapeCsv)
-          .join(',')
-      )
-    );
-    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `treasury_workflow_${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const rows = filtered.map((r) => [
+      r.ref,
+      r.entity,
+      r.companyCode,
+      r.companyName,
+      r.date.slice(0, 10),
+      r.bankAccount,
+      String(r.net),
+      r.monthsLabel,
+      r.proof,
+      'Pending Bank Statement',
+    ]);
+    downloadCsv(`treasury_workflow_${new Date().toISOString().slice(0, 10)}.csv`, cols, rows);
     push('Exported', `${filtered.length} rows saved to CSV.`, 'success');
   }, [filtered, push]);
 
@@ -151,6 +151,7 @@ export function TreasuryWorkflowPage() {
             <input
               type="text"
               placeholder="Search company, code, ref…"
+              maxLength={SEARCH_MAX}
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);

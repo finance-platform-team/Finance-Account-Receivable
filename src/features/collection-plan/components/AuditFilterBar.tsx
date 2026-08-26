@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import { AUDIT_FIELD_OPTIONS } from '../normalizeAudit';
+import { SEARCH_MAX } from '../../../shared/validation';
 
 interface AuditFilterBarProps {
   search: string;
@@ -72,6 +73,7 @@ export function AuditFilterBar({
         <i className="fa-solid fa-magnifying-glass" />
         <input
           placeholder="Search company, code, or user…"
+          maxLength={SEARCH_MAX}
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
         />

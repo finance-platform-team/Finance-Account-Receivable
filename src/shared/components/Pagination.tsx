@@ -52,18 +52,23 @@ export function Pagination({
           ›
         </button>
       </div>
-      <select
-        className="acc-f"
-        style={{ minWidth: 90 }}
-        value={String(pageSize)}
-        onChange={(e) => onPageSizeChange(e.target.value === 'all' ? 'all' : (Number(e.target.value) as PageSize))}
-      >
-        {PAGE_SIZE_OPTIONS.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt === 'all' ? 'All' : opt}
-          </option>
-        ))}
-      </select>
+      {/* Below the smallest page-size option, every choice shows the exact
+          same rows — a functional-looking dropdown that can never change
+          anything reads as broken, so it's hidden instead. */}
+      {totalRows > (PAGE_SIZE_OPTIONS[0] as number) && (
+        <select
+          className="acc-f"
+          style={{ minWidth: 90 }}
+          value={String(pageSize)}
+          onChange={(e) => onPageSizeChange(e.target.value === 'all' ? 'all' : (Number(e.target.value) as PageSize))}
+        >
+          {PAGE_SIZE_OPTIONS.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt === 'all' ? 'All' : opt}
+            </option>
+          ))}
+        </select>
+      )}
     </div>
   );
 }

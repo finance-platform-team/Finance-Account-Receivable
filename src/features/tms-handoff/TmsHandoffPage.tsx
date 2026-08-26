@@ -9,6 +9,7 @@ import { useTmsHandoffData } from './useTmsHandoffData';
 import { STATUS_CARDS } from './normalize';
 import type { TmsHandoffRow } from './types';
 import type { PageSize } from '../../shared/types';
+import { SEARCH_MAX } from '../../shared/validation';
 
 function toDateOnly(value: string | null): string {
   if (!value) return '';
@@ -157,6 +158,7 @@ export function TmsHandoffPage() {
             <input
               type="text"
               placeholder="Search tasks…"
+              maxLength={SEARCH_MAX}
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);

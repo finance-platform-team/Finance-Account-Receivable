@@ -17,6 +17,8 @@ import { useToasts } from '../../shared/useToasts';
 import { ToastRack } from '../../shared/components/ToastRack';
 import { Pagination } from '../../shared/components/Pagination';
 import { EDITABLE_FIELDS, EDITABLE_FIELD_LABELS, rowTargetPlan } from './normalize';
+import { PERCENT_MAX } from '../../shared/validation';
+import { downloadCsv } from '../../shared/csv';
 import { computeAuditKpis, createManualEntryAudit, defaultAuditMonthRange } from './normalizeAudit';
 import { useRegion } from '../../shared/regionContext';
 import { regionForBu } from '../../shared/region';
@@ -49,8 +51,6 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 function dirtyKey(rowId: string, field: EditableFieldKey): string {
   return `${rowId}|${field}`;
 }
-
-const escCsv = (v: string | number): string => `"${String(v ?? '').replace(/"/g, '""')}"`;
 
 const TAB_BTN_BASE: CSSProperties = {
   display: 'inline-flex',
@@ -438,42 +438,30 @@ export function CollectionPlanPage() {
       'Collected',
       'Collected + Tax + Rej',
     ];
-    const lines = [cols.join(',')].concat(
-      filtered.map((r) =>
-        [
-          r.paymentTerm,
-          r.customerClass,
-          r.companyType,
-          r.bu,
-          r.taskOwner,
-          r.supervisor,
-          r.code,
-          r.name,
-          r.earlypayment,
-          r.legalissues,
-          r.bankruptcy,
-          r.claimsissue,
-          r.stopped,
-          r.agreedrecon,
-          r.totalOutstanding,
-          r.rejections,
-          r.outstandingRej,
-          r.totalDues,
-          rowTargetPlan(r, targetPct),
-          r.collected,
-          r.collectedPlus,
-        ]
-          .map(escCsv)
-          .join(',')
-      )
-    );
-    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `collection_plan_${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const rows = filtered.map((r) => [
+      r.paymentTerm,
+      r.customerClass,
+      r.companyType,
+      r.bu,
+      r.taskOwner,
+      r.supervisor,
+      r.code,
+      r.name,
+      r.earlypayment,
+      r.legalissues,
+      r.bankruptcy,
+      r.claimsissue,
+      r.stopped,
+      r.agreedrecon,
+      r.totalOutstanding,
+      r.rejections,
+      r.outstandingRej,
+      r.totalDues,
+      rowTargetPlan(r, targetPct),
+      r.collected,
+      r.collectedPlus,
+    ]);
+    downloadCsv(`collection_plan_${new Date().toISOString().slice(0, 10)}.csv`, cols, rows);
     push('Exported', `${filtered.length} rows saved to CSV.`, 'success');
   }, [filtered, targetPct, push]);
 
@@ -483,35 +471,23 @@ export function CollectionPlanPage() {
       return;
     }
     const cols = ['Date & Time', 'Company', 'Company Code', 'Type', 'Field', 'Old Value', 'New Value', 'Changed By'];
-    const lines = [cols.join(',')].concat(
-      auditFiltered.map((r) =>
-        [
-          new Date(r.when).toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
-          r.companyName,
-          r.companyCode,
-          r.type,
-          r.field,
-          r.oldValue ?? '',
-          r.newValue ?? '',
-          r.changedBy,
-        ]
-          .map(escCsv)
-          .join(',')
-      )
-    );
-    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `manual_entry_audit_${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const rows = auditFiltered.map((r) => [
+      new Date(r.when).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      r.companyName,
+      r.companyCode,
+      r.type,
+      r.field,
+      r.oldValue ?? '',
+      r.newValue ?? '',
+      r.changedBy,
+    ]);
+    downloadCsv(`manual_entry_audit_${new Date().toISOString().slice(0, 10)}.csv`, cols, rows);
     push('Exported', `${auditFiltered.length} rows saved to CSV.`, 'success');
   }, [auditFiltered, push]);
 
@@ -691,9 +667,13 @@ export function CollectionPlanPage() {
               <input
                 type="number"
                 min={0}
+                max={PERCENT_MAX}
                 step={1}
                 value={targetPct}
-                onChange={(e) => setTargetPct(isNaN(parseFloat(e.target.value)) ? 100 : parseFloat(e.target.value))}
+                onChange={(e) => {
+                  const parsed = parseFloat(e.target.value);
+                  setTargetPct(isNaN(parsed) ? 100 : Math.min(PERCENT_MAX, Math.max(0, parsed)));
+                }}
                 onBlur={handleTargetPctBlur}
                 style={pctInputStyle(pctSaveState)}
               />

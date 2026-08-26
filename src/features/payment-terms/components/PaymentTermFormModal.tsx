@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { DAYS_MAX, TEXT_SHORT_MAX } from '../../../shared/validation';
 import type { PaymentTermRow } from '../types';
 
 interface PaymentTermFormModalProps {
@@ -41,8 +42,8 @@ export function PaymentTermFormModal({ open, editing, submitting, onClose, onSub
       setError('Enter a name for this payment term.');
       return;
     }
-    if (numberOfDays.trim() === '' || isNaN(days) || days < 0) {
-      setError('Enter a valid number of days.');
+    if (numberOfDays.trim() === '' || isNaN(days) || days < 0 || days > DAYS_MAX) {
+      setError(`Enter a valid number of days (0–${DAYS_MAX.toLocaleString('en-US')}).`);
       return;
     }
     setError('');
@@ -69,13 +70,19 @@ export function PaymentTermFormModal({ open, editing, submitting, onClose, onSub
           <div className={`acc-err${error ? ' on' : ''}`}>{error}</div>
           <div className="acc-fld">
             <label>Name</label>
-            <input placeholder="e.g. NET 30" value={name} onChange={(e) => setName(e.target.value)} />
+            <input
+              placeholder="e.g. NET 30"
+              value={name}
+              maxLength={TEXT_SHORT_MAX}
+              onChange={(e) => setName(e.target.value)}
+            />
           </div>
           <div className="acc-fld">
             <label>Number of Days</label>
             <input
               type="number"
               min={0}
+              max={DAYS_MAX}
               step={1}
               placeholder="30"
               value={numberOfDays}

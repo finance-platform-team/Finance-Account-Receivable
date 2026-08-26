@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Cfm_tmshandoffscfm_priority } from '../../generated/models/Cfm_tmshandoffsModel';
 import { UserCombo } from './UserCombo';
 import type { UserOption } from './UserCombo';
+import { TEXT_LONG_MAX, TEXT_MEDIUM_MAX, TEXT_SHORT_MAX } from '../validation';
 
 export interface DecisionFormInput {
   title: string;
@@ -105,7 +106,12 @@ export function CreateDecisionDrawer({ open, submitting, onClose, onSubmit }: Cr
             <label>
               Title <span style={{ color: 'var(--bad)' }}>*</span>
             </label>
-            <input placeholder="Enter decision title…" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <input
+              placeholder="Enter decision title…"
+              value={title}
+              maxLength={TEXT_SHORT_MAX}
+              onChange={(e) => setTitle(e.target.value)}
+            />
           </div>
 
           <div className="acc-fld">
@@ -113,6 +119,7 @@ export function CreateDecisionDrawer({ open, submitting, onClose, onSubmit }: Cr
             <textarea
               placeholder="Describe the decision or action required…"
               value={description}
+              maxLength={TEXT_LONG_MAX}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
@@ -122,6 +129,7 @@ export function CreateDecisionDrawer({ open, submitting, onClose, onSubmit }: Cr
             <input
               placeholder="Enter action to be taken…"
               value={actionToBeTaken}
+              maxLength={TEXT_MEDIUM_MAX}
               onChange={(e) => setActionToBeTaken(e.target.value)}
             />
           </div>

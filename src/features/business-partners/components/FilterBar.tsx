@@ -1,4 +1,5 @@
 import { COMPANY_TYPE_OPTIONS, CUSTOMER_CLASS_OPTIONS } from '../normalize';
+import { SEARCH_MAX } from '../../../shared/validation';
 
 interface FilterBarProps {
   search: string;
@@ -35,6 +36,7 @@ export function FilterBar({
         <i className="fa-solid fa-magnifying-glass" />
         <input
           placeholder="Filter by keyword…"
+          maxLength={SEARCH_MAX}
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
         />

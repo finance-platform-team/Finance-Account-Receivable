@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BuCombo } from '../../../shared/components/BuCombo';
 import { COMPANY_TYPE_VALUE_OPTIONS, CUSTOMER_CLASS_VALUE_OPTIONS } from '../normalize';
+import { TEXT_SHORT_MAX } from '../../../shared/validation';
 import type { BuOption, BusinessPartnerRow, PartnerFormInput } from '../types';
 
 interface PaymentTermOption {
@@ -105,12 +106,23 @@ export function PartnerFormModal({
 
           <div className="acc-fld">
             <label>Name</label>
-            <input placeholder="Company name" value={name} onChange={(e) => setName(e.target.value)} dir="auto" />
+            <input
+              placeholder="Company name"
+              value={name}
+              maxLength={TEXT_SHORT_MAX}
+              onChange={(e) => setName(e.target.value)}
+              dir="auto"
+            />
           </div>
 
           <div className="acc-fld">
             <label>Company Code</label>
-            <input placeholder="e.g. 116" value={companyCode} onChange={(e) => setCompanyCode(e.target.value)} />
+            <input
+              placeholder="e.g. 116"
+              value={companyCode}
+              maxLength={TEXT_SHORT_MAX}
+              onChange={(e) => setCompanyCode(e.target.value)}
+            />
           </div>
 
           <div className="acc-fld">

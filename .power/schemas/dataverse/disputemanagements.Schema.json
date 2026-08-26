@@ -130,14 +130,17 @@
           "enum": [
             "Pending",
             "Approved",
-            "Rejected "
+            "Rejected ",
+            "Reconciled"
           ],
           "x-ms-enum-values": [
             1,
             2,
-            0
+            0,
+            3
           ],
           "Color": [
+            null,
             null,
             null,
             null

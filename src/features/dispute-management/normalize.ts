@@ -31,8 +31,15 @@ export function normalizeDisputeRow(row: Ar_disputemanagements): DisputeRow {
     dueRaw: row.ar_due ?? null,
     category: choiceLabel(r, 'ar_category', 'ar_categoryname', Ar_disputemanagementsar_category).trim(),
     categoryValue: row.ar_category == null ? null : Number(row.ar_category),
-    arReview: choiceLabel(r, 'cfm_arreview', 'cfm_arreviewname', Ar_disputemanagementscfm_arreview).trim(),
-    arReviewValue: row.cfm_arreview == null ? null : Number(row.cfm_arreview),
+    // Legacy records created before cfm_arreview was populated on every
+    // dispute have it blank — default those to Pending rather than showing
+    // an undecorated "—", since an un-reviewed dispute is functionally
+    // pending review either way.
+    arReview:
+      row.cfm_arreview == null
+        ? Ar_disputemanagementscfm_arreview[1]
+        : choiceLabel(r, 'cfm_arreview', 'cfm_arreviewname', Ar_disputemanagementscfm_arreview).trim(),
+    arReviewValue: row.cfm_arreview == null ? 1 : Number(row.cfm_arreview),
     // Owner = Created By: Dataverse sets this automatically on every record (no
     // create-time binding needed), unlike the custom cfm_owner lookup which
     // ref.html set explicitly and which was often left blank.
@@ -88,7 +95,7 @@ export const CATEGORY_OPTIONS = CATEGORY_SELECT_ORDER.map((value) => ({
 export const CATEGORY_CHIP_LABELS = ['All', 'Rejected', 'Legal Issues', 'Bankruptcy', 'Claims Issue', 'Stopped'];
 
 // Select order for the AR Review filter + inline cell select — matches ref.html exactly.
-const AR_REVIEW_SELECT_ORDER = [1, 2, 0] as const;
+const AR_REVIEW_SELECT_ORDER = [1, 2, 0, 3] as const;
 export const AR_REVIEW_OPTIONS = AR_REVIEW_SELECT_ORDER.map((value) => ({
   value,
   label: Ar_disputemanagementscfm_arreview[value].trim(),

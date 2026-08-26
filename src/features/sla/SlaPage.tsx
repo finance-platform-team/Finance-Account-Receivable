@@ -7,6 +7,8 @@ import { useToasts } from '../../shared/useToasts';
 import { useSlaData } from './useSlaData';
 import type { SlaFormInput, SlaRow } from './types';
 import type { PageSize } from '../../shared/types';
+import { SEARCH_MAX } from '../../shared/validation';
+import { downloadCsv } from '../../shared/csv';
 
 export function SlaPage() {
   const { rows, loading, error, reload, createSla, updateSla, deactivateSla } = useSlaData();
@@ -95,21 +97,19 @@ export function SlaPage() {
       return;
     }
     const cols = ['Action', 'Responsible', 'SLA Type', 'SLA', 'Escalation Rule', 'Dept 1', 'Role 1', 'Dept 2', 'Role 2', 'Deduction'];
-    const escapeCsv = (v: string) => `"${v.replace(/"/g, '""')}"`;
-    const lines = [cols.join(',')].concat(
-      filtered.map((r) =>
-        [r.action, r.responsibleName, r.slaTypeLabel, r.slaValue, r.escalationRule, r.department1, r.manager1Name, r.department2, r.manager2Name, r.deduction]
-          .map(escapeCsv)
-          .join(',')
-      )
-    );
-    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'SLA_Rules.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    const rows = filtered.map((r) => [
+      r.action,
+      r.responsibleName,
+      r.slaTypeLabel,
+      r.slaValue,
+      r.escalationRule,
+      r.department1,
+      r.manager1Name,
+      r.department2,
+      r.manager2Name,
+      r.deduction,
+    ]);
+    downloadCsv('SLA_Rules.csv', cols, rows);
     push('Exported', `${filtered.length} rows saved to CSV.`, 'success');
   }, [filtered, push]);
 
@@ -141,6 +141,7 @@ export function SlaPage() {
             <i className="fa-solid fa-magnifying-glass" />
             <input
               placeholder="Search action, responsible, department…"
+              maxLength={SEARCH_MAX}
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);

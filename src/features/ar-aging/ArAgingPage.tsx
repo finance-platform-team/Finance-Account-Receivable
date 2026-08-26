@@ -20,6 +20,7 @@ import type {
 } from '../../generated/models/Cfm_tmshandoffsModel';
 import type { AgingRow, AgingTotals, DatasetKey } from './types';
 import type { PageSize } from '../../shared/types';
+import { downloadCsv } from '../../shared/csv';
 
 const EMPTY_TOTALS: AgingTotals = { notDue: 0, lt30: 0, b3160: 0, b6190: 0, b91120: 0, gt120: 0 };
 
@@ -40,11 +41,7 @@ const CSV_COLUMNS = [
   '> 120 Days',
 ];
 
-function escapeCsv(value: string | number): string {
-  return `"${String(value).replace(/"/g, '""')}"`;
-}
-
-function toCsvRow(r: AgingRow): string {
+function toCsvRow(r: AgingRow): (string | number)[] {
   return [
     r.paymentTerm,
     r.customerClass,
@@ -60,9 +57,7 @@ function toCsvRow(r: AgingRow): string {
     r.b6190,
     r.b91120,
     r.gt120,
-  ]
-    .map(escapeCsv)
-    .join(',');
+  ];
 }
 
 export function ArAgingPage() {
@@ -164,14 +159,7 @@ export function ArAgingPage() {
       push('Export', 'Nothing to export with current filters.', 'alert');
       return;
     }
-    const lines = [CSV_COLUMNS.join(',')].concat(filtered.map(toCsvRow));
-    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ar_aging_${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCsv(`ar_aging_${new Date().toISOString().slice(0, 10)}.csv`, CSV_COLUMNS, filtered.map(toCsvRow));
     push('Exported', `${filtered.length} rows saved to CSV.`, 'success');
   }, [filtered, push]);
 

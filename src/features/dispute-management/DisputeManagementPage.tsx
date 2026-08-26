@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
 import { KpiCards } from './components/KpiCards';
-import { AlertBanner } from './components/AlertBanner';
 import { FilterBar } from './components/FilterBar';
 import { DisputeTable } from './components/DisputeTable';
 import { NewDisputeDrawer } from './components/NewDisputeDrawer';
@@ -57,15 +56,20 @@ export function DisputeManagementPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return rows.filter((r) => {
-      if (categoryFilter !== 'All' && r.category.toLowerCase() !== categoryFilter.toLowerCase()) return false;
-      if (arReviewFilter && r.arReview.toLowerCase() !== arReviewFilter.toLowerCase()) return false;
-      if (q) {
-        const haystack = `${r.code} ${r.name} ${r.owner} ${r.agreement}`.toLowerCase();
-        if (!haystack.includes(q)) return false;
-      }
-      return true;
-    });
+    return rows
+      .filter((r) => {
+        if (categoryFilter !== 'All' && r.category.toLowerCase() !== categoryFilter.toLowerCase()) return false;
+        if (arReviewFilter && r.arReview.toLowerCase() !== arReviewFilter.toLowerCase()) return false;
+        if (q) {
+          const haystack = `${r.code} ${r.name} ${r.owner} ${r.agreement}`.toLowerCase();
+          if (!haystack.includes(q)) return false;
+        }
+        return true;
+      })
+      // Reconciled disputes are settled — push them to the end so the list
+      // stays focused on what still needs attention. Array.sort is a stable
+      // sort, so everything else keeps its existing relative order.
+      .sort((a, b) => (a.arReview === 'Reconciled' ? 1 : 0) - (b.arReview === 'Reconciled' ? 1 : 0));
   }, [rows, categoryFilter, arReviewFilter, search]);
 
   const detailRow = useMemo(() => rows.find((r) => r.id === detailId) ?? null, [rows, detailId]);
@@ -195,8 +199,6 @@ export function DisputeManagementPage() {
       </div>
 
       <KpiCards total={totals.total} amount={totals.amount} pending={totals.pending} approved={totals.approved} />
-
-      <AlertBanner pending={pendingRows} onOpen={setDetailId} />
 
       <div className="tbl-shell">
         <div className="tbl-hdr">

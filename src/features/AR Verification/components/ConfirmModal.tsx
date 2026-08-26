@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { TEXT_LONG_MAX } from '../../../shared/validation';
 
 export interface ConfirmModalConfig {
   title: string;
@@ -96,6 +97,7 @@ export function ConfirmModal({ config, onClose }: ConfirmModalProps) {
               <textarea
                 placeholder={active.commentPlaceholder}
                 value={comment}
+                maxLength={TEXT_LONG_MAX}
                 onChange={(e) => {
                   setComment(e.target.value);
                   if (showRequiredError) setShowRequiredError(false);

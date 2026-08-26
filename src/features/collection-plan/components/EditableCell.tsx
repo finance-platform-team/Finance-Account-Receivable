@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent } from 'react';
 import { fmt } from '../normalize';
+import { AMOUNT_MAX, clampNumber } from '../../../shared/validation';
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 type CellMode = 'instant' | 'dirty' | 'locked';
@@ -66,7 +67,8 @@ export function EditableCell({ value, mode, isGroupEnd, isDirty, onInstantSave, 
   // (fires per keystroke) — so saves/dirty-marks happen once, not per key.
   const handleBlur = async () => {
     const raw = inputRef.current?.value ?? '';
-    const newValue = raw === '' ? 0 : Number(raw);
+    const newValue = clampNumber(raw, AMOUNT_MAX);
+    if (inputRef.current) inputRef.current.value = String(newValue);
 
     if (mode === 'instant') {
       if (newValue === value) return;
@@ -100,6 +102,8 @@ export function EditableCell({ value, mode, isGroupEnd, isDirty, onInstantSave, 
         ref={inputRef}
         type="number"
         step="any"
+        min={0}
+        max={AMOUNT_MAX}
         defaultValue={value}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}

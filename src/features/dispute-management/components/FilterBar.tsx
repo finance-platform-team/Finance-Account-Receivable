@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import { AR_REVIEW_OPTIONS, CATEGORY_CHIP_LABELS } from '../normalize';
+import { SEARCH_MAX } from '../../../shared/validation';
 
 interface FilterBarProps {
   search: string;
@@ -51,6 +52,7 @@ export function FilterBar({
         <input
           type="text"
           placeholder="Search code, company, agreement…"
+          maxLength={SEARCH_MAX}
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
         />

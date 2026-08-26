@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { UserCombo } from '../../../shared/components/UserCombo';
 import type { UserOption } from '../../../shared/components/UserCombo';
 import { SLA_TYPE_OPTIONS } from '../normalize';
+import { TEXT_MEDIUM_MAX, TEXT_SHORT_MAX } from '../../../shared/validation';
 import type { SlaFormInput, SlaRow } from '../types';
 
 interface SlaFormDrawerProps {
@@ -116,6 +117,7 @@ export function SlaFormDrawer({ open, editing, submitting, onClose, onSubmit, on
             <input
               placeholder="e.g. Assign Task Owner and Supervisor"
               value={form.action}
+              maxLength={TEXT_MEDIUM_MAX}
               onChange={(e) => set('action', e.target.value)}
             />
           </div>
@@ -137,7 +139,12 @@ export function SlaFormDrawer({ open, editing, submitting, onClose, onSubmit, on
             </div>
             <div className="acc-fld">
               <label>SLA (hours / date)</label>
-              <input placeholder="e.g. 24 or 1 working day" value={form.slaValue} onChange={(e) => set('slaValue', e.target.value)} />
+              <input
+                placeholder="e.g. 24 or 1 working day"
+                value={form.slaValue}
+                maxLength={TEXT_SHORT_MAX}
+                onChange={(e) => set('slaValue', e.target.value)}
+              />
             </div>
           </div>
 
@@ -151,6 +158,7 @@ export function SlaFormDrawer({ open, editing, submitting, onClose, onSubmit, on
             <input
               placeholder="e.g. Assignment pending after cutoff"
               value={form.escalationRule}
+              maxLength={TEXT_MEDIUM_MAX}
               onChange={(e) => set('escalationRule', e.target.value)}
             />
           </div>
@@ -161,7 +169,12 @@ export function SlaFormDrawer({ open, editing, submitting, onClose, onSubmit, on
           <div className="acc-grid-2">
             <div className="acc-fld">
               <label>Department 1</label>
-              <input placeholder="Department" value={form.department1} onChange={(e) => set('department1', e.target.value)} />
+              <input
+                placeholder="Department"
+                value={form.department1}
+                maxLength={TEXT_SHORT_MAX}
+                onChange={(e) => set('department1', e.target.value)}
+              />
             </div>
             <div className="acc-fld">
               <label>Role / Manager 1</label>
@@ -175,7 +188,12 @@ export function SlaFormDrawer({ open, editing, submitting, onClose, onSubmit, on
           <div className="acc-grid-2">
             <div className="acc-fld">
               <label>Department 2</label>
-              <input placeholder="Department" value={form.department2} onChange={(e) => set('department2', e.target.value)} />
+              <input
+                placeholder="Department"
+                value={form.department2}
+                maxLength={TEXT_SHORT_MAX}
+                onChange={(e) => set('department2', e.target.value)}
+              />
             </div>
             <div className="acc-fld">
               <label>Role / Manager 2</label>
@@ -191,6 +209,7 @@ export function SlaFormDrawer({ open, editing, submitting, onClose, onSubmit, on
             <input
               placeholder="e.g. KPI flag, Technical SLA flag"
               value={form.deduction}
+              maxLength={TEXT_MEDIUM_MAX}
               onChange={(e) => set('deduction', e.target.value)}
             />
             <div className="acc-hint">Leave blank for CFM/Legal read-only rows (No Networking deduction).</div>

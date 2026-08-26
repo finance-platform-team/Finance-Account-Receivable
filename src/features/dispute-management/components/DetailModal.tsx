@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { fmtEGP, UPDATE_TYPE_OPTIONS } from '../normalize';
 import { useDisputeHistory } from '../useDisputeHistory';
+import { TEXT_LONG_MAX } from '../../../shared/validation';
 import type { DisputeRow } from '../types';
 
 interface DetailModalProps {
@@ -33,9 +34,9 @@ const sectLblStyle: CSSProperties = {
   margin: '4px 0 12px',
 };
 
-function Fact({ label, value, amt }: { label: string; value: ReactNode; amt?: boolean }) {
+function Fact({ label, value, amt, fullWidth }: { label: string; value: ReactNode; amt?: boolean; fullWidth?: boolean }) {
   return (
-    <div style={factCellStyle}>
+    <div style={fullWidth ? { ...factCellStyle, gridColumn: '1 / -1' } : factCellStyle}>
       <div style={factLabelStyle}>{label}</div>
       <div
         style={{
@@ -131,7 +132,7 @@ export function DetailModal({ row, onClose, onToast }: DetailModalProps) {
               <div className="acc-facts-grid">
                 <Fact label="Amount" value={fmtEGP(displayRow.amount)} amt />
                 <Fact label="Due (Y/M)" value={displayRow.due} />
-                <Fact label="AR Review" value={displayRow.arReview} />
+                <Fact label="AR Review" value={displayRow.arReview} fullWidth />
               </div>
 
               <div style={sectLblStyle}>History</div>
@@ -143,8 +144,18 @@ export function DetailModal({ row, onClose, onToast }: DetailModalProps) {
                   unavailable — {error}
                 </div>
               ) : history.length === 0 ? (
-                <div style={{ color: 'var(--muted)', fontSize: 12, marginBottom: 20 }}>
-                  No history yet. Add the first update below.
+                <div
+                  style={{
+                    color: 'var(--muted)',
+                    fontSize: 12,
+                    textAlign: 'center',
+                    border: '1px dashed var(--line)',
+                    borderRadius: 10,
+                    padding: '16px 12px',
+                    marginBottom: 20,
+                  }}
+                >
+                  No updates logged yet.
                 </div>
               ) : (
                 <div style={{ position: 'relative', paddingLeft: 22, marginBottom: 20 }}>
@@ -218,7 +229,15 @@ export function DetailModal({ row, onClose, onToast }: DetailModalProps) {
                 </div>
                 <div className="acc-fld">
                   <label>What happened?</label>
-                  <textarea placeholder="Free text…" value={note} onChange={(e) => setNote(e.target.value)} />
+                  <textarea
+                    placeholder="Free text…"
+                    value={note}
+                    maxLength={TEXT_LONG_MAX}
+                    onChange={(e) => setNote(e.target.value)}
+                  />
+                  <div className="acc-hint">
+                    {note.length}/{TEXT_LONG_MAX}
+                  </div>
                 </div>
               </div>
             </>

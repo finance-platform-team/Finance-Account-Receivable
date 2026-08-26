@@ -1,3 +1,5 @@
+import { SEARCH_MAX } from '../../../shared/validation';
+
 interface FilterBarProps {
   search: string;
   onSearchChange: (value: string) => void;
@@ -40,6 +42,7 @@ export function FilterBar({
         <input
           type="text"
           placeholder="Search company, code, ref…"
+          maxLength={SEARCH_MAX}
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
         />

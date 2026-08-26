@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { CATEGORY_OPTIONS, escODataString } from '../normalize';
 import { Cfm_insurancecompaniesService } from '../../../generated/services/Cfm_insurancecompaniesService';
+import { AMOUNT_MAX, clampNumber, TEXT_SHORT_MAX } from '../../../shared/validation';
 import type { CompanySearchResult, NewDisputeInput } from '../types';
 
 interface NewDisputeDrawerProps {
@@ -137,6 +138,7 @@ export function NewDisputeDrawer({ open, submitting, onClose, onSubmit }: NewDis
               <input
                 placeholder="Type a company code…"
                 autoComplete="off"
+                maxLength={TEXT_SHORT_MAX}
                 value={code}
                 onChange={(e) => handleCodeInput(e.target.value)}
                 onFocus={() => code.trim() && setResultsOpen(true)}
@@ -197,7 +199,18 @@ export function NewDisputeDrawer({ open, submitting, onClose, onSubmit }: NewDis
 
           <div className="acc-fld">
             <label>Amount</label>
-            <input type="number" placeholder="100000" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <input
+              type="number"
+              min={0}
+              max={AMOUNT_MAX}
+              placeholder="100000"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              onBlur={(e) => {
+                if (e.target.value.trim() === '') return;
+                setAmount(String(clampNumber(e.target.value, AMOUNT_MAX)));
+              }}
+            />
           </div>
 
           <div className="acc-fld">

@@ -86,15 +86,15 @@
    label icon needs its own explicit color since it reads the global
    --ok/--warn/--bad/--info/--brown token directly. --- */
 :root[data-theme="dark"] .kpi-card.kpi-ok{background:#e6f3ec;border-color:#c9ddd0;--ink:#17331f;--muted:#4b6b56}
-:root[data-theme="dark"] .kpi-card.kpi-ok .kpi-label i{color:#2f7d5b}
+:root[data-theme="dark"] .kpi-card.kpi-ok .kpi-label i{background:#ffffff;color:#2f7d5b}
 :root[data-theme="dark"] .kpi-card.kpi-warn{background:#fbeede;border-color:#f0ddbe;--ink:#3a2a10;--muted:#8a7550}
-:root[data-theme="dark"] .kpi-card.kpi-warn .kpi-label i{color:#b06a1f}
+:root[data-theme="dark"] .kpi-card.kpi-warn .kpi-label i{background:#ffffff;color:#b06a1f}
 :root[data-theme="dark"] .kpi-card.kpi-gold{background:#faf4ea;border-color:#ecdcc2;--ink:#2b1f14;--muted:#8a7a63}
-:root[data-theme="dark"] .kpi-card.kpi-gold .kpi-label i{color:#2b160a}
+:root[data-theme="dark"] .kpi-card.kpi-gold .kpi-label i{background:#ffffff;color:#2b160a}
 :root[data-theme="dark"] .kpi-card.kpi-info{background:#e6eef3;border-color:#cfe0ea;--ink:#132a38;--muted:#5b7686}
-:root[data-theme="dark"] .kpi-card.kpi-info .kpi-label i{color:#2f5d7d}
+:root[data-theme="dark"] .kpi-card.kpi-info .kpi-label i{background:#ffffff;color:#2f5d7d}
 :root[data-theme="dark"] .kpi-card.kpi-bad{background:#f8e6e6;border-color:#e8c9c9;--ink:#3a1414;--muted:#8a5555}
-:root[data-theme="dark"] .kpi-card.kpi-bad .kpi-label i{color:#b03636}
+:root[data-theme="dark"] .kpi-card.kpi-bad .kpi-label i{background:#ffffff;color:#b03636}
 
 html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
   font-family:'Inter',system-ui,sans-serif;font-size:14px;height:100%;
@@ -171,7 +171,9 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
   padding:14px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .kpi-card .kpi-label{color:var(--muted);font-size:12px;font-weight:500;
   text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:7px}
-.kpi-card .kpi-label i{color:var(--gold)}
+.kpi-card .kpi-label i{display:inline-flex;align-items:center;justify-content:center;
+  width:26px;height:26px;border-radius:8px;font-size:12px;flex-shrink:0;
+  background:var(--goldbg);color:var(--gold)}
 .kpi-card .kpi-value{font-family:'Outfit',sans-serif;font-weight:700;font-size:clamp(20px,5vw,26px);
   margin-top:6px;letter-spacing:-.02em;color:var(--ink)}
 .kpi-card .kpi-value small{font-size:13px;font-weight:500;color:var(--muted)}
@@ -188,15 +190,15 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
    that one selector's scope, with no separate per-variant text-color rule to
    fight against. */
 .kpi-card.kpi-ok{background:var(--okbg);border-color:transparent}
-.kpi-card.kpi-ok .kpi-label i{color:var(--ok)}
+.kpi-card.kpi-ok .kpi-label i{background:var(--card);color:var(--ok)}
 .kpi-card.kpi-warn{background:var(--warnbg);border-color:transparent}
-.kpi-card.kpi-warn .kpi-label i{color:var(--warn)}
+.kpi-card.kpi-warn .kpi-label i{background:var(--card);color:var(--warn)}
 .kpi-card.kpi-bad{background:var(--badbg);border-color:transparent}
-.kpi-card.kpi-bad .kpi-label i{color:var(--bad)}
+.kpi-card.kpi-bad .kpi-label i{background:var(--card);color:var(--bad)}
 .kpi-card.kpi-gold{background:var(--goldbg);border-color:transparent}
-.kpi-card.kpi-gold .kpi-label i{color:var(--brown)}
+.kpi-card.kpi-gold .kpi-label i{background:var(--card);color:var(--brown)}
 .kpi-card.kpi-info{background:var(--infobg);border-color:transparent}
-.kpi-card.kpi-info .kpi-label i{color:var(--info)}
+.kpi-card.kpi-info .kpi-label i{background:var(--card);color:var(--info)}
 
 /* Filter bar */
 .acc-bar{background:var(--card);border:1px solid var(--line);border-radius:12px;
@@ -350,6 +352,16 @@ select.acc-f option{background:var(--card);color:var(--ink)}
 .acc-facts-grid{display:grid;grid-template-columns:1fr;gap:1px;background:var(--line);
   border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:18px}
 @media(min-width:480px){.acc-facts-grid{grid-template-columns:repeat(2,1fr)}}
+/* --- addition: custom status-dropdown menu item (see DisputeTable's
+   ArReviewCell) — a portal-rendered replacement for native <option>, since
+   the browser's own hover/focus highlight on native options can't be
+   overridden by CSS. --opt-color/--opt-bg are set per-item inline. --- */
+.acc-status-option{display:flex;align-items:center;justify-content:space-between;
+  gap:10px;padding:9px 12px;font-size:12.5px;font-family:'Inter';cursor:pointer;
+  color:var(--opt-color);background:transparent;transition:background .1s}
+.acc-status-option:hover{background:var(--opt-bg)}
+.acc-status-option[data-selected]{background:var(--opt-bg)}
+
 .acc-err{background:var(--badbg);color:var(--bad);padding:9px 12px;border-radius:8px;
   font-size:12.5px;margin-bottom:14px;display:none}
 .acc-err.on{display:block}
@@ -442,6 +454,18 @@ select.acc-f option{background:var(--card);color:var(--ink)}
   font-weight:600;border-left-color:var(--shell-accent)}
 .acc-sb-nav a.active i{color:var(--shell-accent)}
 
+/* --- addition: collapsible nav groups with uppercase section labels --- */
+.acc-sb-group{margin-bottom:2px}
+.acc-sb-group-header{display:flex;align-items:center;justify-content:space-between;
+  width:100%;background:none;border:none;padding:14px 12px 6px;margin:0;
+  cursor:pointer;font-family:'Inter';-webkit-tap-highlight-color:transparent}
+.acc-sb-group-label{font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--shell-muted)}
+.acc-sb-group-chevron{font-size:10px;color:var(--shell-muted);transition:transform .15s;flex-shrink:0}
+.acc-sb-group-chevron.collapsed{transform:rotate(-90deg)}
+.acc-sb-group-items{list-style:none;margin:0;padding:0}
+.acc-sb-group-items li{margin-bottom:2px}
+
 /* --- addition: sidebar footer + light/dark toggle --- */
 .acc-sb-footer{padding:12px 14px;border-top:1px solid var(--shell-line);flex-shrink:0;
   display:flex;flex-direction:column;gap:6px}
@@ -462,6 +486,9 @@ select.acc-f option{background:var(--card);color:var(--ink)}
   .acc-sidebar.collapsed .acc-sb-label{display:none}
   .acc-sidebar.collapsed .acc-theme-label{display:none}
   .acc-sidebar.collapsed .acc-theme-toggle{justify-content:center}
+  /* No room for a section label + chevron on the icon-only rail — groups
+     just render as one continuous icon stack there. */
+  .acc-sidebar.collapsed .acc-sb-group-header{display:none}
 }
 
 /* Mobile sidebar overlay */
@@ -477,6 +504,10 @@ select.acc-f option{background:var(--card);color:var(--ink)}
   .acc-sidebar.collapsed .acc-sb-nav a{justify-content:flex-start;padding:10px 12px}
   .acc-sidebar.collapsed .acc-theme-label{display:flex}
   .acc-sidebar.collapsed .acc-theme-toggle{justify-content:space-between}
+  /* The mobile drawer always renders full-width regardless of the desktop
+     rail's collapsed state (see the block above this one) — group headers
+     need the same "always shown here" override. */
+  .acc-sidebar.collapsed .acc-sb-group-header{display:flex}
   .acc-sidebar.mobile-open{transform:translateX(0)}
 }
 

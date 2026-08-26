@@ -1,4 +1,5 @@
 import { COMPANY_TYPE_OPTIONS, CUSTOMER_CLASS_OPTIONS } from '../normalize';
+import { SEARCH_MAX } from '../../../shared/validation';
 
 interface FilterBarProps {
   search: string;
@@ -39,6 +40,7 @@ export function FilterBar({
         <input
           type="text"
           placeholder="Search company, code, owner…"
+          maxLength={SEARCH_MAX}
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
         />

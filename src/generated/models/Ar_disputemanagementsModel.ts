@@ -13,7 +13,8 @@ export type Ar_disputemanagementsar_category = keyof typeof Ar_disputemanagement
 export const Ar_disputemanagementscfm_arreview = {
   1: 'Pending',
   2: 'Approved',
-  0: 'Rejected '
+  0: 'Rejected ',
+  3: 'Reconciled'
 } as const;
 export type Ar_disputemanagementscfm_arreview = keyof typeof Ar_disputemanagementscfm_arreview;
 export const Ar_disputemanagementsstatecode = {
