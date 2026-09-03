@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DAYS_MAX, TEXT_SHORT_MAX } from '../../../shared/validation';
 import type { PaymentTermRow } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 interface PaymentTermFormModalProps {
   open: boolean;
@@ -63,13 +64,15 @@ export function PaymentTermFormModal({ open, editing, submitting, onClose, onSub
             {isEdit ? 'Edit Payment Term' : 'New Payment Term'}
           </h2>
           <button className="acc-dclose" onClick={onClose}>
-            <i className="fa-solid fa-xmark" />
+            <Icon className="fa-solid fa-xmark" />
           </button>
         </div>
         <div className="acc-dbody">
           <div className={`acc-err${error ? ' on' : ''}`}>{error}</div>
           <div className="acc-fld">
-            <label>Name</label>
+            <label>
+              Name <span style={{ color: 'var(--bad)' }}>*</span>
+            </label>
             <input
               placeholder="e.g. NET 30"
               value={name}
@@ -78,7 +81,9 @@ export function PaymentTermFormModal({ open, editing, submitting, onClose, onSub
             />
           </div>
           <div className="acc-fld">
-            <label>Number of Days</label>
+            <label>
+              Number of Days <span style={{ color: 'var(--bad)' }}>*</span>
+            </label>
             <input
               type="number"
               min={0}

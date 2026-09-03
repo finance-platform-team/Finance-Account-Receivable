@@ -5,10 +5,12 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Accounts Receivable</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Fonts (Outfit/Inter/JetBrains Mono) and Font Awesome are imported as
+         self-hosted packages in main.tsx, not linked here from Google
+         Fonts/cdnjs — the Power Platform code app host's CSP
+         (`style-src 'self' 'unsafe-inline'`) blocks every external
+         stylesheet once the app is pushed, so any CDN <link> here silently
+         fails in production even though it works in local dev. -->
   </head>
   <body>
     <div id="root"></div>

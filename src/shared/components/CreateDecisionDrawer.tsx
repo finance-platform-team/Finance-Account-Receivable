@@ -3,6 +3,7 @@ import { Cfm_tmshandoffscfm_priority } from '../../generated/models/Cfm_tmshando
 import { UserCombo } from './UserCombo';
 import type { UserOption } from './UserCombo';
 import { TEXT_LONG_MAX, TEXT_MEDIUM_MAX, TEXT_SHORT_MAX } from '../validation';
+import { Icon } from './Icon';
 
 export interface DecisionFormInput {
   title: string;
@@ -92,11 +93,11 @@ export function CreateDecisionDrawer({ open, submitting, onClose, onSubmit }: Cr
       <aside className={`acc-drawer${open ? ' on' : ''}`}>
         <div className="acc-dhead">
           <h2>
-            <i className="fa-solid fa-clipboard-check" style={{ color: 'var(--gold)', fontSize: 16 }} />
+            <Icon className="fa-solid fa-clipboard-check" style={{ color: 'var(--gold)', fontSize: 16 }} />
             Create Task Decision
           </h2>
           <button className="acc-dclose" onClick={onClose}>
-            <i className="fa-solid fa-xmark" />
+            <Icon className="fa-solid fa-xmark" />
           </button>
         </div>
         <div className="acc-dbody">
@@ -171,7 +172,7 @@ export function CreateDecisionDrawer({ open, submitting, onClose, onSubmit }: Cr
             Cancel
           </button>
           <button className="acc-btn acc-btn-primary" disabled={submitting} onClick={handleSubmit}>
-            <i className="fa-solid fa-paper-plane" /> {submitting ? 'Sending…' : 'Send Decision'}
+            <Icon className="fa-solid fa-paper-plane" /> {submitting ? 'Sending…' : 'Send Decision'}
           </button>
         </div>
       </aside>

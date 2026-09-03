@@ -46,6 +46,23 @@ export function badgeClassForStatus(code: number | null): string {
   return STATUS_CARDS.find((c) => c.code === code)?.badgeClass ?? 'acc-cls-none';
 }
 
+/** Derives the SLA display value from cfm_duedate vs. createdon (the "sent"
+ * date — matches the table's own "Sent" column) rather than reading the raw
+ * cfm_sla text field, which the create flow never populates. A 1-3 day gap
+ * reads as "72h"; anything longer reads as "{n} days". Same-day/overdue
+ * (<=0) is folded into "72h" too, since that's the most urgent bucket. */
+export function computeSla(dueDateIso: string | null, createdOnIso: string | null): string {
+  if (!dueDateIso || !createdOnIso) return '—';
+  const due = new Date(dueDateIso);
+  const created = new Date(createdOnIso);
+  if (isNaN(due.getTime()) || isNaN(created.getTime())) return '—';
+  due.setHours(0, 0, 0, 0);
+  created.setHours(0, 0, 0, 0);
+  const days = Math.round((due.getTime() - created.getTime()) / 86400000);
+  if (days <= 3) return '72h';
+  return `${days} days`;
+}
+
 export function slaTone(dueDate: string | null): SlaTone {
   if (!dueDate) return 'ok';
   const due = new Date(dueDate);
@@ -75,7 +92,7 @@ export function normalizeRow(row: Cfm_tmshandoffs): TmsHandoffRow {
     typeAction: row.cfm_typeaction?.trim() || '—',
     assignee: lookupLabel(row as unknown as AnnotatedRow, 'cfm_assigneename', '_cfm_assignee_value'),
     priority: choiceLabel(row as unknown as AnnotatedRow, 'cfm_priority', 'cfm_priorityname', Cfm_tmshandoffscfm_priority),
-    sla: row.cfm_sla?.trim() || '—',
+    sla: computeSla(row.cfm_duedate ?? null, row.createdon ?? null),
     dueDate: row.cfm_duedate ?? null,
     statusCode: row.cfm_progress ?? null,
     statusLabel: statusLabel(row.cfm_progress ?? null),

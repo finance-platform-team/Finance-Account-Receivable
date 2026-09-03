@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { MutedDash } from '../../../shared/components/MutedDash';
 import { fmt, fmtTotal, rowAchievement, rowTargetPlan } from '../normalize';
 import type { PlanRow } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 function achvColor(pct: number): string {
   if (pct >= 100) return 'var(--ok)';
@@ -39,7 +40,7 @@ export function PlanDetailDrawer({ row, open, targetPct, onClose }: PlanDetailDr
         <div className="acc-dhead">
           <div>
             <h2>
-              <i className="fa-solid fa-building" style={{ color: 'var(--gold)', fontSize: 16 }} />
+              <Icon className="fa-solid fa-building" style={{ color: 'var(--gold)', fontSize: 16 }} />
               {r?.name ?? ''}
             </h2>
             {r && (
@@ -49,7 +50,7 @@ export function PlanDetailDrawer({ row, open, targetPct, onClose }: PlanDetailDr
             )}
           </div>
           <button className="acc-dclose" onClick={onClose}>
-            <i className="fa-solid fa-xmark" />
+            <Icon className="fa-solid fa-xmark" />
           </button>
         </div>
 
@@ -67,7 +68,7 @@ export function PlanDetailDrawer({ row, open, targetPct, onClose }: PlanDetailDr
                   gap: 7,
                 }}
               >
-                <i className="fa-solid fa-address-book" style={{ color: 'var(--gold)' }} /> Company Metadata
+                <Icon className="fa-solid fa-address-book" style={{ color: 'var(--gold)' }} /> Company Metadata
               </div>
               <div className="acc-grid-2" style={{ marginBottom: 20 }}>
                 <div className="acc-ro-wrap">
@@ -119,7 +120,7 @@ export function PlanDetailDrawer({ row, open, targetPct, onClose }: PlanDetailDr
                   gap: 7,
                 }}
               >
-                <i className="fa-solid fa-pen-to-square" style={{ color: 'var(--gold)' }} /> Manual Entry — AR Team
+                <Icon className="fa-solid fa-pen-to-square" style={{ color: 'var(--gold)' }} /> Manual Entry — AR Team
               </div>
               <div className="acc-grid-3" style={{ marginBottom: 20 }}>
                 <div className="acc-ro-wrap">
@@ -159,7 +160,7 @@ export function PlanDetailDrawer({ row, open, targetPct, onClose }: PlanDetailDr
                   gap: 7,
                 }}
               >
-                <i className="fa-solid fa-calculator" style={{ color: 'var(--gold)' }} /> Calculated / DotCare
+                <Icon className="fa-solid fa-calculator" style={{ color: 'var(--gold)' }} /> Calculated / DotCare
               </div>
               <div className="acc-grid-2" style={{ marginBottom: 20 }}>
                 <div className="acc-ro-wrap">

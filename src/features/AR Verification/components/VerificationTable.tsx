@@ -2,6 +2,7 @@ import { Fragment } from 'react';
 import { MutedDash } from '../../../shared/components/MutedDash';
 import { fmt, fmtDate, fmtDateTime, isLocked, statusIcon, statusPillClass } from '../normalize';
 import type { VerificationRow } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 const COLUMN_COUNT = 23;
 
@@ -67,7 +68,7 @@ function AllocationTable({ row }: { row: VerificationRow }) {
               marginBottom: 8,
             }}
           >
-            <i className="fa-solid fa-layer-group" style={{ color: 'var(--gold)' }} /> Allocations · {row.ref} ·{' '}
+            <Icon className="fa-solid fa-layer-group" style={{ color: 'var(--gold)' }} /> Allocations · {row.ref} ·{' '}
             {row.allocs.length} month
             {row.allocs.length === 1 ? '' : 's'}
           </div>
@@ -168,34 +169,34 @@ export function VerificationTable({
             </th>
             <th />
             <th>
-              <i className="fa-solid fa-hashtag" /> Ref
+              <Icon className="fa-solid fa-hashtag" /> Ref
             </th>
             <th>
-              <i className="fa-solid fa-building" /> Entity
+              <Icon className="fa-solid fa-building" /> Entity
             </th>
             <th>
-              <i className="fa-solid fa-hashtag" /> Company Code
+              <Icon className="fa-solid fa-hashtag" /> Company Code
             </th>
             <th>
-              <i className="fa-solid fa-briefcase" /> Company Name
+              <Icon className="fa-solid fa-briefcase" /> Company Name
             </th>
             <th>
-              <i className="fa-solid fa-calendar-day" /> Collection Date
+              <Icon className="fa-solid fa-calendar-day" /> Collection Date
             </th>
             <th>
-              <i className="fa-solid fa-credit-card" /> Payment Method
+              <Icon className="fa-solid fa-credit-card" /> Payment Method
             </th>
             <th>
-              <i className="fa-solid fa-building-columns" /> Bank Account
+              <Icon className="fa-solid fa-building-columns" /> Bank Account
             </th>
             <th className="acc-num">
-              <i className="fa-solid fa-coins" /> Collected (Net)
+              <Icon className="fa-solid fa-coins" /> Collected (Net)
             </th>
             <th>
-              <i className="fa-solid fa-calendar-week" /> Allocate to Months
+              <Icon className="fa-solid fa-calendar-week" /> Allocate to Months
             </th>
             <th>
-              <i className="fa-solid fa-file-lines" /> Claim(s)
+              <Icon className="fa-solid fa-file-lines" /> Claim(s)
             </th>
             <th className="acc-num">Tax</th>
             <th className="acc-num">Vol Disc</th>
@@ -204,19 +205,19 @@ export function VerificationTable({
             <th className="acc-num">Rejection</th>
             <th className="acc-num">Gross</th>
             <th>
-              <i className="fa-solid fa-file-signature" /> Proof
+              <Icon className="fa-solid fa-file-signature" /> Proof
             </th>
             <th>
-              <i className="fa-solid fa-shield-halved" /> Status
+              <Icon className="fa-solid fa-shield-halved" /> Status
             </th>
             <th>
-              <i className="fa-solid fa-user-check" /> Action By
+              <Icon className="fa-solid fa-user-check" /> Action By
             </th>
             <th>
-              <i className="fa-solid fa-clock" /> Action On
+              <Icon className="fa-solid fa-clock" /> Action On
             </th>
             <th>
-              <i className="fa-solid fa-note-sticky" /> Notes
+              <Icon className="fa-solid fa-note-sticky" /> Notes
             </th>
           </tr>
         </thead>
@@ -227,7 +228,7 @@ export function VerificationTable({
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-triangle-exclamation" />
+                  <Icon className="fa-solid fa-triangle-exclamation" />
                   Couldn&apos;t load AR Verification entries.
                   <br />
                   <small>{error}</small>
@@ -238,7 +239,7 @@ export function VerificationTable({
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-inbox" />
+                  <Icon className="fa-solid fa-inbox" />
                   No entries to verify.
                   <br />
                   <small>Try clearing filters, or wait for the Collection team to submit new entries.</small>
@@ -348,7 +349,7 @@ export function VerificationTable({
                             fontSize: 12,
                           }}
                         >
-                          <i className="fa-solid fa-folder-open" /> View files
+                          <Icon className="fa-solid fa-folder-open" /> View files
                         </button>
                       ) : (
                         <button
@@ -356,7 +357,7 @@ export function VerificationTable({
                           className="acc-btn"
                           style={{ padding: '5px 10px', fontSize: 12 }}
                         >
-                          <i className="fa-solid fa-upload" /> Upload
+                          <Icon className="fa-solid fa-upload" /> Upload
                         </button>
                       )}
                     </td>
@@ -365,12 +366,12 @@ export function VerificationTable({
                         className={statusTone(statusPillClass(r.status))}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700 }}
                       >
-                        <i className={`fa-solid ${statusIcon(r.status)}`} /> {r.statusLabel}
+                        <Icon className={`fa-solid ${statusIcon(r.status)}`} /> {r.statusLabel}
                       </span>
                     </td>
                     <td>
                       <span className="acc-typ">
-                        <i className="fa-solid fa-user" style={{ color: 'var(--muted)', fontSize: 11 }} />
+                        <Icon className="fa-solid fa-user" style={{ color: 'var(--muted)', fontSize: 11 }} />
                         <MutedDash value={r.actionBy} />
                       </span>
                     </td>

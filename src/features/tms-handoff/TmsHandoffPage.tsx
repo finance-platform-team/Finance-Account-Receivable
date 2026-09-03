@@ -10,6 +10,7 @@ import { STATUS_CARDS } from './normalize';
 import type { TmsHandoffRow } from './types';
 import type { PageSize } from '../../shared/types';
 import { SEARCH_MAX } from '../../shared/validation';
+import { Icon } from '../../shared/components/Icon';
 
 function toDateOnly(value: string | null): string {
   if (!value) return '';
@@ -111,7 +112,7 @@ export function TmsHandoffPage() {
         </div>
         <div className="acc-actions">
           <button className="acc-btn" onClick={handleReload}>
-            <i className="fa-solid fa-arrows-rotate" /> Refresh Data
+            <Icon className="fa-solid fa-arrows-rotate" /> Refresh Data
           </button>
         </div>
       </div>
@@ -119,7 +120,7 @@ export function TmsHandoffPage() {
       <div className="acc-bar">
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--muted)', fontWeight: 500 }}>
-            <i className="fa-solid fa-clock" style={{ color: 'var(--gold)' }} />
+            <Icon className="fa-solid fa-clock" style={{ color: 'var(--gold)' }} />
             Last refresh: <strong style={{ color: 'var(--ink)' }}>{lastRefreshLabel}</strong>
           </span>
         </div>
@@ -154,7 +155,7 @@ export function TmsHandoffPage() {
             />
           </div>
           <div className="acc-search" style={{ minWidth: 200, flex: 'none' }}>
-            <i className="fa-solid fa-magnifying-glass" />
+            <Icon className="fa-solid fa-magnifying-glass" />
             <input
               type="text"
               placeholder="Search tasks…"

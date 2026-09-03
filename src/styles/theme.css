@@ -334,6 +334,27 @@ select.acc-f option{background:var(--card);color:var(--ink)}
 @media(min-width:640px){.acc-dfoot{padding:16px 22px}}
 @media(max-width:640px){.acc-dfoot .acc-btn{flex:1 1 auto;justify-content:center}}
 
+/* Confirm dialog — app-wide replacement for window.confirm (see
+   ConfirmProvider). A small centered card rather than a full acc-drawer,
+   since it's standing in for a one-line browser prompt, not a form. */
+.acc-confirm-scrim{position:fixed;inset:0;background:rgba(43,22,10,.45);opacity:0;
+  pointer-events:none;transition:opacity .15s;z-index:80;
+  display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box}
+.acc-confirm-scrim.on{opacity:1;pointer-events:auto}
+.acc-confirm-card{background:var(--card);border-radius:14px;width:100%;max-width:400px;
+  box-shadow:0 20px 60px rgba(43,22,10,.3);transform:translateY(10px) scale(.97);opacity:0;
+  transition:transform .18s cubic-bezier(.4,0,.2,1),opacity .18s;box-sizing:border-box}
+.acc-confirm-scrim.on .acc-confirm-card{transform:translateY(0) scale(1);opacity:1}
+.acc-confirm-head{padding:22px 22px 18px;display:flex;align-items:flex-start;gap:14px}
+.acc-confirm-icon{width:36px;height:36px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:15px;
+  background:var(--goldbg);color:var(--gold)}
+.acc-confirm-icon.danger{background:var(--badbg);color:var(--bad)}
+.acc-confirm-title{margin:0 0 4px;font-family:'Outfit';font-weight:700;font-size:15.5px;color:var(--ink)}
+.acc-confirm-message{font-size:13.5px;color:var(--ink);line-height:1.5}
+.acc-confirm-foot{padding:14px 22px;border-top:1px solid var(--line);
+  display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+
 /* Reusable responsive form grids — mobile-first: single column on phones,
    widening from 520px. Used by every drawer/modal with a 2- or 3-field row
    (AgingDrawer, PlanDetailDrawer, SlaFormDrawer, TmsHandoffDrawer,

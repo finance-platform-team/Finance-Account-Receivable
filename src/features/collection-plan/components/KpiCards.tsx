@@ -1,5 +1,6 @@
 import { fmtTotal } from '../normalize';
 import type { PlanTotals } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 interface KpiCardsProps {
   totals: PlanTotals;
@@ -16,35 +17,35 @@ export function KpiCards({ totals }: KpiCardsProps) {
     <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
       <div className="kpi-card">
         <div className="kpi-label">
-          <i className="fa-solid fa-scale-balanced" /> Total Outstanding
+          <Icon className="fa-solid fa-scale-balanced" /> Total Outstanding
         </div>
         <div className="kpi-value">{fmtTotal(totals.totalOutstanding)}</div>
       </div>
 
       <div className="kpi-card kpi-warn">
         <div className="kpi-label">
-          <i className="fa-solid fa-triangle-exclamation" /> Total Rejections
+          <Icon className="fa-solid fa-triangle-exclamation" /> Total Rejections
         </div>
         <div className="kpi-value">{fmtTotal(totals.rejections)}</div>
       </div>
 
       <div className="kpi-card kpi-info">
         <div className="kpi-label">
-          <i className="fa-solid fa-layer-group" /> Outstanding + Rej
+          <Icon className="fa-solid fa-layer-group" /> Outstanding + Rej
         </div>
         <div className="kpi-value">{fmtTotal(totals.outstandingRej)}</div>
       </div>
 
       <div className="kpi-card kpi-gold">
         <div className="kpi-label">
-          <i className="fa-solid fa-hand-holding-dollar" /> Total Dues
+          <Icon className="fa-solid fa-hand-holding-dollar" /> Total Dues
         </div>
         <div className="kpi-value">{fmtTotal(totals.totalDues)}</div>
       </div>
 
       <div className="kpi-card kpi-ok">
         <div className="kpi-label">
-          <i className="fa-solid fa-bullseye" /> Target Plan
+          <Icon className="fa-solid fa-bullseye" /> Target Plan
         </div>
         <div className="kpi-value">
           {fmtTotal(totals.targetPlan)}

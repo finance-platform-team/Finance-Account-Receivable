@@ -3,6 +3,7 @@ import { RegionPickerModal } from './RegionPickerModal';
 import { RegionProvider } from '../../shared/RegionProvider';
 import { useRegion } from '../../shared/regionContext';
 import { REGION_OPTIONS } from '../../shared/region';
+import { ConfirmProvider } from '../../shared/ConfirmProvider';
 import { ThemeProvider } from '../../shared/ThemeProvider';
 import { useTheme } from '../../shared/themeContext';
 import { ArAgingPage } from '../../features/ar-aging/ArAgingPage';
@@ -14,6 +15,7 @@ import { PaymentTermsPage } from '../../features/payment-terms/PaymentTermsPage'
 import { TmsHandoffPage } from '../../features/tms-handoff/TmsHandoffPage';
 import { SlaPage } from '../../features/sla/SlaPage';
 import { TreasuryWorkflowPage } from '../../features/treasury-workflow/TreasuryWorkflowPage';
+import { Icon } from '../../shared/components/Icon';
 
 interface NavItem {
   key: string;
@@ -70,7 +72,7 @@ function SidebarFooter() {
     <div className="acc-sb-footer">
       <button className="acc-theme-toggle" onClick={openPicker} title="Change region">
         <span className="acc-theme-label">
-          <i className="fa-solid fa-globe" />
+          <Icon className="fa-solid fa-globe" />
           Region
         </span>
         <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--shell-accent)' }}>
@@ -79,10 +81,10 @@ function SidebarFooter() {
       </button>
       <button className="acc-theme-toggle" onClick={toggleTheme} title="Toggle light / dark theme">
         <span className="acc-theme-label">
-          <i className={`fa-solid ${isDark ? 'fa-moon' : 'fa-sun'}`} />
+          <Icon className={`fa-solid ${isDark ? 'fa-moon' : 'fa-sun'}`} />
           {isDark ? 'Dark' : 'Light'} mode
         </span>
-        <i className={`fa-solid ${isDark ? 'fa-toggle-on' : 'fa-toggle-off'}`} />
+        <Icon className={`fa-solid ${isDark ? 'fa-toggle-on' : 'fa-toggle-off'}`} />
       </button>
     </div>
   );
@@ -144,10 +146,10 @@ function ShellInner() {
     <div className="acc-shell">
       <div className="acc-mobile-topbar">
         <button className="acc-mobile-menu-btn" title="Open menu" onClick={() => setMobileOpen(true)}>
-          <i className="fa-solid fa-bars" />
+          <Icon className="fa-solid fa-bars" />
         </button>
         <div className="acc-logo">
-          <i className="fa-solid fa-file-invoice-dollar" />
+          <Icon className="fa-solid fa-file-invoice-dollar" />
           <span>Accounts Receivable</span>
         </div>
       </div>
@@ -157,7 +159,7 @@ function ShellInner() {
       <aside className={`acc-sidebar${desktopCollapsed ? ' collapsed' : ''}${mobileOpen ? ' mobile-open' : ''}`}>
         <div className="acc-sb-brand">
           <div className="acc-logo">
-            <i className="fa-solid fa-file-invoice-dollar" />
+            <Icon className="fa-solid fa-file-invoice-dollar" />
             <span>
               Accounts
               <br />
@@ -169,7 +171,7 @@ function ShellInner() {
             title={isMobile ? 'Close menu' : desktopCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             onClick={handleToggleSidebar}
           >
-            <i className={`fa-solid ${isMobile ? 'fa-xmark' : desktopCollapsed ? 'fa-angles-right' : 'fa-bars'}`} />
+            <Icon className={`fa-solid ${isMobile ? 'fa-xmark' : desktopCollapsed ? 'fa-angles-right' : 'fa-bars'}`} />
           </button>
         </div>
 
@@ -185,7 +187,7 @@ function ShellInner() {
                   onClick={() => toggleGroup(group.key)}
                 >
                   <span className="acc-sb-group-label">{group.label}</span>
-                  <i className={`fa-solid fa-chevron-down acc-sb-group-chevron${isCollapsed ? ' collapsed' : ''}`} />
+                  <Icon className={`fa-solid fa-chevron-down acc-sb-group-chevron${isCollapsed ? ' collapsed' : ''}`} />
                 </button>
                 {!isCollapsed && (
                   <ul className="acc-sb-group-items">
@@ -196,7 +198,7 @@ function ShellInner() {
                           title={item.label}
                           onClick={() => handleSelectNav(item.key)}
                         >
-                          <i className={`fa-solid ${item.icon}`} />
+                          <Icon className={`fa-solid ${item.icon}`} />
                           <span className="acc-sb-label">{item.label}</span>
                         </a>
                       </li>
@@ -232,8 +234,10 @@ export function AppShell() {
   return (
     <ThemeProvider>
       <RegionProvider>
-        <ShellInner />
-        <RegionPickerModal />
+        <ConfirmProvider>
+          <ShellInner />
+          <RegionPickerModal />
+        </ConfirmProvider>
       </RegionProvider>
     </ThemeProvider>
   );

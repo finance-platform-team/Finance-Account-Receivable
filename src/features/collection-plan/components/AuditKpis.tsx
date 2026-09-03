@@ -1,4 +1,5 @@
 import type { AuditKpis as AuditKpisData } from '../normalizeAudit';
+import { Icon } from '../../../shared/components/Icon';
 
 interface AuditKpisProps {
   kpis: AuditKpisData;
@@ -9,28 +10,28 @@ export function AuditKpis({ kpis }: AuditKpisProps) {
     <div className="kpi-grid">
       <div className="kpi-card">
         <div className="kpi-label">
-          <i className="fa-solid fa-pen-to-square" /> Total Changes
+          <Icon className="fa-solid fa-pen-to-square" /> Total Changes
         </div>
         <div className="kpi-value">{kpis.total}</div>
       </div>
 
       <div className="kpi-card kpi-info">
         <div className="kpi-label">
-          <i className="fa-solid fa-building" /> Companies Affected
+          <Icon className="fa-solid fa-building" /> Companies Affected
         </div>
         <div className="kpi-value">{kpis.companies}</div>
       </div>
 
       <div className="kpi-card kpi-ok">
         <div className="kpi-label">
-          <i className="fa-solid fa-user-group" /> Team Members
+          <Icon className="fa-solid fa-user-group" /> Team Members
         </div>
         <div className="kpi-value">{kpis.users}</div>
       </div>
 
       <div className="kpi-card kpi-warn">
         <div className="kpi-label">
-          <i className="fa-solid fa-tags" /> Most Edited Field
+          <Icon className="fa-solid fa-tags" /> Most Edited Field
         </div>
         <div className="kpi-value" style={{ fontSize: 16 }}>
           {kpis.topField}

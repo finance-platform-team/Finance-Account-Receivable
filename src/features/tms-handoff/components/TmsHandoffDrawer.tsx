@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { MutedDash } from '../../../shared/components/MutedDash';
 import { badgeClassForStatus } from '../normalize';
 import type { TmsHandoffRow } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 function fmtDate(value: string | null): string {
   if (!value) return '—';
@@ -37,7 +38,7 @@ export function TmsHandoffDrawer({ row, open, onClose }: TmsHandoffDrawerProps) 
         <div className="acc-dhead">
           <div>
             <h2>
-              <i className="fa-solid fa-right-left" style={{ color: 'var(--gold)', fontSize: 16 }} />
+              <Icon className="fa-solid fa-right-left" style={{ color: 'var(--gold)', fontSize: 16 }} />
               {r?.title ?? ''}
             </h2>
             {r && (
@@ -47,7 +48,7 @@ export function TmsHandoffDrawer({ row, open, onClose }: TmsHandoffDrawerProps) 
             )}
           </div>
           <button className="acc-dclose" onClick={onClose}>
-            <i className="fa-solid fa-xmark" />
+            <Icon className="fa-solid fa-xmark" />
           </button>
         </div>
 

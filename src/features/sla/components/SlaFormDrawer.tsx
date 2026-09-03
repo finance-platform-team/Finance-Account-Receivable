@@ -4,6 +4,7 @@ import type { UserOption } from '../../../shared/components/UserCombo';
 import { SLA_TYPE_OPTIONS } from '../normalize';
 import { TEXT_MEDIUM_MAX, TEXT_SHORT_MAX } from '../../../shared/validation';
 import type { SlaFormInput, SlaRow } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 interface SlaFormDrawerProps {
   open: boolean;
@@ -100,11 +101,11 @@ export function SlaFormDrawer({ open, editing, submitting, onClose, onSubmit, on
       <aside className={`acc-drawer${open ? ' on' : ''}`}>
         <div className="acc-dhead">
           <h2>
-            <i className="fa-solid fa-stopwatch" style={{ color: 'var(--gold)', fontSize: 16 }} />
+            <Icon className="fa-solid fa-stopwatch" style={{ color: 'var(--gold)', fontSize: 16 }} />
             {editing ? 'Edit SLA Rule' : 'New SLA Rule'}
           </h2>
           <button className="acc-dclose" onClick={onClose}>
-            <i className="fa-solid fa-xmark" />
+            <Icon className="fa-solid fa-xmark" />
           </button>
         </div>
         <div className="acc-dbody">
@@ -223,7 +224,7 @@ export function SlaFormDrawer({ open, editing, submitting, onClose, onSubmit, on
               disabled={submitting}
               onClick={() => onDelete(editing)}
             >
-              <i className="fa-solid fa-trash" /> Delete
+              <Icon className="fa-solid fa-trash" /> Delete
             </button>
           )}
           <button className="acc-btn acc-btn-ghost" onClick={onClose} disabled={submitting}>

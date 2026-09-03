@@ -3,6 +3,7 @@ import { BuCombo } from '../../../shared/components/BuCombo';
 import { COMPANY_TYPE_VALUE_OPTIONS, CUSTOMER_CLASS_VALUE_OPTIONS } from '../normalize';
 import { TEXT_SHORT_MAX } from '../../../shared/validation';
 import type { BuOption, BusinessPartnerRow, PartnerFormInput } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 interface PaymentTermOption {
   id: string;
@@ -98,14 +99,16 @@ export function PartnerFormModal({
             {isEdit ? 'Edit Business Partner' : 'New Business Partner'}
           </h2>
           <button className="acc-dclose" onClick={onClose}>
-            <i className="fa-solid fa-xmark" />
+            <Icon className="fa-solid fa-xmark" />
           </button>
         </div>
         <div className="acc-dbody">
           <div className={`acc-err${error ? ' on' : ''}`}>{error}</div>
 
           <div className="acc-fld">
-            <label>Name</label>
+            <label>
+              Name <span style={{ color: 'var(--bad)' }}>*</span>
+            </label>
             <input
               placeholder="Company name"
               value={name}
@@ -116,7 +119,9 @@ export function PartnerFormModal({
           </div>
 
           <div className="acc-fld">
-            <label>Company Code</label>
+            <label>
+              Company Code <span style={{ color: 'var(--bad)' }}>*</span>
+            </label>
             <input
               placeholder="e.g. 116"
               value={companyCode}
@@ -162,7 +167,9 @@ export function PartnerFormModal({
           </div>
 
           <div className="acc-fld">
-            <label>Business Unit</label>
+            <label>
+              Business Unit <span style={{ color: 'var(--bad)' }}>*</span>
+            </label>
             <BuCombo valueLabel={bu?.name ?? ''} onChange={setBu} />
           </div>
         </div>

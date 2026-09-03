@@ -1,6 +1,7 @@
 import { MutedDash } from '../../../shared/components/MutedDash';
 import { fmtCreatedOn } from '../normalize';
 import type { PaymentTermRow } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 const COLUMN_COUNT = 4;
 
@@ -38,7 +39,7 @@ export function PaymentTermsTable({ rows, loading, error, onEdit }: PaymentTerms
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-triangle-exclamation" />
+                  <Icon className="fa-solid fa-triangle-exclamation" />
                   Couldn&apos;t load payment terms.
                   <br />
                   <small>{error}</small>
@@ -49,7 +50,7 @@ export function PaymentTermsTable({ rows, loading, error, onEdit }: PaymentTerms
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-calendar-days" />
+                  <Icon className="fa-solid fa-calendar-days" />
                   No payment terms to show.
                 </div>
               </td>

@@ -15,6 +15,7 @@ import { regionForBu } from '../../shared/region';
 import type { PageSize } from '../../shared/types';
 import { SEARCH_MAX } from '../../shared/validation';
 import { downloadCsv } from '../../shared/csv';
+import { Icon } from '../../shared/components/Icon';
 
 function uniqueSorted(values: string[]): string[] {
   return Array.from(new Set(values.filter((v) => v && v !== '—'))).sort();
@@ -136,10 +137,10 @@ export function TreasuryWorkflowPage() {
         </div>
         <div className="acc-actions">
           <button className="acc-btn" onClick={reload}>
-            <i className="fa-solid fa-rotate" /> Refresh Data
+            <Icon className="fa-solid fa-rotate" /> Refresh Data
           </button>
           <button className="acc-btn" onClick={handleExportCsv}>
-            <i className="fa-solid fa-file-excel" /> Export
+            <Icon className="fa-solid fa-file-excel" /> Export
           </button>
         </div>
       </div>
@@ -147,7 +148,7 @@ export function TreasuryWorkflowPage() {
       <div className="tbl-shell">
         <div className="tbl-hdr">
           <div className="acc-search">
-            <i className="fa-solid fa-magnifying-glass" />
+            <Icon className="fa-solid fa-magnifying-glass" />
             <input
               type="text"
               placeholder="Search company, code, ref…"

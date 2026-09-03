@@ -1,6 +1,7 @@
 import { MutedDash } from '../../../shared/components/MutedDash';
 import { fmtCreatedOn } from '../normalize';
 import type { BusinessPartnerRow } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 const COLUMN_COUNT = 9;
 
@@ -63,7 +64,7 @@ export function PartnersTable({
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-triangle-exclamation" />
+                  <Icon className="fa-solid fa-triangle-exclamation" />
                   Couldn&apos;t load business partners.
                   <br />
                   <small>{error}</small>
@@ -74,7 +75,7 @@ export function PartnersTable({
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-handshake" />
+                  <Icon className="fa-solid fa-handshake" />
                   No business partners to show.
                 </div>
               </td>

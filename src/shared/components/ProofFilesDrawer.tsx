@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { fileExt, fileIcon, fileIconClass } from '../proofFiles';
 import type { ProofFile } from '../proofFiles';
+import { useConfirm } from '../confirmContext';
+import { Icon } from './Icon';
 
 export interface ProofFilesTarget {
   title: string;
@@ -36,6 +38,7 @@ function fileTone(fileName: string): { bg: string; color: string } {
 }
 
 export function ProofFilesDrawer({ target, onClose, fetchFiles, uploadFile, deleteFile }: ProofFilesDrawerProps) {
+  const confirm = useConfirm();
   const [files, setFiles] = useState<ProofFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -155,7 +158,13 @@ export function ProofFilesDrawer({ target, onClose, fetchFiles, uploadFile, dele
 
   const handleDelete = async (file: ProofFile) => {
     if (!active || !deleteFile || !file.path) return;
-    if (!window.confirm(`Delete "${file.name}"? This cannot be undone.`)) return;
+    const ok = await confirm({
+      title: 'Delete file',
+      message: `Delete "${file.name}"? This cannot be undone.`,
+      confirmLabel: 'Delete',
+      danger: true,
+    });
+    if (!ok) return;
     const generation = generationRef.current;
     setDeletingPath(file.path);
     setActionError(null);
@@ -181,11 +190,11 @@ export function ProofFilesDrawer({ target, onClose, fetchFiles, uploadFile, dele
       <aside className={`acc-drawer${open ? ' on' : ''}`} role="dialog">
         <div className="acc-dhead">
           <h2>
-            <i className="fa-solid fa-folder-open" style={{ color: 'var(--gold)', fontSize: 16 }} />
+            <Icon className="fa-solid fa-folder-open" style={{ color: 'var(--gold)', fontSize: 16 }} />
             {active?.title}
           </h2>
           <button className="acc-dclose" onClick={onClose}>
-            <i className="fa-solid fa-xmark" />
+            <Icon className="fa-solid fa-xmark" />
           </button>
         </div>
         <div className="acc-dbody">
@@ -200,7 +209,7 @@ export function ProofFilesDrawer({ target, onClose, fetchFiles, uploadFile, dele
                 gap: 7,
               }}
             >
-              <i className="fa-solid fa-paperclip" style={{ color: 'var(--gold)' }} />
+              <Icon className="fa-solid fa-paperclip" style={{ color: 'var(--gold)' }} />
               Documents {!loading && !error && `(${files.length})`}
             </div>
             {uploadFile && (
@@ -217,7 +226,7 @@ export function ProofFilesDrawer({ target, onClose, fetchFiles, uploadFile, dele
                   disabled={uploading}
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <i className={`fa-solid ${uploading ? 'fa-spinner fa-spin' : 'fa-upload'}`} />{' '}
+                  <Icon className={`fa-solid ${uploading ? 'fa-spinner fa-spin' : 'fa-upload'}`} />{' '}
                   {uploading ? 'Uploading…' : 'Upload'}
                 </button>
               </>
@@ -228,12 +237,12 @@ export function ProofFilesDrawer({ target, onClose, fetchFiles, uploadFile, dele
 
           {loading ? (
             <div className="acc-state">
-              <i className="fa-solid fa-spinner fa-spin" />
+              <Icon className="fa-solid fa-spinner fa-spin" />
               Loading files…
             </div>
           ) : error ? (
             <div className="acc-state">
-              <i className="fa-solid fa-circle-exclamation" />
+              <Icon className="fa-solid fa-circle-exclamation" />
               {error}
               {active?.proofUrl && (
                 <div style={{ marginTop: 10 }}>
@@ -245,7 +254,7 @@ export function ProofFilesDrawer({ target, onClose, fetchFiles, uploadFile, dele
             </div>
           ) : files.length === 0 ? (
             <div className="acc-state">
-              <i className="fa-solid fa-folder-open" />
+              <Icon className="fa-solid fa-folder-open" />
               No files found in this folder yet.
             </div>
           ) : (
@@ -277,7 +286,7 @@ export function ProofFilesDrawer({ target, onClose, fetchFiles, uploadFile, dele
                         color: tone.color,
                       }}
                     >
-                      <i className={`fa-solid ${fileIcon(f.name)}`} />
+                      <Icon className={`fa-solid ${fileIcon(f.name)}`} />
                     </span>
                     <span style={{ flex: 1, minWidth: 0 }}>
                       <span
@@ -306,7 +315,7 @@ export function ProofFilesDrawer({ target, onClose, fetchFiles, uploadFile, dele
                       style={{ padding: '6px 9px' }}
                       title="Open"
                     >
-                      <i className="fa-solid fa-arrow-up-right-from-square" />
+                      <Icon className="fa-solid fa-arrow-up-right-from-square" />
                     </a>
                     {deleteFile && (
                       <button
@@ -316,7 +325,7 @@ export function ProofFilesDrawer({ target, onClose, fetchFiles, uploadFile, dele
                         title={f.path ? 'Delete' : 'This file has no path from the flow — cannot delete.'}
                         onClick={() => handleDelete(f)}
                       >
-                        <i className={`fa-solid ${deletingPath === f.path ? 'fa-spinner fa-spin' : 'fa-trash'}`} />
+                        <Icon className={`fa-solid ${deletingPath === f.path ? 'fa-spinner fa-spin' : 'fa-trash'}`} />
                       </button>
                     )}
                   </div>

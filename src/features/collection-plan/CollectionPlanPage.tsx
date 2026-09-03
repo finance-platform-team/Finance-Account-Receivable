@@ -14,6 +14,7 @@ import { useCollectionPlanData } from './useCollectionPlanData';
 import { useAuditData } from './useAuditData';
 import { usePlanSubmissionLock } from './usePlanSubmissionLock';
 import { useToasts } from '../../shared/useToasts';
+import { useConfirm } from '../../shared/confirmContext';
 import { ToastRack } from '../../shared/components/ToastRack';
 import { Pagination } from '../../shared/components/Pagination';
 import { EDITABLE_FIELDS, EDITABLE_FIELD_LABELS, rowTargetPlan } from './normalize';
@@ -31,6 +32,7 @@ import type {
 } from '../../generated/models/Cfm_tmshandoffsModel';
 import type { PageSize } from '../../shared/types';
 import type { DirtyChange, EditableFieldKey, PlanRow, PlanTotals } from './types';
+import { Icon } from '../../shared/components/Icon';
 
 const EMPTY_TOTALS: PlanTotals = {
   agreedrecon: 0,
@@ -99,6 +101,7 @@ export function CollectionPlanPage() {
   const { rows: allRows, loading, error, updateRow } = useCollectionPlanData();
   const { locked, send } = usePlanSubmissionLock();
   const { toasts, push } = useToasts();
+  const confirm = useConfirm();
   const { region } = useRegion();
 
   // Scope every company on this page to the selected region's BU list before any
@@ -319,13 +322,19 @@ export function CollectionPlanPage() {
     );
   }, [push]);
 
-  const handleCancelEdit = useCallback(() => {
-    if (dirtyChanges.size > 0 && !window.confirm(`Discard ${dirtyChanges.size} unsaved change(s)?`)) {
-      return;
+  const handleCancelEdit = useCallback(async () => {
+    if (dirtyChanges.size > 0) {
+      const ok = await confirm({
+        title: 'Discard changes',
+        message: `Discard ${dirtyChanges.size} unsaved change(s)?`,
+        confirmLabel: 'Discard',
+        danger: true,
+      });
+      if (!ok) return;
     }
     setDirtyChanges(new Map());
     setManualUnlock(false);
-  }, [dirtyChanges.size]);
+  }, [confirm, dirtyChanges.size]);
 
   const handleConfirmEdit = useCallback(async () => {
     if (dirtyChanges.size === 0) {
@@ -334,13 +343,10 @@ export function CollectionPlanPage() {
     }
     const entries = Array.from(dirtyChanges.entries());
     const affectedIds = new Set(entries.map(([key]) => key.split('|')[0]));
-    if (
-      !window.confirm(
-        `Save ${entries.length} change(s) across ${affectedIds.size} compan${affectedIds.size === 1 ? 'y' : 'ies'}?`
-      )
-    ) {
-      return;
-    }
+    const ok = await confirm(
+      `Save ${entries.length} change(s) across ${affectedIds.size} compan${affectedIds.size === 1 ? 'y' : 'ies'}?`
+    );
+    if (!ok) return;
 
     const nowISO = new Date().toISOString();
     let okCount = 0;
@@ -379,7 +385,7 @@ export function CollectionPlanPage() {
     } else {
       push('Saved with errors', `Saved ${okCount}, failed ${failCount}. ${firstErr}`, 'alert');
     }
-  }, [dirtyChanges, updateRow, push]);
+  }, [confirm, dirtyChanges, updateRow, push]);
 
   const handleTargetPctBlur = useCallback(async () => {
     setPctSaveState('saving');
@@ -588,7 +594,7 @@ export function CollectionPlanPage() {
                 verticalAlign: 'middle',
               }}
             >
-              <i className="fa-solid fa-circle" style={{ fontSize: 8 }} /> {locked ? 'Sent' : 'Draft'}
+              <Icon className="fa-solid fa-circle" style={{ fontSize: 8 }} /> {locked ? 'Sent' : 'Draft'}
             </span>
           </h1>
           <div className="acc-sub">{pgSub}</div>
@@ -598,19 +604,19 @@ export function CollectionPlanPage() {
           {isPlan ? (
             <>
               <button className="acc-btn" onClick={handleExportCsv}>
-                <i className="fa-solid fa-file-arrow-down" /> Export
+                <Icon className="fa-solid fa-file-arrow-down" /> Export
               </button>
               <button className="acc-btn" onClick={handleOpenDecision}>
-                <i className="fa-solid fa-clipboard-check" /> Decision
+                <Icon className="fa-solid fa-clipboard-check" /> Decision
               </button>
               {locked && !manualUnlock && (
                 <button className="acc-btn" onClick={handleEditUnlock}>
-                  <i className="fa-solid fa-lock-open" /> Edit
+                  <Icon className="fa-solid fa-lock-open" /> Edit
                 </button>
               )}
               {locked && manualUnlock && (
                 <button className="acc-btn" onClick={handleCancelEdit}>
-                  <i className="fa-solid fa-xmark" /> Cancel
+                  <Icon className="fa-solid fa-xmark" /> Cancel
                 </button>
               )}
               {locked && manualUnlock && (
@@ -619,7 +625,7 @@ export function CollectionPlanPage() {
                   style={{ color: 'var(--ok)', borderColor: 'var(--ok)' }}
                   onClick={handleConfirmEdit}
                 >
-                  <i className="fa-solid fa-check" /> Confirm Edit{dirtyChanges.size ? ` (${dirtyChanges.size})` : ''}
+                  <Icon className="fa-solid fa-check" /> Confirm Edit{dirtyChanges.size ? ` (${dirtyChanges.size})` : ''}
                 </button>
               )}
               <button
@@ -628,16 +634,16 @@ export function CollectionPlanPage() {
                 onClick={handleSend}
                 title={locked ? 'Already sent this month' : undefined}
               >
-                <i className="fa-solid fa-paper-plane" /> Send to Collection Team
+                <Icon className="fa-solid fa-paper-plane" /> Send to Collection Team
               </button>
             </>
           ) : (
             <>
               <button className="acc-btn" onClick={handleExportAuditCsv}>
-                <i className="fa-solid fa-file-arrow-down" /> Export
+                <Icon className="fa-solid fa-file-arrow-down" /> Export
               </button>
               <button className="acc-btn acc-btn-primary" onClick={reloadAudit}>
-                <i className="fa-solid fa-rotate" /> Refresh
+                <Icon className="fa-solid fa-rotate" /> Refresh
               </button>
             </>
           )}
@@ -646,10 +652,10 @@ export function CollectionPlanPage() {
 
       <div style={{ display: 'inline-flex', gap: 8, marginBottom: 16 }}>
         <button onClick={() => setViewTab('plan')} style={tabButtonStyle(isPlan)}>
-          <i className="fa-solid fa-clipboard-list" /> Collection Plan
+          <Icon className="fa-solid fa-clipboard-list" /> Collection Plan
         </button>
         <button onClick={() => setViewTab('audit')} style={tabButtonStyle(!isPlan)}>
-          <i className="fa-solid fa-clock-rotate-left" /> Manual Entry Audit
+          <Icon className="fa-solid fa-clock-rotate-left" /> Manual Entry Audit
         </button>
       </div>
 
@@ -657,12 +663,12 @@ export function CollectionPlanPage() {
         <div>
           <div className="acc-bar">
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--muted)', fontSize: 12.5 }}>
-              <i className="fa-solid fa-calendar-days" style={{ color: 'var(--gold)' }} />
+              <Icon className="fa-solid fa-calendar-days" style={{ color: 'var(--gold)' }} />
               <strong style={{ color: 'var(--brown)' }}>Plan Period:</strong> {planPeriodLabel}
             </span>
             <span style={{ width: 1, height: 20, background: 'var(--line)' }} />
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--muted)', fontSize: 12.5 }}>
-              <i className="fa-solid fa-bullseye" style={{ color: 'var(--gold)' }} />
+              <Icon className="fa-solid fa-bullseye" style={{ color: 'var(--gold)' }} />
               <strong style={{ color: 'var(--brown)' }}>Target Plan:</strong> Total Dues ×
               <input
                 type="number"
@@ -681,7 +687,7 @@ export function CollectionPlanPage() {
             </span>
             <span style={{ width: 1, height: 20, background: 'var(--line)' }} />
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--muted)', fontSize: 12.5 }}>
-              <i className="fa-solid fa-clock" style={{ color: 'var(--gold)' }} />
+              <Icon className="fa-solid fa-clock" style={{ color: 'var(--gold)' }} />
               Last refresh: <strong style={{ color: 'var(--brown)' }}>{lastRefreshLabel}</strong>
             </span>
           </div>

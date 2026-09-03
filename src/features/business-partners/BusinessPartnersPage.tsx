@@ -10,6 +10,7 @@ import { useBusinessPartnersData } from './useBusinessPartnersData';
 import { usePaymentTermsData } from '../payment-terms/usePaymentTermsData';
 import type { PageSize } from '../../shared/types';
 import type { BulkEditInput, BusinessPartnerRow, PartnerFormInput } from './types';
+import { Icon } from '../../shared/components/Icon';
 
 export function BusinessPartnersPage() {
   const { rows, loading, error, reload, createPartner, updatePartner, bulkUpdatePartners } =
@@ -180,10 +181,10 @@ export function BusinessPartnersPage() {
         </div>
         <div className="acc-actions">
           <button className="acc-btn" onClick={reload}>
-            <i className="fa-solid fa-rotate" /> Reload
+            <Icon className="fa-solid fa-rotate" /> Reload
           </button>
           <button className="acc-btn acc-btn-primary" onClick={handleOpenCreate}>
-            <i className="fa-solid fa-plus" /> New
+            <Icon className="fa-solid fa-plus" /> New
           </button>
         </div>
       </div>
@@ -198,7 +199,7 @@ export function BusinessPartnersPage() {
               Clear
             </button>
             <button className="acc-btn acc-btn-primary" onClick={handleOpenBulk}>
-              <i className="fa-solid fa-layer-group" /> Bulk Edit
+              <Icon className="fa-solid fa-layer-group" /> Bulk Edit
             </button>
           </div>
         </div>

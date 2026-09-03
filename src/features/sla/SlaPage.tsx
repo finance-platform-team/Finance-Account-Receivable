@@ -4,15 +4,18 @@ import { SlaFormDrawer } from './components/SlaFormDrawer';
 import { Pagination } from '../../shared/components/Pagination';
 import { ToastRack } from '../../shared/components/ToastRack';
 import { useToasts } from '../../shared/useToasts';
+import { useConfirm } from '../../shared/confirmContext';
 import { useSlaData } from './useSlaData';
 import type { SlaFormInput, SlaRow } from './types';
 import type { PageSize } from '../../shared/types';
 import { SEARCH_MAX } from '../../shared/validation';
 import { downloadCsv } from '../../shared/csv';
+import { Icon } from '../../shared/components/Icon';
 
 export function SlaPage() {
   const { rows, loading, error, reload, createSla, updateSla, deactivateSla } = useSlaData();
   const { toasts, push } = useToasts();
+  const confirm = useConfirm();
 
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -79,7 +82,13 @@ export function SlaPage() {
 
   const handleDelete = useCallback(
     async (row: SlaRow) => {
-      if (!window.confirm(`Delete SLA rule "${row.action}"? This deactivates the record.`)) return;
+      const ok = await confirm({
+        title: 'Delete SLA rule',
+        message: `Delete SLA rule "${row.action}"? This deactivates the record.`,
+        confirmLabel: 'Delete',
+        danger: true,
+      });
+      if (!ok) return;
       try {
         await deactivateSla(row.id);
         push('SLA rule deactivated', `"${row.action}" was deactivated.`, 'success');
@@ -88,7 +97,7 @@ export function SlaPage() {
         push('Could not deactivate SLA rule', err instanceof Error ? err.message : 'Unknown error.', 'alert');
       }
     },
-    [deactivateSla, push]
+    [confirm, deactivateSla, push]
   );
 
   const handleExportCsv = useCallback(() => {
@@ -124,13 +133,13 @@ export function SlaPage() {
         </div>
         <div className="acc-actions">
           <button className="acc-btn" onClick={reload}>
-            <i className="fa-solid fa-rotate" /> Refresh
+            <Icon className="fa-solid fa-rotate" /> Refresh
           </button>
           <button className="acc-btn" onClick={handleExportCsv}>
-            <i className="fa-solid fa-file-arrow-down" /> Export SLA
+            <Icon className="fa-solid fa-file-arrow-down" /> Export SLA
           </button>
           <button className="acc-btn acc-btn-primary" onClick={handleOpenCreate}>
-            <i className="fa-solid fa-plus" /> New SLA
+            <Icon className="fa-solid fa-plus" /> New SLA
           </button>
         </div>
       </div>
@@ -138,7 +147,7 @@ export function SlaPage() {
       <div className="tbl-shell">
         <div className="tbl-hdr">
           <div className="acc-search">
-            <i className="fa-solid fa-magnifying-glass" />
+            <Icon className="fa-solid fa-magnifying-glass" />
             <input
               placeholder="Search action, responsible, department…"
               maxLength={SEARCH_MAX}

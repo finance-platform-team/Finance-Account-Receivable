@@ -1,4 +1,5 @@
 import { STATUS_CARDS } from '../normalize';
+import { Icon } from '../../../shared/components/Icon';
 
 interface StatusCardsProps {
   counts: Record<string, number>;
@@ -23,7 +24,7 @@ export function StatusCards({ counts, activeKey, onSelect }: StatusCardsProps) {
             }}
           >
             <div className="kpi-label">
-              <i className="fa-solid fa-circle" style={{ fontSize: 7 }} />
+              <Icon className="fa-solid fa-circle" style={{ fontSize: 7 }} />
               {card.label}
             </div>
             <div className="kpi-value">{counts[card.key] ?? 0}</div>

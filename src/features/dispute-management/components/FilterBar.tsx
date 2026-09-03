@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import { AR_REVIEW_OPTIONS, CATEGORY_CHIP_LABELS } from '../normalize';
 import { SEARCH_MAX } from '../../../shared/validation';
+import { Icon } from '../../../shared/components/Icon';
 
 interface FilterBarProps {
   search: string;
@@ -48,7 +49,7 @@ export function FilterBar({
   return (
     <>
       <div className="acc-search">
-        <i className="fa-solid fa-magnifying-glass" />
+        <Icon className="fa-solid fa-magnifying-glass" />
         <input
           type="text"
           placeholder="Search code, company, agreement…"

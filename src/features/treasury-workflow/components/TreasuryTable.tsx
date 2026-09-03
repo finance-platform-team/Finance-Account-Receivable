@@ -1,6 +1,7 @@
 import { MutedDash } from '../../../shared/components/MutedDash';
 import { fmt } from '../../AR Verification/normalize';
 import type { VerificationRow } from '../../AR Verification/types';
+import { Icon } from '../../../shared/components/Icon';
 
 const COLUMN_COUNT = 9;
 
@@ -44,7 +45,7 @@ export function TreasuryTable({ rows, loading, error, onOpenProofFiles }: Treasu
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-triangle-exclamation" />
+                  <Icon className="fa-solid fa-triangle-exclamation" />
                   Couldn&apos;t load Treasury Workflow.
                   <br />
                   <small>{error}</small>
@@ -55,7 +56,7 @@ export function TreasuryTable({ rows, loading, error, onOpenProofFiles }: Treasu
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-building-columns" />
+                  <Icon className="fa-solid fa-building-columns" />
                   No collections are currently pending a bank statement.
                 </div>
               </td>
@@ -102,7 +103,7 @@ export function TreasuryTable({ rows, loading, error, onOpenProofFiles }: Treasu
                         fontSize: 12,
                       }}
                     >
-                      <i className="fa-solid fa-folder-open" /> View files
+                      <Icon className="fa-solid fa-folder-open" /> View files
                     </button>
                   ) : (
                     <MutedDash value={null} />

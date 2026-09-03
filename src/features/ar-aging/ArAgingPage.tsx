@@ -21,6 +21,7 @@ import type {
 import type { AgingRow, AgingTotals, DatasetKey } from './types';
 import type { PageSize } from '../../shared/types';
 import { downloadCsv } from '../../shared/csv';
+import { Icon } from '../../shared/components/Icon';
 
 const EMPTY_TOTALS: AgingTotals = { notDue: 0, lt30: 0, b3160: 0, b6190: 0, b91120: 0, gt120: 0 };
 
@@ -242,10 +243,10 @@ export function ArAgingPage() {
         </div>
         <div className="acc-actions">
           <button className="acc-btn" onClick={handleExportCsv}>
-            <i className="fa-solid fa-file-arrow-down" /> Export
+            <Icon className="fa-solid fa-file-arrow-down" /> Export
           </button>
           <button className="acc-btn acc-btn-primary" onClick={handleOpenDecision}>
-            <i className="fa-solid fa-clipboard-check" /> Create Decision
+            <Icon className="fa-solid fa-clipboard-check" /> Create Decision
           </button>
         </div>
       </div>
@@ -253,12 +254,12 @@ export function ArAgingPage() {
       <div className="acc-bar">
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--muted)', fontWeight: 500 }}>
-            <i className="fa-solid fa-database" style={{ color: 'var(--gold)' }} />
+            <Icon className="fa-solid fa-database" style={{ color: 'var(--gold)' }} />
             Source: <strong style={{ color: 'var(--ink)' }}>DotCare</strong>
           </span>
           <span style={{ width: 1, height: 22, background: 'var(--line)' }} />
           <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--muted)', fontWeight: 500 }}>
-            <i className="fa-solid fa-clock" style={{ color: 'var(--gold)' }} />
+            <Icon className="fa-solid fa-clock" style={{ color: 'var(--gold)' }} />
             Last refresh: <strong style={{ color: 'var(--ink)' }}>{lastRefreshLabel}</strong>
           </span>
         </div>
@@ -267,13 +268,13 @@ export function ArAgingPage() {
             className={`acc-btn${dataset === 'core' ? ' acc-btn-primary' : ''}`}
             onClick={() => handleSetDataset('core')}
           >
-            <i className="fa-solid fa-scale-balanced" /> AR Aging
+            <Icon className="fa-solid fa-scale-balanced" /> AR Aging
           </button>
           <button
             className={`acc-btn${dataset === 'africa' ? ' acc-btn-primary' : ''}`}
             onClick={() => handleSetDataset('africa')}
           >
-            <i className="fa-solid fa-globe" /> Africa
+            <Icon className="fa-solid fa-globe" /> Africa
           </button>
         </div>
       </div>

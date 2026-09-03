@@ -3,6 +3,7 @@ import { CATEGORY_OPTIONS, escODataString } from '../normalize';
 import { Cfm_insurancecompaniesService } from '../../../generated/services/Cfm_insurancecompaniesService';
 import { AMOUNT_MAX, clampNumber, TEXT_SHORT_MAX } from '../../../shared/validation';
 import type { CompanySearchResult, NewDisputeInput } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 interface NewDisputeDrawerProps {
   open: boolean;
@@ -122,17 +123,18 @@ export function NewDisputeDrawer({ open, submitting, onClose, onSubmit }: NewDis
       <aside className={`acc-drawer${open ? ' on' : ''}`}>
         <div className="acc-dhead">
           <h2>
-            <i className="fa-solid fa-plus" style={{ color: 'var(--gold)', fontSize: 16 }} />
+            <Icon className="fa-solid fa-plus" style={{ color: 'var(--gold)', fontSize: 16 }} />
             New Dispute
           </h2>
           <button className="acc-dclose" onClick={onClose}>
-            <i className="fa-solid fa-xmark" />
+            <Icon className="fa-solid fa-xmark" />
           </button>
         </div>
         <div className="acc-dbody">
           <div className="acc-fld">
             <label>
-              Code <span style={{ fontWeight: 400, color: 'var(--muted)', textTransform: 'none' }}>— type a code to search</span>
+              Code <span style={{ color: 'var(--bad)' }}>*</span>{' '}
+              <span style={{ fontWeight: 400, color: 'var(--muted)', textTransform: 'none' }}>— type a code to search</span>
             </label>
             <div className="acc-combo">
               <input
@@ -154,7 +156,7 @@ export function NewDisputeDrawer({ open, submitting, onClose, onSubmit }: NewDis
                 <div className="acc-combo-list">
                   {searching ? (
                     <div className="acc-combo-empty">
-                      <i className="fa-solid fa-spinner fa-spin" /> Searching…
+                      <Icon className="fa-solid fa-spinner fa-spin" /> Searching…
                     </div>
                   ) : results.length === 0 ? (
                     <div className="acc-combo-empty">No matches — refine your search.</div>
@@ -219,7 +221,7 @@ export function NewDisputeDrawer({ open, submitting, onClose, onSubmit }: NewDis
           </div>
 
           <div className="acc-hint">
-            <i className="fa-solid fa-circle-info" /> Saving triggers AR Verification &amp; confirmation.
+            <Icon className="fa-solid fa-circle-info" /> Saving triggers AR Verification &amp; confirmation.
           </div>
         </div>
         <div className="acc-dfoot">
@@ -231,7 +233,7 @@ export function NewDisputeDrawer({ open, submitting, onClose, onSubmit }: NewDis
               'Saving…'
             ) : (
               <>
-                <i className="fa-solid fa-circle-check" /> Create &amp; Trigger AR
+                <Icon className="fa-solid fa-circle-check" /> Create &amp; Trigger AR
               </>
             )}
           </button>

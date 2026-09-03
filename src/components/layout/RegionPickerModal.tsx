@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useRegion } from '../../shared/regionContext';
 import { REGION_OPTIONS } from '../../shared/region';
+import { Icon } from '../../shared/components/Icon';
 
 export function RegionPickerModal() {
   const { region, pickerOpen, setRegion, closePicker } = useRegion();
@@ -24,11 +25,11 @@ export function RegionPickerModal() {
       <aside className={`acc-drawer${pickerOpen ? ' on' : ''}`}>
         <div className="acc-dhead">
           <h2>
-            <i className="fa-solid fa-globe" style={{ color: 'var(--gold)', fontSize: 16 }} /> Select Your Region
+            <Icon className="fa-solid fa-globe" style={{ color: 'var(--gold)', fontSize: 16 }} /> Select Your Region
           </h2>
           {dismissable && (
             <button className="acc-dclose" onClick={closePicker} aria-label="Close">
-              <i className="fa-solid fa-xmark" />
+              <Icon className="fa-solid fa-xmark" />
             </button>
           )}
         </div>
@@ -72,7 +73,7 @@ export function RegionPickerModal() {
                     {opt.sub}
                   </small>
                 </span>
-                <i className="fa-solid fa-chevron-right" style={{ color: 'var(--muted)' }} />
+                <Icon className="fa-solid fa-chevron-right" style={{ color: 'var(--muted)' }} />
               </button>
             );
           })}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BuCombo } from '../../../shared/components/BuCombo';
 import { COMPANY_TYPE_VALUE_OPTIONS, CUSTOMER_CLASS_VALUE_OPTIONS } from '../normalize';
 import type { BulkEditInput, BuOption } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 interface PaymentTermOption {
   id: string;
@@ -79,11 +80,11 @@ export function BulkEditModal({ open, count, submitting, paymentTermOptions, onC
       <aside className={`acc-drawer${open ? ' on' : ''}`}>
         <div className="acc-dhead">
           <h2>
-            <i className="fa-solid fa-layer-group" style={{ color: 'var(--gold)', fontSize: 16 }} />
+            <Icon className="fa-solid fa-layer-group" style={{ color: 'var(--gold)', fontSize: 16 }} />
             Bulk Edit
           </h2>
           <button className="acc-dclose" onClick={onClose}>
-            <i className="fa-solid fa-xmark" />
+            <Icon className="fa-solid fa-xmark" />
           </button>
         </div>
         <div className="acc-dbody">

@@ -3,6 +3,7 @@ import { MutedDash } from '../../../shared/components/MutedDash';
 import { EditableCell } from './EditableCell';
 import { achvIcon, achvLevel, fmt, fmtTotal, rowAchievement, rowTargetPlan } from '../normalize';
 import type { DirtyChange, EditableFieldKey, PlanRow, PlanTotals } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 const COLUMN_COUNT = 22;
 
@@ -87,7 +88,7 @@ function achvBadgeStyle(pct: number): CSSProperties {
 function AchvBadge({ pct }: { pct: number }) {
   return (
     <span style={achvBadgeStyle(pct)}>
-      <i className={`fa-solid ${achvIcon(pct)}`} />
+      <Icon className={`fa-solid ${achvIcon(pct)}`} />
       {Math.round(pct)}%
     </span>
   );
@@ -129,16 +130,16 @@ export function PlanTable({
         <thead>
           <tr style={{ background: 'var(--brown)' }}>
             <th colSpan={8} style={GROUP_TH}>
-              <i className="fa-solid fa-address-book" /> Company Metadata
+              <Icon className="fa-solid fa-address-book" /> Company Metadata
             </th>
             <th colSpan={6} style={GROUP_TH_END}>
-              <i className="fa-solid fa-pen-to-square" /> Manual Entry — AR Team
+              <Icon className="fa-solid fa-pen-to-square" /> Manual Entry — AR Team
             </th>
             <th colSpan={5} style={GROUP_TH_END}>
-              <i className="fa-solid fa-calculator" /> Calculated / DotCare
+              <Icon className="fa-solid fa-calculator" /> Calculated / DotCare
             </th>
             <th colSpan={3} style={GROUP_TH}>
-              <i className="fa-solid fa-cash-register" /> Collection Achievement
+              <Icon className="fa-solid fa-cash-register" /> Collection Achievement
             </th>
           </tr>
           <tr>
@@ -182,7 +183,7 @@ export function PlanTable({
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-triangle-exclamation" />
+                  <Icon className="fa-solid fa-triangle-exclamation" />
                   Couldn&apos;t load Collection Plan.
                   <br />
                   <small>{error}</small>
@@ -193,7 +194,7 @@ export function PlanTable({
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-filter-circle-xmark" />
+                  <Icon className="fa-solid fa-filter-circle-xmark" />
                   No records match the current filters.
                 </div>
               </td>
@@ -268,7 +269,7 @@ export function PlanTable({
           <tfoot>
             <tr>
               <td colSpan={8} style={FOOT_TD}>
-                <i className="fa-solid fa-square-poll-vertical" style={{ color: 'var(--gold)', marginRight: 6 }} />
+                <Icon className="fa-solid fa-square-poll-vertical" style={{ color: 'var(--gold)', marginRight: 6 }} />
                 Total ({filteredCount} companies)
               </td>
               <td colSpan={5} style={FOOT_TD} />

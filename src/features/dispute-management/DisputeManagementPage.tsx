@@ -26,6 +26,7 @@ import type {
   Ar_disputemanagementscfm_arreview,
 } from '../../generated/models/Ar_disputemanagementsModel';
 import type { DisputeRow, NewDisputeInput } from './types';
+import { Icon } from '../../shared/components/Icon';
 
 export function DisputeManagementPage() {
   const { rows, loading, error, createDispute, updateRow } = useDisputeManagementData();
@@ -190,10 +191,10 @@ export function DisputeManagementPage() {
         </div>
         <div className="acc-actions">
           <button className="acc-btn" onClick={handleOpenDecision}>
-            <i className="fa-solid fa-clipboard-check" /> Create Decision
+            <Icon className="fa-solid fa-clipboard-check" /> Create Decision
           </button>
           <button className="acc-btn acc-btn-primary" onClick={() => setDrawerOpen(true)}>
-            <i className="fa-solid fa-plus" /> Create Dispute Case
+            <Icon className="fa-solid fa-plus" /> Create Dispute Case
           </button>
         </div>
       </div>

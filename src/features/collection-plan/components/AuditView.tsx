@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 import { MutedDash } from '../../../shared/components/MutedDash';
 import { auditInitials, fmtAuditNum } from '../normalizeAudit';
 import type { AuditRow } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 const COLUMN_COUNT = 7;
 
@@ -69,7 +70,7 @@ function DeltaCell({ row }: { row: AuditRow }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 600, fontSize: 13 }}>
       <span style={{ color: 'var(--muted)', textDecoration: 'line-through' }}>{fmtAuditNum(row.oldValue)}</span>
-      <i className="fa-solid fa-arrow-right" style={{ color: 'var(--muted)', fontSize: 11 }} />
+      <Icon className="fa-solid fa-arrow-right" style={{ color: 'var(--muted)', fontSize: 11 }} />
       <span style={{ color: 'var(--ink)', fontWeight: 800 }}>{fmtAuditNum(row.newValue)}</span>
       {diff !== 0 && (
         <span
@@ -85,7 +86,7 @@ function DeltaCell({ row }: { row: AuditRow }) {
             color: diff > 0 ? 'var(--ok)' : 'var(--bad)',
           }}
         >
-          <i className={`fa-solid ${diff > 0 ? 'fa-arrow-up' : 'fa-arrow-down'}`} />
+          <Icon className={`fa-solid ${diff > 0 ? 'fa-arrow-up' : 'fa-arrow-down'}`} />
           {fmtAuditNum(Math.abs(diff))}
         </span>
       )}
@@ -150,25 +151,25 @@ export function AuditView({ rows, grouped, loading, error }: AuditViewProps) {
         <thead>
           <tr>
             <th>
-              <i className="fa-solid fa-clock" /> Date &amp; Time
+              <Icon className="fa-solid fa-clock" /> Date &amp; Time
             </th>
             <th>
-              <i className="fa-solid fa-briefcase" /> Company
+              <Icon className="fa-solid fa-briefcase" /> Company
             </th>
             <th>
-              <i className="fa-solid fa-hashtag" /> Code
+              <Icon className="fa-solid fa-hashtag" /> Code
             </th>
             <th>
-              <i className="fa-solid fa-building" /> Type
+              <Icon className="fa-solid fa-building" /> Type
             </th>
             <th>
-              <i className="fa-solid fa-tags" /> Field
+              <Icon className="fa-solid fa-tags" /> Field
             </th>
             <th>
-              <i className="fa-solid fa-right-left" /> Old → New
+              <Icon className="fa-solid fa-right-left" /> Old → New
             </th>
             <th>
-              <i className="fa-solid fa-user" /> Changed By
+              <Icon className="fa-solid fa-user" /> Changed By
             </th>
           </tr>
         </thead>
@@ -179,7 +180,7 @@ export function AuditView({ rows, grouped, loading, error }: AuditViewProps) {
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-triangle-exclamation" />
+                  <Icon className="fa-solid fa-triangle-exclamation" />
                   Couldn&apos;t load audit trail.
                   <br />
                   <small>{error}</small>
@@ -190,7 +191,7 @@ export function AuditView({ rows, grouped, loading, error }: AuditViewProps) {
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-filter-circle-xmark" />
+                  <Icon className="fa-solid fa-filter-circle-xmark" />
                   No audit entries match the current filters.
                 </div>
               </td>
@@ -212,7 +213,7 @@ export function AuditView({ rows, grouped, loading, error }: AuditViewProps) {
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        <i className="fa-solid fa-building" style={{ color: 'var(--gold)' }} />
+                        <Icon className="fa-solid fa-building" style={{ color: 'var(--gold)' }} />
                         {g.name}
                         <span className="acc-code">{g.code}</span>
                         {g.type && g.type !== '—' && <TypePill value={g.type} />}

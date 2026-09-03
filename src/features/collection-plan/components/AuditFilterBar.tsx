@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { AUDIT_FIELD_OPTIONS } from '../normalizeAudit';
 import { SEARCH_MAX } from '../../../shared/validation';
+import { Icon } from '../../../shared/components/Icon';
 
 interface AuditFilterBarProps {
   search: string;
@@ -70,7 +71,7 @@ export function AuditFilterBar({
   return (
     <>
       <div className="acc-search">
-        <i className="fa-solid fa-magnifying-glass" />
+        <Icon className="fa-solid fa-magnifying-glass" />
         <input
           placeholder="Search company, code, or user…"
           maxLength={SEARCH_MAX}
@@ -111,7 +112,7 @@ export function AuditFilterBar({
       </label>
 
       <button className="acc-btn acc-btn-ghost" onClick={onClear}>
-        <i className="fa-solid fa-xmark" /> Clear
+        <Icon className="fa-solid fa-xmark" /> Clear
       </button>
 
       <span style={{ marginLeft: 'auto', color: 'var(--muted)', fontSize: 12.5, whiteSpace: 'nowrap' }}>

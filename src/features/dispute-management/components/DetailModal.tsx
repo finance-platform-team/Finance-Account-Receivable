@@ -4,6 +4,7 @@ import { fmtEGP, UPDATE_TYPE_OPTIONS } from '../normalize';
 import { useDisputeHistory } from '../useDisputeHistory';
 import { TEXT_LONG_MAX } from '../../../shared/validation';
 import type { DisputeRow } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 interface DetailModalProps {
   row: DisputeRow | null;
@@ -115,7 +116,7 @@ export function DetailModal({ row, onClose, onToast }: DetailModalProps) {
       <aside className={`acc-drawer${open ? ' on' : ''}`}>
         <div className="acc-dhead">
           <h2>
-            <i className="fa-solid fa-scale-balanced" style={{ color: 'var(--gold)', fontSize: 16 }} />
+            <Icon className="fa-solid fa-scale-balanced" style={{ color: 'var(--gold)', fontSize: 16 }} />
             {displayRow && (
               <span dir="auto">
                 {displayRow.name} · {displayRow.code} · {displayRow.category}
@@ -123,7 +124,7 @@ export function DetailModal({ row, onClose, onToast }: DetailModalProps) {
             )}
           </h2>
           <button className="acc-dclose" onClick={onClose}>
-            <i className="fa-solid fa-xmark" />
+            <Icon className="fa-solid fa-xmark" />
           </button>
         </div>
         <div className="acc-dbody">
@@ -140,7 +141,7 @@ export function DetailModal({ row, onClose, onToast }: DetailModalProps) {
                 <div style={{ color: 'var(--muted)', fontSize: 12, marginBottom: 20 }}>Loading…</div>
               ) : error ? (
                 <div style={{ color: 'var(--muted)', fontSize: 12, marginBottom: 20 }}>
-                  <i className="fa-solid fa-triangle-exclamation" style={{ color: 'var(--bad)' }} /> History
+                  <Icon className="fa-solid fa-triangle-exclamation" style={{ color: 'var(--bad)' }} /> History
                   unavailable — {error}
                 </div>
               ) : history.length === 0 ? (
@@ -228,7 +229,9 @@ export function DetailModal({ row, onClose, onToast }: DetailModalProps) {
                   </select>
                 </div>
                 <div className="acc-fld">
-                  <label>What happened?</label>
+                  <label>
+                    What happened? <span style={{ color: 'var(--bad)' }}>*</span>
+                  </label>
                   <textarea
                     placeholder="Free text…"
                     value={note}
@@ -252,7 +255,7 @@ export function DetailModal({ row, onClose, onToast }: DetailModalProps) {
               'Saving…'
             ) : (
               <>
-                <i className="fa-solid fa-paper-plane" /> Add Update
+                <Icon className="fa-solid fa-paper-plane" /> Add Update
               </>
             )}
           </button>

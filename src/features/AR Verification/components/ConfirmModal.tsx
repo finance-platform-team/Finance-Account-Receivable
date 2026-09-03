@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { TEXT_LONG_MAX } from '../../../shared/validation';
+import { Icon } from '../../../shared/components/Icon';
 
 export interface ConfirmModalConfig {
   title: string;
@@ -77,7 +78,7 @@ export function ConfirmModal({ config, onClose }: ConfirmModalProps) {
             {active?.title}
           </h2>
           <button className="acc-dclose" onClick={handleClose}>
-            <i className="fa-solid fa-xmark" />
+            <Icon className="fa-solid fa-xmark" />
           </button>
         </div>
         <div className="acc-dbody">
@@ -117,7 +118,7 @@ export function ConfirmModal({ config, onClose }: ConfirmModalProps) {
             onClick={handleConfirm}
             disabled={submitting}
           >
-            <i className={`fa-solid ${active?.confirmIcon ?? ''}`} /> {submitting ? 'Working…' : active?.confirmLabel}
+            <Icon className={`fa-solid ${active?.confirmIcon ?? ''}`} /> {submitting ? 'Working…' : active?.confirmLabel}
           </button>
         </div>
       </aside>

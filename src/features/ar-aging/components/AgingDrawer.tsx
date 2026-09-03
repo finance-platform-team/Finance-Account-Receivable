@@ -4,6 +4,7 @@ import { BuCombo } from '../../../shared/components/BuCombo';
 import type { BuOption } from '../../../shared/components/BuCombo';
 import { NOTES_MAX_LENGTH } from '../normalize';
 import type { AgingRow } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 type BucketKey = 'notDue' | 'lt30' | 'b3160' | 'b6190' | 'b91120' | 'gt120';
 
@@ -85,7 +86,7 @@ export function AgingDrawer({ row, open, onClose, onSaveNote, onSaveType }: Agin
         <div className="acc-dhead">
           <div>
             <h2>
-              <i className="fa-solid fa-building" style={{ color: 'var(--gold)', fontSize: 16 }} />
+              <Icon className="fa-solid fa-building" style={{ color: 'var(--gold)', fontSize: 16 }} />
               {r?.name ?? ''}
             </h2>
             {r && (
@@ -95,7 +96,7 @@ export function AgingDrawer({ row, open, onClose, onSaveNote, onSaveType }: Agin
             )}
           </div>
           <button className="acc-dclose" onClick={onClose}>
-            <i className="fa-solid fa-xmark" />
+            <Icon className="fa-solid fa-xmark" />
           </button>
         </div>
 
@@ -151,7 +152,7 @@ export function AgingDrawer({ row, open, onClose, onSaveNote, onSaveType }: Agin
                     gap: 7,
                   }}
                 >
-                  <i className="fa-solid fa-hourglass" style={{ color: 'var(--gold)' }} /> Aging Buckets — from DotCare
+                  <Icon className="fa-solid fa-hourglass" style={{ color: 'var(--gold)' }} /> Aging Buckets — from DotCare
                 </div>
                 {BUCKETS.map((b) => {
                   const value = r[b.key];
@@ -226,7 +227,7 @@ export function AgingDrawer({ row, open, onClose, onSaveNote, onSaveType }: Agin
                 disabled={saving || note === r.notes}
                 onClick={handleSaveNote}
               >
-                <i className="fa-solid fa-floppy-disk" /> {saving ? 'Saving…' : 'Save Note'}
+                <Icon className="fa-solid fa-floppy-disk" /> {saving ? 'Saving…' : 'Save Note'}
               </button>
             </>
           )}

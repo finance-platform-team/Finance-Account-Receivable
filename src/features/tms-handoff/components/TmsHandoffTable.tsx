@@ -1,6 +1,7 @@
 import { MutedDash } from '../../../shared/components/MutedDash';
 import { badgeClassForStatus, initials, slaTone } from '../normalize';
 import type { TmsHandoffRow } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 const COLUMN_COUNT = 9;
 
@@ -64,7 +65,7 @@ export function TmsHandoffTable({ rows, loading, error, onView }: TmsHandoffTabl
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-triangle-exclamation" />
+                  <Icon className="fa-solid fa-triangle-exclamation" />
                   Couldn&apos;t load TMS handoff tasks.
                   <br />
                   <small>{error}</small>
@@ -75,7 +76,7 @@ export function TmsHandoffTable({ rows, loading, error, onView }: TmsHandoffTabl
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-filter-circle-xmark" />
+                  <Icon className="fa-solid fa-filter-circle-xmark" />
                   No tasks match the current filters.
                 </div>
               </td>
@@ -140,7 +141,7 @@ export function TmsHandoffTable({ rows, loading, error, onView }: TmsHandoffTabl
                             color: SLA_COLOR[tone],
                           }}
                         >
-                          <i className="fa-regular fa-clock" style={{ marginRight: 3 }} />
+                          <Icon className="fa-regular fa-clock" style={{ marginRight: 3 }} />
                           {r.sla}
                         </span>
                       ) : (
@@ -170,7 +171,7 @@ export function TmsHandoffTable({ rows, loading, error, onView }: TmsHandoffTabl
                         onView(r);
                       }}
                     >
-                      <i className="fa-regular fa-eye" /> View
+                      <Icon className="fa-regular fa-eye" /> View
                     </button>
                   </td>
                 </tr>

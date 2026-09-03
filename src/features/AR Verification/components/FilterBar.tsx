@@ -1,4 +1,5 @@
 import { SEARCH_MAX } from '../../../shared/validation';
+import { Icon } from '../../../shared/components/Icon';
 
 interface FilterBarProps {
   search: string;
@@ -38,7 +39,7 @@ export function FilterBar({
   return (
     <div className="tbl-hdr">
       <div className="acc-search">
-        <i className="fa-solid fa-magnifying-glass" />
+        <Icon className="fa-solid fa-magnifying-glass" />
         <input
           type="text"
           placeholder="Search company, code, ref…"
@@ -76,7 +77,7 @@ export function FilterBar({
       </select>
 
       <button className="acc-btn acc-btn-ghost" onClick={onClear}>
-        <i className="fa-solid fa-xmark" /> Clear
+        <Icon className="fa-solid fa-xmark" /> Clear
       </button>
 
       <span style={{ marginLeft: 'auto', color: 'var(--muted)', fontSize: 12.5, whiteSpace: 'nowrap' }}>
@@ -85,7 +86,7 @@ export function FilterBar({
       </span>
 
       <button className="acc-btn" onClick={onReload}>
-        <i className="fa-solid fa-rotate" /> Reload
+        <Icon className="fa-solid fa-rotate" /> Reload
       </button>
     </div>
   );

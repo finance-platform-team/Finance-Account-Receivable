@@ -25,6 +25,7 @@ import type {
   Cfm_tmshandoffscfm_progress,
   Cfm_tmshandoffscfm_tagename,
 } from '../../generated/models/Cfm_tmshandoffsModel';
+import { Icon } from '../../shared/components/Icon';
 import type { PageSize } from '../../shared/types';
 import type { VerificationRow } from './types';
 
@@ -365,13 +366,13 @@ export function ArVerificationPage() {
               transition: '.15s',
             }}
           >
-            <i className="fa-solid fa-check-double" /> {selCount} selected
+            <Icon className="fa-solid fa-check-double" /> {selCount} selected
           </span>
           <button className="acc-btn" onClick={handleOpenDecision}>
-            <i className="fa-solid fa-clipboard-check" /> Create Decision
+            <Icon className="fa-solid fa-clipboard-check" /> Create Decision
           </button>
           <button className="acc-btn" onClick={handleRequestBankStatement} disabled={!allBank} title={bankTitle}>
-            <i className="fa-solid fa-paper-plane" /> Request Bank Statement
+            <Icon className="fa-solid fa-paper-plane" /> Request Bank Statement
           </button>
           <button
             className="acc-btn"
@@ -379,14 +380,14 @@ export function ArVerificationPage() {
             onClick={() => promptDecision('reject')}
             disabled={selCount === 0}
           >
-            <i className="fa-solid fa-circle-xmark" /> Reject
+            <Icon className="fa-solid fa-circle-xmark" /> Reject
           </button>
           <button
             className="acc-btn acc-btn-primary"
             onClick={() => promptDecision('approve')}
             disabled={selCount === 0}
           >
-            <i className="fa-solid fa-circle-check" /> Approve
+            <Icon className="fa-solid fa-circle-check" /> Approve
           </button>
         </div>
       </div>

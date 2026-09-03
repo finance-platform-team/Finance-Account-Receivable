@@ -1,5 +1,6 @@
 import { MutedDash } from '../../../shared/components/MutedDash';
 import type { AgingRow, AgingTotals } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 const COLUMN_COUNT = 13;
 
@@ -63,7 +64,7 @@ export function AgingTable({ rows, filteredCount, totals, loading, error, select
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-triangle-exclamation" />
+                  <Icon className="fa-solid fa-triangle-exclamation" />
                   Couldn&apos;t load AR aging.
                   <br />
                   <small>{error}</small>
@@ -74,7 +75,7 @@ export function AgingTable({ rows, filteredCount, totals, loading, error, select
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-filter-circle-xmark" />
+                  <Icon className="fa-solid fa-filter-circle-xmark" />
                   No records match the current filters.
                 </div>
               </td>
@@ -135,7 +136,7 @@ export function AgingTable({ rows, filteredCount, totals, loading, error, select
           <tfoot>
             <tr style={{ background: 'var(--cream)', fontWeight: 700 }}>
               <td colSpan={8} style={{ padding: '13px 16px', borderTop: '2px solid var(--gold)' }}>
-                <i className="fa-solid fa-square-poll-vertical" style={{ color: 'var(--gold)', marginRight: 6 }} />
+                <Icon className="fa-solid fa-square-poll-vertical" style={{ color: 'var(--gold)', marginRight: 6 }} />
                 Total ({filteredCount.toLocaleString('en-US')} companies)
               </td>
               <td className="acc-num" style={{ borderTop: '2px solid var(--gold)' }}>

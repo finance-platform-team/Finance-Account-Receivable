@@ -1,5 +1,6 @@
 import { MutedDash } from '../../../shared/components/MutedDash';
 import type { SlaRow } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 const COLUMN_COUNT = 9;
 
@@ -43,7 +44,7 @@ export function SlaTable({ rows, loading, error, onEdit, onDelete }: SlaTablePro
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-triangle-exclamation" />
+                  <Icon className="fa-solid fa-triangle-exclamation" />
                   Couldn&apos;t load SLA rules.
                   <br />
                   <small>{error}</small>
@@ -54,7 +55,7 @@ export function SlaTable({ rows, loading, error, onEdit, onDelete }: SlaTablePro
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-stopwatch" />
+                  <Icon className="fa-solid fa-stopwatch" />
                   No SLA rules yet — create the first rule with &ldquo;New SLA&rdquo;.
                 </div>
               </td>
@@ -109,7 +110,7 @@ export function SlaTable({ rows, loading, error, onEdit, onDelete }: SlaTablePro
                         onEdit(r);
                       }}
                     >
-                      <i className="fa-solid fa-pen" />
+                      <Icon className="fa-solid fa-pen" />
                     </button>
                     <button
                       className="acc-btn"
@@ -120,7 +121,7 @@ export function SlaTable({ rows, loading, error, onEdit, onDelete }: SlaTablePro
                         onDelete(r);
                       }}
                     >
-                      <i className="fa-solid fa-trash" />
+                      <Icon className="fa-solid fa-trash" />
                     </button>
                   </div>
                 </td>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { BusinessunitsService } from '../../generated/services/BusinessunitsService';
 import { escODataString } from '../dataverseLabels';
+import { Icon } from './Icon';
 
 export interface BuOption {
   id: string;
@@ -111,7 +112,7 @@ export function BuCombo({ valueLabel, onChange, placeholder }: BuComboProps) {
         <div className="acc-combo-list">
           {searching ? (
             <div className="acc-combo-empty">
-              <i className="fa-solid fa-spinner fa-spin" /> Searching…
+              <Icon className="fa-solid fa-spinner fa-spin" /> Searching…
             </div>
           ) : results.length === 0 ? (
             <div className="acc-combo-empty">No matches — refine your search.</div>

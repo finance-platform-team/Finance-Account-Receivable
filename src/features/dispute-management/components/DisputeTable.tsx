@@ -4,6 +4,7 @@ import type { CSSProperties } from 'react';
 import { MutedDash } from '../../../shared/components/MutedDash';
 import { AR_REVIEW_OPTIONS, fmtEGP } from '../normalize';
 import type { DisputeRow } from '../types';
+import { Icon } from '../../../shared/components/Icon';
 
 const COLUMN_COUNT = 10;
 
@@ -221,7 +222,7 @@ function ArReviewCell({
                   data-selected={isSelected || undefined}
                 >
                   {opt.label}
-                  {isSelected && <i className="fa-solid fa-check" style={{ fontSize: 11 }} />}
+                  {isSelected && <Icon className="fa-solid fa-check" style={{ fontSize: 11 }} />}
                 </div>
               );
             })}
@@ -273,7 +274,7 @@ export function DisputeTable({
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-triangle-exclamation" />
+                  <Icon className="fa-solid fa-triangle-exclamation" />
                   Could not load disputes.
                   <br />
                   <small>{error}</small>
@@ -284,7 +285,7 @@ export function DisputeTable({
             <tr>
               <td colSpan={COLUMN_COUNT}>
                 <div className="acc-state">
-                  <i className="fa-solid fa-inbox" />
+                  <Icon className="fa-solid fa-inbox" />
                   No disputes to show.
                 </div>
               </td>
@@ -364,7 +365,7 @@ export function DisputeTable({
                         fontSize: 12,
                       }}
                     >
-                      <i className="fa-solid fa-folder-open" /> View files
+                      <Icon className="fa-solid fa-folder-open" /> View files
                     </button>
                   ) : (
                     <button
@@ -375,7 +376,7 @@ export function DisputeTable({
                       className="acc-btn"
                       style={{ padding: '5px 10px', fontSize: 12 }}
                     >
-                      <i className="fa-solid fa-upload" /> Upload
+                      <Icon className="fa-solid fa-upload" /> Upload
                     </button>
                   )}
                 </td>
