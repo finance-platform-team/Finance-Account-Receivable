@@ -47,6 +47,7 @@ export interface Cfm_aragingsBase {
   cfm_bankruptcy?: number;
   cfm_claimsissue?: number;
   cfm_collectedamount?: number;
+  cfm_collectedviapowerapp?: number;
   cfm_companycode?: string;
   cfm_companyname?: string;
   cfm_companytype?: Cfm_aragingscfm_companytype;
@@ -60,6 +61,8 @@ export interface Cfm_aragingsBase {
   cfm_notesvisits?: string;
   "cfm_PaymentTerm@odata.bind"?: string;
   cfm_pendingconfirmation?: number;
+  cfm_periodfrom?: string;
+  cfm_periodto?: string;
   cfm_plannedvisit?: number;
   cfm_rejections?: number;
   cfm_stopped?: number;
@@ -69,6 +72,7 @@ export interface Cfm_aragingsBase {
   cfm_tax?: number;
   "cfm_type@odata.bind"?: string;
   cfm_visittarget?: number;
+  cfm_weekscount: number;
   importsequencenumber?: number;
   overriddencreatedon?: string;
   statecode: Cfm_aragingsstatecode;

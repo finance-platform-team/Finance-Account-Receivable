@@ -36,12 +36,14 @@ import { Icon } from '../../shared/components/Icon';
 
 const EMPTY_TOTALS: PlanTotals = {
   agreedrecon: 0,
+  notDue: 0,
   totalOutstanding: 0,
   rejections: 0,
   outstandingRej: 0,
   totalDues: 0,
   targetPlan: 0,
   collected: 0,
+  collectedViaPowerApp: 0,
   collectedPlus: 0,
 };
 
@@ -98,7 +100,7 @@ function pctInputStyle(state: PctSaveState): CSSProperties {
 }
 
 export function CollectionPlanPage() {
-  const { rows: allRows, loading, error, updateRow } = useCollectionPlanData();
+  const { rows: allRows, disputeFlags, loading, error, updateRow } = useCollectionPlanData();
   const { locked, send } = usePlanSubmissionLock();
   const { toasts, push } = useToasts();
   const confirm = useConfirm();
@@ -214,12 +216,14 @@ export function CollectionPlanPage() {
     return filtered.reduce(
       (acc, r) => ({
         agreedrecon: acc.agreedrecon + r.agreedrecon,
+        notDue: acc.notDue + r.notDue,
         totalOutstanding: acc.totalOutstanding + r.totalOutstanding,
         rejections: acc.rejections + r.rejections,
         outstandingRej: acc.outstandingRej + r.outstandingRej,
         totalDues: acc.totalDues + r.totalDues,
         targetPlan: acc.targetPlan + rowTargetPlan(r, targetPct),
         collected: acc.collected + r.collected,
+        collectedViaPowerApp: acc.collectedViaPowerApp + r.collectedViaPowerApp,
         collectedPlus: acc.collectedPlus + r.collectedPlus,
       }),
       { ...EMPTY_TOTALS }
@@ -436,12 +440,14 @@ export function CollectionPlanPage() {
       'Claims Issue',
       'Stopped',
       'Agreed Recon',
+      'Not Due',
       'Total Outstanding',
       'Rejections',
       'Outstanding + Rej',
       'Total Dues',
       'Target Plan',
       'Collected',
+      'Collected via Power App',
       'Collected + Tax + Rej',
     ];
     const rows = filtered.map((r) => [
@@ -459,12 +465,14 @@ export function CollectionPlanPage() {
       r.claimsissue,
       r.stopped,
       r.agreedrecon,
+      r.notDue,
       r.totalOutstanding,
       r.rejections,
       r.outstandingRej,
       r.totalDues,
       rowTargetPlan(r, targetPct),
       r.collected,
+      r.collectedViaPowerApp,
       r.collectedPlus,
     ]);
     downloadCsv(`collection_plan_${new Date().toISOString().slice(0, 10)}.csv`, cols, rows);
@@ -734,6 +742,7 @@ export function CollectionPlanPage() {
               rows={paged}
               filteredCount={filtered.length}
               totals={totals}
+              disputeFlags={disputeFlags}
               targetPct={targetPct}
               loading={loading}
               error={error}

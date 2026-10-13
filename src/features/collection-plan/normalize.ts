@@ -68,6 +68,7 @@ export function normalizePlanRow(row: Cfm_aragings, companyByCode: InsuranceComp
     claimsissue: n(row.cfm_claimsissue),
     stopped: n(row.cfm_stopped),
     agreedrecon: n(row.cfm_agreedrecon),
+    notDue: n(row.cfm_notdue),
     totalOutstanding: n(row.cfm_totaloutstanding),
     rejections,
     outstandingRej: n(row.cfm_outstandingrej),
@@ -76,6 +77,7 @@ export function normalizePlanRow(row: Cfm_aragings, companyByCode: InsuranceComp
     targetPercentage: row.cfm_targetpercentage == null ? null : n(row.cfm_targetpercentage),
     achievement: row.cfm_achievement == null ? null : n(row.cfm_achievement),
     collected,
+    collectedViaPowerApp: n(row.cfm_collectedviapowerapp),
     tax,
     collectedPlus: collected + tax + rejections,
   };

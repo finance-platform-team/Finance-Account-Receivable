@@ -178,7 +178,7 @@ function ArReviewCell({
         }}
       >
         {row.arReview}
-        <i
+        <Icon
           className="fa-solid fa-chevron-down"
           style={{ fontSize: 9, opacity: 0.75, transition: 'transform .15s', transform: open ? 'rotate(180deg)' : 'none' }}
         />

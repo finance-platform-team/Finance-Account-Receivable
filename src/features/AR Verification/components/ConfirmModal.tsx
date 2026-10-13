@@ -71,7 +71,7 @@ export function ConfirmModal({ config, onClose }: ConfirmModalProps) {
       <aside className={`acc-drawer${open ? ' on' : ''}`} role="dialog">
         <div className="acc-dhead">
           <h2>
-            <i
+            <Icon
               className={`fa-solid ${active?.titleIcon ?? ''}`}
               style={{ color: active?.titleColor ?? 'var(--gold)', fontSize: 16 }}
             />

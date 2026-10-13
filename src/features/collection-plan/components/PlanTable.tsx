@@ -1,11 +1,12 @@
 import type { CSSProperties } from 'react';
 import { MutedDash } from '../../../shared/components/MutedDash';
 import { EditableCell } from './EditableCell';
-import { achvIcon, achvLevel, fmt, fmtTotal, rowAchievement, rowTargetPlan } from '../normalize';
+import { EDITABLE_FIELD_LABELS, achvIcon, achvLevel, fmt, fmtTotal, rowAchievement, rowTargetPlan } from '../normalize';
+import { FLAG_COLORS, hasDisputeFlag } from '../disputeFlags';
 import type { DirtyChange, EditableFieldKey, PlanRow, PlanTotals } from '../types';
 import { Icon } from '../../../shared/components/Icon';
 
-const COLUMN_COUNT = 22;
+const COLUMN_COUNT = 24;
 
 type CellMode = 'instant' | 'dirty' | 'locked';
 
@@ -13,6 +14,7 @@ interface PlanTableProps {
   rows: PlanRow[];
   filteredCount: number;
   totals: PlanTotals;
+  disputeFlags: Set<string>;
   targetPct: number;
   loading: boolean;
   error: string | null;
@@ -98,6 +100,7 @@ export function PlanTable({
   rows,
   filteredCount,
   totals,
+  disputeFlags,
   targetPct,
   loading,
   error,
@@ -111,6 +114,8 @@ export function PlanTable({
 
   const editableCell = (row: PlanRow, field: EditableFieldKey, isGroupEnd?: boolean) => {
     const dirty = dirtyChanges.get(`${row.id}|${field}`);
+    const flagColor = FLAG_COLORS[field];
+    const flagged = flagColor != null && hasDisputeFlag(disputeFlags, row.code, row.bu, field);
     return (
       <EditableCell
         key={field}
@@ -118,6 +123,9 @@ export function PlanTable({
         mode={cellMode}
         isGroupEnd={isGroupEnd}
         isDirty={dirty !== undefined}
+        flagged={flagged}
+        flagColor={flagColor}
+        flagTitle={flagged ? `Open dispute case: ${EDITABLE_FIELD_LABELS[field]}` : undefined}
         onInstantSave={(value) => onInstantSave(row.id, field, value)}
         onDirtyChange={(value, orig) => onDirtyChange(row.id, field, value, orig)}
       />
@@ -135,10 +143,10 @@ export function PlanTable({
             <th colSpan={6} style={GROUP_TH_END}>
               <Icon className="fa-solid fa-pen-to-square" /> Manual Entry — AR Team
             </th>
-            <th colSpan={5} style={GROUP_TH_END}>
+            <th colSpan={6} style={GROUP_TH_END}>
               <Icon className="fa-solid fa-calculator" /> Calculated / DotCare
             </th>
-            <th colSpan={3} style={GROUP_TH}>
+            <th colSpan={4} style={GROUP_TH}>
               <Icon className="fa-solid fa-cash-register" /> Collection Achievement
             </th>
           </tr>
@@ -161,6 +169,7 @@ export function PlanTable({
             <th className="acc-num" style={GROUP_END_TD}>
               Agreed Recon.
             </th>
+            <th className="acc-num">Not Due</th>
             <th className="acc-num">Total Outstanding</th>
             <th className="acc-num">Rejections</th>
             <th className="acc-num">Outstanding + Rej</th>
@@ -169,6 +178,7 @@ export function PlanTable({
               Target Plan
             </th>
             <th className="acc-num">Collected</th>
+            <th className="acc-num">Collected via Power App</th>
             <th className="acc-num">Collected + Tax + Rej</th>
             <th className="acc-num" title="Achievement %">
               Achievement %
@@ -236,6 +246,9 @@ export function PlanTable({
                   {editableCell(r, 'stopped')}
                   {editableCell(r, 'agreedrecon', true)}
                   <td className="acc-num">
+                    <MutedDash value={fmt(r.notDue)} />
+                  </td>
+                  <td className="acc-num">
                     <MutedDash value={fmt(r.totalOutstanding)} />
                   </td>
                   <td className="acc-num" style={{ color: 'var(--gold)', fontWeight: 600 }}>
@@ -252,6 +265,9 @@ export function PlanTable({
                   </td>
                   <td className="acc-num">
                     <MutedDash value={fmt(r.collected)} />
+                  </td>
+                  <td className="acc-num" style={{ color: 'var(--ok)', fontWeight: 600 }}>
+                    <MutedDash value={fmt(r.collectedViaPowerApp)} />
                   </td>
                   <td className="acc-num">
                     <MutedDash value={fmt(r.collectedPlus)} />
@@ -277,6 +293,9 @@ export function PlanTable({
                 {fmtTotal(totals.agreedrecon)}
               </td>
               <td className="acc-num" style={FOOT_TD}>
+                {fmtTotal(totals.notDue)}
+              </td>
+              <td className="acc-num" style={FOOT_TD}>
                 {fmtTotal(totals.totalOutstanding)}
               </td>
               <td className="acc-num" style={{ ...FOOT_TD, color: 'var(--gold)' }}>
@@ -293,6 +312,9 @@ export function PlanTable({
               </td>
               <td className="acc-num" style={FOOT_TD}>
                 {fmtTotal(totals.collected)}
+              </td>
+              <td className="acc-num" style={{ ...FOOT_TD, color: 'var(--ok)' }}>
+                {fmtTotal(totals.collectedViaPowerApp)}
               </td>
               <td className="acc-num" style={FOOT_TD}>
                 {fmtTotal(totals.collectedPlus)}

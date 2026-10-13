@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent } from 'react';
 import { fmt } from '../normalize';
 import { AMOUNT_MAX, clampNumber } from '../../../shared/validation';
+import { Icon } from '../../../shared/components/Icon';
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 type CellMode = 'instant' | 'dirty' | 'locked';
@@ -11,8 +12,20 @@ interface EditableCellProps {
   mode: CellMode;
   isGroupEnd?: boolean;
   isDirty?: boolean;
+  /** Open-dispute overlay — purely visual, doesn't affect editing. */
+  flagged?: boolean;
+  flagColor?: string;
+  flagTitle?: string;
   onInstantSave: (value: number) => Promise<void>;
   onDirtyChange: (value: number, orig: number) => void;
+}
+
+// #rrggbb -> rgba(...) at the given alpha, for a light flag-tint background.
+function tint(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 const BASE_INPUT_STYLE: CSSProperties = {
@@ -37,18 +50,37 @@ function inputStyle(saveState: SaveState, dirty: boolean): CSSProperties {
   return BASE_INPUT_STYLE;
 }
 
-export function EditableCell({ value, mode, isGroupEnd, isDirty, onInstantSave, onDirtyChange }: EditableCellProps) {
+export function EditableCell({
+  value,
+  mode,
+  isGroupEnd,
+  isDirty,
+  flagged,
+  flagColor,
+  flagTitle,
+  onInstantSave,
+  onDirtyChange,
+}: EditableCellProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [saveState, setSaveState] = useState<SaveState>('idle');
-  const tdStyle: CSSProperties | undefined = isGroupEnd ? { borderRight: '1px dashed var(--line)' } : undefined;
+  const tdStyle: CSSProperties | undefined = {
+    ...(isGroupEnd ? { borderRight: '1px dashed var(--line)' } : {}),
+    ...(flagged && flagColor ? { background: tint(flagColor, 0.14) } : {}),
+  };
+  const flagIcon = flagged && flagColor ? (
+    <Icon className="fa-solid fa-flag" style={{ color: flagColor, fontSize: 10, flexShrink: 0 }} title={flagTitle} />
+  ) : null;
 
   if (mode === 'locked') {
     return (
-      <td className="acc-num" style={tdStyle}>
+      <td className="acc-num" style={tdStyle} title={flagTitle}>
         <span
-          title="Locked — plan already sent for this month"
+          title={flagTitle ? undefined : 'Locked — plan already sent for this month'}
           style={{
-            display: 'inline-block',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: 4,
             width: 88,
             padding: '5px 4px',
             color: 'var(--muted)',
@@ -57,6 +89,7 @@ export function EditableCell({ value, mode, isGroupEnd, isDirty, onInstantSave, 
             cursor: 'not-allowed',
           }}
         >
+          {flagIcon}
           {fmt(value)}
         </span>
       </td>
@@ -97,19 +130,22 @@ export function EditableCell({ value, mode, isGroupEnd, isDirty, onInstantSave, 
   };
 
   return (
-    <td className="acc-num" style={tdStyle} onClick={(e) => e.stopPropagation()}>
-      <input
-        ref={inputRef}
-        type="number"
-        step="any"
-        min={0}
-        max={AMOUNT_MAX}
-        defaultValue={value}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-        onClick={(e) => e.stopPropagation()}
-        style={inputStyle(saveState, mode === 'dirty' && !!isDirty)}
-      />
+    <td className="acc-num" style={tdStyle} title={flagTitle} onClick={(e) => e.stopPropagation()}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+        {flagIcon}
+        <input
+          ref={inputRef}
+          type="number"
+          step="any"
+          min={0}
+          max={AMOUNT_MAX}
+          defaultValue={value}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          onClick={(e) => e.stopPropagation()}
+          style={inputStyle(saveState, mode === 'dirty' && !!isDirty)}
+        />
+      </div>
     </td>
   );
 }

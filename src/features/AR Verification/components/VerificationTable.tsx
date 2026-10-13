@@ -1,13 +1,15 @@
 import { Fragment } from 'react';
 import { MutedDash } from '../../../shared/components/MutedDash';
 import { fmt, fmtDate, fmtDateTime, isLocked, statusIcon, statusPillClass } from '../normalize';
-import type { VerificationRow } from '../types';
+import type { VerificationRow, VerificationTotals } from '../types';
 import { Icon } from '../../../shared/components/Icon';
 
-const COLUMN_COUNT = 23;
+const COLUMN_COUNT = 24;
 
 interface VerificationTableProps {
   rows: VerificationRow[];
+  filteredCount: number;
+  totals: VerificationTotals;
   loading: boolean;
   error: string | null;
   selected: Set<string>;
@@ -77,7 +79,6 @@ function AllocationTable({ row }: { row: VerificationRow }) {
               <thead>
                 <tr>
                   <th>Month</th>
-                  <th className="acc-num">Claim</th>
                   <th className="acc-num">Amount</th>
                   <th className="acc-num">Tax</th>
                   <th className="acc-num">Vol Disc</th>
@@ -90,7 +91,7 @@ function AllocationTable({ row }: { row: VerificationRow }) {
               <tbody>
                 {row.allocs.length === 0 ? (
                   <tr>
-                    <td colSpan={9}>
+                    <td colSpan={8}>
                       <div className="acc-state">No allocations recorded for this entry.</div>
                     </td>
                   </tr>
@@ -99,9 +100,6 @@ function AllocationTable({ row }: { row: VerificationRow }) {
                     <tr key={a.id}>
                       <td>
                         <MutedDash value={a.month} />
-                      </td>
-                      <td className="acc-num">
-                        <MutedDash value={fmt(a.claim)} />
                       </td>
                       <td className="acc-num">
                         <MutedDash value={fmt(a.amount)} />
@@ -142,6 +140,8 @@ function AllocationTable({ row }: { row: VerificationRow }) {
 
 export function VerificationTable({
   rows,
+  filteredCount,
+  totals,
   loading,
   error,
   selected,
@@ -191,6 +191,9 @@ export function VerificationTable({
             </th>
             <th className="acc-num">
               <Icon className="fa-solid fa-coins" /> Collected (Net)
+            </th>
+            <th className="acc-num">
+              <Icon className="fa-solid fa-sack-dollar" /> Gross Amount
             </th>
             <th>
               <Icon className="fa-solid fa-calendar-week" /> Allocate to Months
@@ -274,7 +277,7 @@ export function VerificationTable({
                         aria-label="Expand"
                         style={{ background: 'transparent', border: 'none', color: 'var(--gold)', cursor: 'pointer', padding: '4px 6px' }}
                       >
-                        <i
+                        <Icon
                           className="fa-solid fa-chevron-right"
                           style={{
                             display: 'inline-block',
@@ -307,6 +310,9 @@ export function VerificationTable({
                     </td>
                     <td className="acc-num">
                       <MutedDash value={fmt(r.net)} />
+                    </td>
+                    <td className="acc-num">
+                      <MutedDash value={fmt(r.grossAmount)} />
                     </td>
                     <td>
                       <MutedDash value={r.monthsLabel} />
@@ -391,6 +397,43 @@ export function VerificationTable({
             })
           )}
         </tbody>
+
+        {!loading && !error && rows.length > 0 && (
+          <tfoot>
+            <tr style={{ background: 'var(--cream)', fontWeight: 700 }}>
+              <td colSpan={9} style={{ padding: '13px 16px', borderTop: '2px solid var(--gold)' }}>
+                <Icon className="fa-solid fa-square-poll-vertical" style={{ color: 'var(--gold)', marginRight: 6 }} />
+                Total ({filteredCount.toLocaleString('en-US')} entries)
+              </td>
+              <td className="acc-num" style={{ borderTop: '2px solid var(--gold)' }}>
+                {fmt(totals.net)}
+              </td>
+              <td className="acc-num" style={{ borderTop: '2px solid var(--gold)' }}>
+                {fmt(totals.grossAmount)}
+              </td>
+              <td colSpan={2} style={{ borderTop: '2px solid var(--gold)' }} />
+              <td className="acc-num" style={{ borderTop: '2px solid var(--gold)' }}>
+                {fmt(totals.tax)}
+              </td>
+              <td className="acc-num" style={{ borderTop: '2px solid var(--gold)' }}>
+                {fmt(totals.vol)}
+              </td>
+              <td className="acc-num" style={{ borderTop: '2px solid var(--gold)' }}>
+                {fmt(totals.early)}
+              </td>
+              <td className="acc-num" style={{ borderTop: '2px solid var(--gold)' }}>
+                {fmt(totals.admin)}
+              </td>
+              <td className="acc-num" style={{ borderTop: '2px solid var(--gold)', color: totals.reject > 0 ? 'var(--bad)' : undefined }}>
+                {fmt(totals.reject)}
+              </td>
+              <td className="acc-num" style={{ borderTop: '2px solid var(--gold)', color: 'var(--gold)' }}>
+                {fmt(totals.gross)}
+              </td>
+              <td colSpan={5} style={{ borderTop: '2px solid var(--gold)' }} />
+            </tr>
+          </tfoot>
+        )}
       </table>
     </div>
   );

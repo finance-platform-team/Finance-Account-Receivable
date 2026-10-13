@@ -8,8 +8,9 @@ import type { ProofFilesTarget } from '../../shared/components/ProofFilesDrawer'
 import { deleteProofFile, fetchProofFiles, uploadProofFile } from './proofFiles';
 import { Pagination } from '../../shared/components/Pagination';
 import { useVerificationData } from './useVerificationData';
-import { AR_STATUS, PAYMENT_METHOD, isLocked, isPendingVerification } from './normalize';
+import { AR_STATUS, PAYMENT_METHOD, isLocked, isPendingVerification, monthShort } from './normalize';
 import { addRejectionsToAging } from './rejectionSync';
+import { addCollectedToAging } from './collectedViaPowerAppSync';
 import { subtractFromPendingArVerification } from './pendingArVerificationSync';
 import { Cfm_dailycollectionsService } from '../../generated/services/Cfm_dailycollectionsService';
 import { useToasts } from '../../shared/useToasts';
@@ -27,7 +28,18 @@ import type {
 } from '../../generated/models/Cfm_tmshandoffsModel';
 import { Icon } from '../../shared/components/Icon';
 import type { PageSize } from '../../shared/types';
-import type { VerificationRow } from './types';
+import type { VerificationRow, VerificationTotals } from './types';
+
+const EMPTY_TOTALS: VerificationTotals = {
+  net: 0,
+  grossAmount: 0,
+  tax: 0,
+  vol: 0,
+  early: 0,
+  admin: 0,
+  reject: 0,
+  gross: 0,
+};
 
 function uniqueSorted(values: string[]): string[] {
   return Array.from(new Set(values.filter((v) => v && v !== '—'))).sort();
@@ -50,6 +62,7 @@ export function ArVerificationPage() {
   const [entity, setEntity] = useState('');
   const [method, setMethod] = useState('');
   const [status, setStatus] = useState('');
+  const [month, setMonth] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<PageSize>(25);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -69,19 +82,50 @@ export function ArVerificationPage() {
   const methodOptions = useMemo(() => uniqueSorted(rows.map((r) => r.methodLabel)), [rows]);
   const statusOptions = useMemo(() => uniqueSorted(rows.map((r) => r.statusLabel)), [rows]);
 
+  // Newest-first, matching the createdon desc order the rows already load in.
+  const monthOptions = useMemo(() => {
+    const seen = new Map<string, number>();
+    rows.forEach((r) => {
+      const label = monthShort(r.createdOn);
+      if (label && !seen.has(label)) seen.set(label, new Date(r.createdOn).getTime());
+    });
+    return Array.from(seen.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([label]) => label);
+  }, [rows]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return proofRows.filter((r) => {
       if (entity && r.entity !== entity) return false;
       if (method && r.methodLabel !== method) return false;
       if (status && r.statusLabel !== status) return false;
+      if (month && monthShort(r.createdOn) !== month) return false;
       if (q) {
         const haystack = `${r.ref} ${r.companyCode} ${r.companyName} ${r.paymentReference}`.toLowerCase();
         if (!haystack.includes(q)) return false;
       }
       return true;
     });
-  }, [proofRows, entity, method, status, search]);
+  }, [proofRows, entity, method, status, month, search]);
+
+  const totals = useMemo<VerificationTotals>(
+    () =>
+      filtered.reduce(
+        (acc, r) => ({
+          net: acc.net + r.net,
+          grossAmount: acc.grossAmount + r.grossAmount,
+          tax: acc.tax + r.tax,
+          vol: acc.vol + r.vol,
+          early: acc.early + r.early,
+          admin: acc.admin + r.admin,
+          reject: acc.reject + r.reject,
+          gross: acc.gross + r.gross,
+        }),
+        { ...EMPTY_TOTALS }
+      ),
+    [filtered]
+  );
 
   const totalPages = useMemo(() => {
     const size = pageSize === 'all' ? Math.max(filtered.length, 1) : pageSize;
@@ -102,6 +146,7 @@ export function ArVerificationPage() {
     setEntity('');
     setMethod('');
     setStatus('');
+    setMonth('');
     resetPage();
   }, [resetPage]);
 
@@ -196,6 +241,7 @@ export function ArVerificationPage() {
           let fail = 0;
           let firstErr = '';
           const approvedWithRejection: VerificationRow[] = [];
+          const approvedEntries: VerificationRow[] = [];
           const leftPending: VerificationRow[] = [];
           for (const e of sel) {
             try {
@@ -206,6 +252,7 @@ export function ArVerificationPage() {
               if (!result.success) throw new Error(result.error?.message || 'Update failed.');
               ok++;
               if (!isReject && e.reject > 0) approvedWithRejection.push(e);
+              if (!isReject && e.net > 0) approvedEntries.push(e);
               if (isPendingVerification(e.status)) leftPending.push(e);
             } catch (err) {
               fail++;
@@ -224,6 +271,15 @@ export function ArVerificationPage() {
             );
             if (sync.updated) {
               push('Collection Plan updated', `Rejection amounts added for ${sync.updated} compan${sync.updated === 1 ? 'y' : 'ies'}.`, 'success');
+            }
+            if (sync.failed) {
+              push('Collection Plan sync incomplete', `${sync.updated} updated, ${sync.failed} failed: ${sync.firstError}`, 'alert');
+            }
+          }
+          if (approvedEntries.length) {
+            const sync = await addCollectedToAging(approvedEntries.map((e) => ({ companyId: e.companyId, net: e.net })));
+            if (sync.updated) {
+              push('Collection Plan updated', `Collected via Power App added for ${sync.updated} compan${sync.updated === 1 ? 'y' : 'ies'}.`, 'success');
             }
             if (sync.failed) {
               push('Collection Plan sync incomplete', `${sync.updated} updated, ${sync.failed} failed: ${sync.firstError}`, 'alert');
@@ -417,6 +473,12 @@ export function ArVerificationPage() {
             resetPage();
           }}
           statusOptions={statusOptions}
+          month={month}
+          onMonthChange={(v) => {
+            setMonth(v);
+            resetPage();
+          }}
+          monthOptions={monthOptions}
           onClear={handleClearFilters}
           onReload={reload}
           showing={loading || error ? 0 : filtered.length}
@@ -425,6 +487,8 @@ export function ArVerificationPage() {
 
         <VerificationTable
           rows={paged}
+          filteredCount={filtered.length}
+          totals={totals}
           loading={loading}
           error={error}
           selected={selected}

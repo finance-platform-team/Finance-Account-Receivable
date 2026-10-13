@@ -19,10 +19,12 @@ export interface VerificationRow {
   companyCode: string;
   companyName: string;
   date: string;
+  createdOn: string;
   method: number | null;
   methodLabel: string;
   bankAccount: string;
   net: number;
+  grossAmount: number;
   proof: string;
   note: string;
   paymentReference: string;
@@ -40,6 +42,17 @@ export interface VerificationRow {
   reject: number;
   gross: number;
   allocs: AllocationRow[];
+}
+
+export interface VerificationTotals {
+  net: number;
+  grossAmount: number;
+  tax: number;
+  vol: number;
+  early: number;
+  admin: number;
+  reject: number;
+  gross: number;
 }
 
 export type DecisionAction = 'approve' | 'reject';

@@ -112,6 +112,13 @@
           "x-ms-schema-name": "cfm_CollectedTaxRej",
           "x-ms-read-only": true
         },
+        "cfm_collectedviapowerapp": {
+          "type": "string",
+          "title": "Collected via Power App",
+          "x-ms-dataverse-attribute": "cfm_collectedviapowerapp",
+          "x-ms-dataverse-type": "DecimalType",
+          "x-ms-schema-name": "cfm_CollectedviaPowerApp"
+        },
         "cfm_companycode": {
           "type": "string",
           "title": "Company Code",
@@ -312,6 +319,20 @@
           "x-ms-dataverse-type": "DecimalType",
           "x-ms-schema-name": "cfm_Pendingconfirmation"
         },
+        "cfm_periodfrom": {
+          "type": "string",
+          "title": "Period From",
+          "x-ms-dataverse-attribute": "cfm_periodfrom",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cfm_PeriodFrom"
+        },
+        "cfm_periodto": {
+          "type": "string",
+          "title": "Period To",
+          "x-ms-dataverse-attribute": "cfm_periodto",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cfm_PeriodTo"
+        },
         "cfm_plannedvisit": {
           "type": "string",
           "title": "Planned Visit",
@@ -452,6 +473,14 @@
           "x-ms-dataverse-attribute": "cfm_visittarget",
           "x-ms-dataverse-type": "IntegerType",
           "x-ms-schema-name": "cfm_VisitTarget"
+        },
+        "cfm_weekscount": {
+          "type": "string",
+          "title": "Weeks Count",
+          "x-ms-dataverse-attribute": "cfm_weekscount",
+          "x-ms-dataverse-type": "IntegerType",
+          "x-ms-schema-name": "cfm_WeeksCount",
+          "required": true
         },
         "createdby": {
           "type": "string",
@@ -749,6 +778,7 @@
       },
       "required": [
         "cfm_aragingid",
+        "cfm_weekscount",
         "createdbyyominame",
         "createdonbehalfbyyominame",
         "modifiedbyyominame",

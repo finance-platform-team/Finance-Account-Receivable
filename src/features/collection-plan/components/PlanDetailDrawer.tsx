@@ -164,6 +164,10 @@ export function PlanDetailDrawer({ row, open, targetPct, onClose }: PlanDetailDr
               </div>
               <div className="acc-grid-2" style={{ marginBottom: 20 }}>
                 <div className="acc-ro-wrap">
+                  <div className="acc-ro-label">Not Due</div>
+                  <div className="acc-ro-value">{fmt(r.notDue)}</div>
+                </div>
+                <div className="acc-ro-wrap">
                   <div className="acc-ro-label">Total Outstanding</div>
                   <div className="acc-ro-value">{fmt(r.totalOutstanding)}</div>
                 </div>
@@ -190,6 +194,12 @@ export function PlanDetailDrawer({ row, open, targetPct, onClose }: PlanDetailDr
                 <div className="acc-ro-wrap">
                   <div className="acc-ro-label">Collected</div>
                   <div className="acc-ro-value">{fmt(r.collected)}</div>
+                </div>
+                <div className="acc-ro-wrap">
+                  <div className="acc-ro-label">Collected via Power App</div>
+                  <div className="acc-ro-value" style={{ color: 'var(--ok)' }}>
+                    {fmt(r.collectedViaPowerApp)}
+                  </div>
                 </div>
               </div>
 

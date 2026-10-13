@@ -170,10 +170,12 @@ export function normalizeEntry(
     companyCode: code,
     companyName: name,
     date: row.cfm_collectiondate || '',
+    createdOn: row.createdon || '',
     method,
     methodLabel,
     bankAccount: lookupLabel(r, 'cfm_bankaccountname', '_cfm_bankaccount_value'),
     net: n(row.cfm_collectedamountnet),
+    grossAmount: n(row.cfm_grossamount),
     proof: row.cfm_proof || '',
     // cfm_arcomments is the AR reviewer's note from the approve/reject dialog
     // (ConfirmModal) — it must win over the Collection team's original

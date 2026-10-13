@@ -13,6 +13,9 @@ interface FilterBarProps {
   status: string;
   onStatusChange: (value: string) => void;
   statusOptions: string[];
+  month: string;
+  onMonthChange: (value: string) => void;
+  monthOptions: string[];
   onClear: () => void;
   onReload: () => void;
   showing: number;
@@ -31,6 +34,9 @@ export function FilterBar({
   status,
   onStatusChange,
   statusOptions,
+  month,
+  onMonthChange,
+  monthOptions,
   onClear,
   onReload,
   showing,
@@ -70,6 +76,15 @@ export function FilterBar({
       <select className="acc-f" value={status} onChange={(e) => onStatusChange(e.target.value)}>
         <option value="">All Statuses</option>
         {statusOptions.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+
+      <select className="acc-f" value={month} onChange={(e) => onMonthChange(e.target.value)}>
+        <option value="">All Months (Created On)</option>
+        {monthOptions.map((option) => (
           <option key={option} value={option}>
             {option}
           </option>

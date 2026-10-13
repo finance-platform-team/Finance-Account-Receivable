@@ -57,7 +57,7 @@ export function PaymentTermFormModal({ open, editing, submitting, onClose, onSub
       <aside className={`acc-drawer${open ? ' on' : ''}`}>
         <div className="acc-dhead">
           <h2>
-            <i
+            <Icon
               className={`fa-solid ${isEdit ? 'fa-pen' : 'fa-plus'}`}
               style={{ color: 'var(--gold)', fontSize: 16 }}
             />

@@ -22,6 +22,7 @@ export interface PlanRow {
   claimsissue: number;
   stopped: number;
   agreedrecon: number;
+  notDue: number;
   totalOutstanding: number;
   rejections: number;
   outstandingRej: number;
@@ -30,18 +31,21 @@ export interface PlanRow {
   targetPercentage: number | null;
   achievement: number | null;
   collected: number;
+  collectedViaPowerApp: number;
   tax: number;
   collectedPlus: number;
 }
 
 export interface PlanTotals {
   agreedrecon: number;
+  notDue: number;
   totalOutstanding: number;
   rejections: number;
   outstandingRej: number;
   totalDues: number;
   targetPlan: number;
   collected: number;
+  collectedViaPowerApp: number;
   collectedPlus: number;
 }
 

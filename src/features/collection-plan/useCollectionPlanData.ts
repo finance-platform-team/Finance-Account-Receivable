@@ -5,6 +5,7 @@ import type { Cfm_aragings, Cfm_aragingsBase } from '../../generated/models/Cfm_
 import type { Cfm_insurancecompanies } from '../../generated/models/Cfm_insurancecompaniesModel';
 import { buildInsuranceCompanyLookup, normalizePlanRow } from './normalize';
 import type { InsuranceCompanyLookup } from './normalize';
+import { loadDisputeFlagSet } from './disputeFlags';
 import type { PlanRow } from './types';
 
 const ACTIVE_FILTER = 'statecode eq 0';
@@ -25,14 +26,18 @@ async function loadCompanies(): Promise<Cfm_insurancecompanies[]> {
 
 interface UseCollectionPlanDataResult {
   rows: PlanRow[];
+  disputeFlags: Set<string>;
   loading: boolean;
   error: string | null;
   reload: () => void;
   updateRow: (id: string, patch: Partial<Omit<Cfm_aragingsBase, 'cfm_aragingid'>>) => Promise<void>;
 }
 
+const EMPTY_FLAG_SET: Set<string> = new Set();
+
 export function useCollectionPlanData(): UseCollectionPlanDataResult {
   const [rows, setRows] = useState<PlanRow[]>([]);
+  const [disputeFlags, setDisputeFlags] = useState<Set<string>>(EMPTY_FLAG_SET);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const reloadToken = useRef(0);
@@ -63,9 +68,15 @@ export function useCollectionPlanData(): UseCollectionPlanDataResult {
       const companies = await loadCompanies();
       if (token !== reloadToken.current) return;
 
+      // Dispute flags are a purely additive overlay — if that query fails,
+      // fall back to no flags rather than blocking the whole grid from loading.
+      const flagSet = await loadDisputeFlagSet(companies).catch(() => EMPTY_FLAG_SET);
+      if (token !== reloadToken.current) return;
+
       const companyByCode = buildInsuranceCompanyLookup(companies);
       companyByCodeRef.current = companyByCode;
       setRows(all.map((row) => normalizePlanRow(row, companyByCode)));
+      setDisputeFlags(flagSet);
     } catch (err) {
       if (token !== reloadToken.current) return;
       setError(err instanceof Error ? err.message : 'Unknown error loading the Collection Plan.');
@@ -90,5 +101,5 @@ export function useCollectionPlanData(): UseCollectionPlanDataResult {
     setRows((prev) => prev.map((r) => (r.id === id ? updated : r)));
   }, []);
 
-  return { rows, loading, error, reload: load, updateRow };
+  return { rows, disputeFlags, loading, error, reload: load, updateRow };
 }
